@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+</head>
+<body>
+<h1>This is main page</h1>
+<p>
+    <span sec:authorize="isAuthenticated()">欢迎您，</span>
+    <span sec:authentication="name"></span>&nbsp;&nbsp;
+    <span>我要<a th:href="@{/logout?token={token}(token=${param.token})}">注销</a></span>
+</p>
+<p>
+    <span>您的角色</span>
+    <span sec:authorize="hasRole('admin')">管理员</span>
+    <span sec:authorize="hasRole('user')">普通用户</span>
+</p>
+<div>
+    <p>用户管理</p>
+    <dl>
+        <dd><a sec:authorize="hasAuthority('user:pageQuery')"
+               th:href="@{/users/pageQuery?token={token}(token=${param.token})}" target="_blank">分页查询用户</a>
+        </dd>
+        <dd><a sec:authorize="hasAuthority('user:get')"
+               th:href="@{/users/get?token={token}(token=${param.token})}"
+               target="_blank">获取指定用户</a></dd>
+        <dd><a sec:authorize="hasAuthority('user:create')"
+               th:href="@{/users/create?token={token}(token=${param.token})}" target="_blank">新增用户</a></dd>
+        <dd><a sec:authorize="hasAuthority('user:update')"
+               th:href="@{/users/update?token={token}(token=${param.token})}" target="_blank">修改用户</a></dd>
+        <dd><a sec:authorize="hasAuthority('user:delete')"
+               th:href="@{/users/delete?token={token}(token=${param.token})}" target="_blank">删除用户</a></dd>
+        <dt>测试无权限访问</dt>
+        <dd><a th:href="@{/users/pageQuery?token={token}(token=${param.token})}" target="_blank">分页查询用户</a></dd>
+        <dd><a th:href="@{/users/get?token={token}(token=${param.token})}" target="_blank">获取指定用户</a></dd>
+        <dd><a th:href="@{/users/create?token={token}(token=${param.token})}" target="_blank">新增用户</a></dd>
+        <dd><a th:href="@{/users/update?token={token}(token=${param.token})}" target="_blank">修改用户</a></dd>
+        <dd><a th:href="@{/users/delete?token={token}(token=${param.token})}" target="_blank">删除用户</a></dd>
+    </dl>
+</div>
+<p>
+    <!-- TODO: 判断用户是否拥有访问 sec:authorize-url 路径的权限，若无权限链接不显示。此处不符合预期？ -->
+    <!--<a href="/uuap" sec:authorize-url="/uuap">统一用户管理系统</a>
+    <a href="/wfap" sec:authorize-url="/wfap">工作流管理系统</a>-->
+</p>
+</body>
+</html>

@@ -1,0 +1,21 @@
+server:
+  port: 80
+spring:
+  cloud:
+    gateway:
+      enabled: true
+      routes:
+        # fastdfs, 文件上传、下载、删除
+        - id: spring-boot-fastdfs
+          uri: http://localhost:9002
+          predicates:
+            - Path=/fastdfs/**
+          filters:
+            - StripPrefix=1
+        # fastdfs, 在线预览
+        - id: fastdfs-nginx
+          uri: http://192.168.1.21:80
+          predicates:
+            - Path=/online/preview/**
+          filters:
+            - StripPrefix=2

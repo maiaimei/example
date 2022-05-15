@@ -1,0 +1,14 @@
+# 访问地址： /swagger-ui/index.html
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher # 解决启动时swagger报错
+
+springfox:
+  enabled: true
+  documentation:
+    swagger-ui:
+      enabled: true
+      title: spring-boot-mybatis api document
+      description: This is a restful api document of spring-boot-mybatis.
+      version: 1.0.0

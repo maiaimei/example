@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "1222d12e-050f-49dd-bb29-69d19e2b907c",
+      "nickname": "初冬十月",
+      "username": "maiaimei",
+      "password": "123"
+    },
+    {
+      "nickname": "艾美",
+      "username": "maiam",
+      "password": "123",
+      "id": "92060fea-ccf8-4809-aba0-527b88747584"
+    }
+  ],
+  "roles": [
+    {
+      "id": "85a8e47b-fe59-427b-bcc1-60dbd16dbe50",
+      "name": "超级管理员"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+fdfs:
+  connect-timeout: 1000
+  so-timeout: 3000
+  thumb-image:
+    width: 60
+    height: 60
+  tracker-list:
+    - 192.168.1.21:22122

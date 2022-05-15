@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  servlet:
+    # 解决静态页面中文乱码
+    encoding:
+      enabled: true
+      force: true
+      charset: utf-8
+
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: debug
+  # logging.file.path 和 logging.file.name 同时存在时，只有 logging.file.name 生效
+#  file:
+#    path: E:\logs # 日志文件名缺省值spring.log
+#    name: application.log
+
+SFID:
+  datacenterId: 2
+  workerId: 2
+
+spring:
+  profiles:
+    include: swagger

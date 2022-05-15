@@ -1,0 +1,210 @@
+{
+	"info": {
+		"_postman_id": "cb27caea-9a88-453d-8cef-97874cec7fe5",
+		"name": "spring-security-oauth2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "授权码模式",
+			"item": [
+				{
+					"name": "获取授权码",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}:{{port}}/oauth/authorize?response_type=code&client_id=admin&redirect_url=http://www.baidu.com&scope=all",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"oauth",
+								"authorize"
+							],
+							"query": [
+								{
+									"key": "response_type",
+									"value": "code"
+								},
+								{
+									"key": "client_id",
+									"value": "admin"
+								},
+								{
+									"key": "redirect_url",
+									"value": "http://www.baidu.com"
+								},
+								{
+									"key": "scope",
+									"value": "all"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "通过授权码获取令牌",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "12345",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "authorization_code",
+									"type": "default"
+								},
+								{
+									"key": "code",
+									"value": "CccGqZ",
+									"type": "default"
+								},
+								{
+									"key": "client_id",
+									"value": "admin",
+									"type": "default"
+								},
+								{
+									"key": "redirect_url",
+									"value": "http://www.baidu.com",
+									"type": "default"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{host}}:{{port}}/oauth/token",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"oauth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "密码模式",
+			"item": [
+				{
+					"name": "获取令牌",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "12345",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "default"
+								},
+								{
+									"key": "username",
+									"value": "maiaimei",
+									"type": "default"
+								},
+								{
+									"key": "password",
+									"value": "12345",
+									"type": "default"
+								},
+								{
+									"key": "scope",
+									"value": "all",
+									"type": "default"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{host}}:{{port}}/oauth/token",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"oauth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "通过令牌获取资源",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "4a556ac5-6a87-404f-902e-34007c8a3906",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{host}}:{{port}}/users/getCurrentUser",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"users",
+						"getCurrentUser"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,11 @@
+server:
+  port: 9001
+  servlet:
+    # 解决静态页面中文乱码
+    encoding:
+      enabled: true
+      force: true
+      charset: utf-8
+spring:
+  profiles:
+    include: h2,mybatis-plus,swagger

@@ -1,0 +1,15 @@
+# 打印SQL方式一
+#logging:
+#  level:
+#    cn.maiaimei.example.mapper.UserMapper: debug
+
+# 打印SQL方式二
+#mybatis:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:mapper/*.xml

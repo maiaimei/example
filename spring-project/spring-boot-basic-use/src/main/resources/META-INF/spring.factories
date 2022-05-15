@@ -1,0 +1,14 @@
+#org.springframework.context.ApplicationListener=\
+#  cn.maiaimei.example.ael.listener.MyApplicationStartingEventListener,\
+#  cn.maiaimei.example.ael.listener.MyApplicationEnvironmentPreparedEventListener,\
+#  cn.maiaimei.example.ael.listener.MyApplicationContextInitializedEventListener,\
+#  cn.maiaimei.example.ael.listener.MyApplicationPreparedEventListener,\
+#  cn.maiaimei.example.ael.listener.MyApplicationStartedEventListener,\
+#  cn.maiaimei.example.ael.listener.MyAvailabilityChangeEventListener,\
+#  cn.maiaimei.example.ael.listener.MyApplicationReadyEventListener,\
+#  cn.maiaimei.example.ael.listener.MyApplicationFailedEventListener,\
+#  cn.maiaimei.example.ael.listener.MyWebServerInitializedEventListener,\
+#  cn.maiaimei.example.ael.listener.MyContextRefreshedEventListener,\
+#  cn.maiaimei.example.ael.listener.custom.MyApplicationEventListener3,\
+#  cn.maiaimei.example.ael.listener.custom.MyApplicationEventListener4,\
+#  cn.maiaimei.example.ael.listener.custom.MyApplicationEventListener5

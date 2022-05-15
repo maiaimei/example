@@ -1,0 +1,15 @@
+# /swagger-ui/index.html
+
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher # 解决启动时swagger报错
+
+springfox:
+  enabled: true
+  documentation:
+    swagger-ui:
+      enabled: true
+      title: Spring Boot API Document
+      description: This is a restful api document of Spring Boot.
+      version: 1.0.0

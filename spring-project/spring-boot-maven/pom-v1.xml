@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.maiaimei.aaa.demo.example</groupId>
+    <artifactId>spring-boot-maven</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <!-- override individual dependencies by overriding a property -->
+        <slf4j.version>1.7.36</slf4j.version>
+    </properties>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.3</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--
+            https://docs.spring.io/spring-boot/docs/current/reference/html/using.html#using.devtools
+
+            Developer tools are automatically disabled when running a fully packaged application.
+            If your application is launched from java -jar or if it is started from a special classloader,
+            then it is considered a “production application”.
+            You can control this behavior by using the spring.devtools.restart.enabled system property.
+            To enable devtools, irrespective of the classloader used to launch your application,
+            set the -Dspring.devtools.restart.enabled=true system property.
+            This must not be done in a production environment where running devtools is a security risk.
+            To disable devtools, exclude the dependency or set the -Dspring.devtools.restart.enabled=false system property.
+         -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                To create an executable jar, we need to add the spring-boot-maven-plugin to our pom.xml
+                The spring-boot-starter-parent POM includes <executions> configuration to bind the repackage goal.
+                If you do not use the parent POM, you need to declare this configuration yourself.
+                See the plugin documentation for details.
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- spring-boot-maven-plugin need to add pluginRepositories element if use a milestone or snapshot release. -->
+    <!--<pluginRepositories>
+        <pluginRepository>
+            <id>spring-snapshots</id>
+            <url>https://repo.spring.io/snapshot</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <url>https://repo.spring.io/milestone</url>
+        </pluginRepository>
+    </pluginRepositories>-->
+
+</project>

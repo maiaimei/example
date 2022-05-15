@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,userEntity-scalable=no"/>
+    <title>文件管理</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 5px;
+        }
+
+        td.op a:not(:last-child) {
+            margin-right: 20px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <thead>
+    <tr>
+        <th>文件</th>
+        <th>大小</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item: ${records}">
+        <td th:text="${item.originalFilename}"></td>
+        <td class="text-center" th:text="${item.size}"></td>
+        <td class="op text-center">
+            <a th:if="${item.type}=='png' or ${item.type}=='jpg' or ${item.type}=='jpeg' or ${item.type}=='gif' or ${item.type}=='bmp' or ${item.type}=='pdf'"
+               th:href="@{http://localhost/online/preview/{groupName}/{path}(groupName=${item.groupName},path=${item.path})}"
+               target="_blank">预览</a>
+            <a th:href="@{http://localhost/fastdfs/fastdfs/download/{id}(id=${item.id})}"
+               target="_blank">下载</a>
+            <a th:href="@{http://localhost/fastdfs/fastdfs/delete/{id}(id=${item.id})}"
+               target="_blank">删除</a>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3" class="text-center">
+            <a th:href="@{http://localhost/fastdfs/upload}" target="_blank">上传文件</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

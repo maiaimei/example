@@ -1,0 +1,24 @@
+server:
+  port: 9002
+  servlet:
+    # 解决静态页面中文乱码
+    encoding:
+      enabled: true
+      force: true
+      charset: utf-8
+
+spring:
+  thymeleaf:
+    # 静态资源热部署
+    cache: false
+  profiles:
+    include: h2,mybatis-plus,fastdfs
+  servlet:
+    multipart:
+      # 设置单个文件大小
+      max-file-size: 300MB
+      # 设置单次请求文件总大小
+      max-request-size: 900MB
+
+app:
+  upload-location: E:/app/upload

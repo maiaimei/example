@@ -1,0 +1,6 @@
+spring:
+  profiles:
+    include: h2,mybatis-plus
+  thymeleaf:
+    # 静态资源热部署
+    cache: false
