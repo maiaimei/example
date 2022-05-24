@@ -15,9 +15,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 @EnableGlobalResponse
 //@ServletComponentScan
 @SpringBootApplication
-public class BasicUseApplication8080 {
+public class SpringBootDemoApplication {
     public static void main(String[] args) {
-        ConfigurableApplicationContext applicationContext = SpringApplication.run(BasicUseApplication8080.class, args);
+        ConfigurableApplicationContext applicationContext = SpringApplication.run(SpringBootDemoApplication.class, args);
 
 //        System.out.println("==================================================");
 //

@@ -187,6 +187,162 @@ Aware调用链：
 
 ![](./images/20220313135230.png)
 
+# 配置文件
+
+## 配置文件优先级
+
+![](./images/20220524222208.png)
+
+## 多环境配置
+
+<span style="color:red;font-weight:bold;">单一配置文件多环境配置，不同环境以“---”分隔</span>
+
+SpringBoot2.4.2之前写法
+
+```yaml
+# 默认配置
+spring:
+  profiles:
+    active: test # 激活测试环境
+---
+# 开发环境
+spring:
+  profiles: dev
+server:
+  port: 8081
+---
+# 测试环境
+spring:
+  profiles: test
+server:
+  port: 8082
+---
+# 生产环境
+spring:
+  profiles: prod
+server:
+  port: 8083
+```
+
+SpringBoot2.4.2及之后写法
+
+```yaml
+# 默认配置
+spring:
+  profiles:
+    active: test  # 激活测试环境
+    include: swagger
+---
+# 开发环境
+spring:
+  config:
+    activate:
+      on-profile: dev
+server:
+  port: 8081
+---
+# 测试环境
+spring:
+  config:
+    activate:
+      on-profile: test
+server:
+  port: 8082
+---
+# 生产环境
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: 8083
+```
+
+<span style="color:red;font-weight:bold;">多个配置文件多环境配置（一）</span>
+
+application.yml
+
+```yaml
+# 默认配置
+spring:
+  profiles:
+  	# 激活测试环境
+    active: test
+    # 导入其他配置
+    include: swagger
+```
+
+application-test.yml，application-dev.yml、application-uat.yml、application-prod.yml以此类推。
+
+```yaml
+# 测试环境
+spring:
+  config:
+    activate:
+      on-profile: test
+server:
+  port: 8082
+```
+
+<span style="color:red;font-weight:bold;">多个配置文件多环境配置（二）</span>
+
+```yaml
+spring:
+  profiles:
+  	# 激活开发环境
+    active: dev
+    # 多环境配置
+    group:
+      # 本地环境（测试用例）
+      local: localH2,mybatisplus,swagger
+      # 开发环境（默认）
+      dev: devH2,mybatisplus,swagger
+      # 测试环境
+      test: devH2,mybatisplus,swagger
+      # 验收测试环境
+      uat: devH2,mybatisplus,swagger
+      # 生产环境
+      prod: devH2,mybatisplus,swagger
+```
+
+<span style="color:red;font-weight:bold;">多个配置文件多环境配置（三）</span>
+
+```yaml
+spring:
+  profiles:
+    # 激活XX环境
+    active: dev
+    # 导入公共配置
+    include: mybatisplus,swagger
+    # 多环境配置
+    group:
+      # 本地环境（测试用例）
+      local: localH2
+      # 开发环境（默认）
+      dev: devH2
+      # 测试环境
+      test: testH2
+      # 验收测试环境
+      uat: uatH2
+      # 生产环境
+      prod: prodH2
+```
+
+<span style="color:red;font-weight:bold;">spring.profiles.active 和 spring.profiles.include</span>
+
+1. spring.profiles.active 与环境有关的，spring.profiles.include 与环境无关的。
+
+2. The properties from spring.profile.include override default properties. The properties from active profiles override spring.profile.include and default properties.
+
+3. spring.profiles.include 用于抽取公共配置，比如h2，mybatis-plus，redis等等
+
+   ```yaml
+   spring:
+     profiles:
+       # 导入其他配置（本处以eureka，feign为例）
+       include: eureka,feign
+   ```
+
 # 接口返回值统一处理
 
 # 异常处理
