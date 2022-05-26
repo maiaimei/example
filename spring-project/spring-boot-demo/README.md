@@ -105,7 +105,7 @@ org.springframework.context.ApplicationListener key, as shown in the following e
 
 ## 内置事件
 
-![](./images/20220313122846.png)
+<img src="./images/20220313122846.png" />
 
 Application events are sent in the following order, as your application runs:
 
@@ -167,7 +167,7 @@ Filter的生命周期由Servlet容器管理，而拦截器则可以通过IoC容�
 
 Aware，能够感知的，实现XxxAware接口的类，能够获取到Xxx的功能。
 
-![](./images/20220313133700.png)
+<img src="./images/20220313133700.png" />
 
 常用Aware：
 
@@ -185,13 +185,15 @@ Aware，能够感知的，实现XxxAware接口的类，能够获取到Xxx的功�
 
 Aware调用链：
 
-![](./images/20220313135230.png)
+<img src="./images/20220313135230.png" />
 
 # 配置文件
 
-## 配置文件优先级
+## 配置优先级
 
-![](./images/20220524222208.png)
+<img src="./images/20220524222208.png" />
+
+<img src="./images/20220526091916.png" />
 
 ## 多环境配置
 
@@ -330,11 +332,15 @@ spring:
 
 <span style="color:red;font-weight:bold;">spring.profiles.active 和 spring.profiles.include</span>
 
-1. spring.profiles.active 与环境有关的，spring.profiles.include 与环境无关的。
+```spring.profiles.active``` 用于切换多环境（选择目前激活的是哪个环境）；
+
+```spring.profiles.include``` 用于引入公共的配置文件。
+
+1. ```spring.profiles.active``` 与环境有关的，```spring.profiles.include``` 与环境无关的。
 
 2. The properties from spring.profile.include override default properties. The properties from active profiles override spring.profile.include and default properties.
 
-3. spring.profiles.include 用于抽取公共配置，比如h2，mybatis-plus，redis等等
+3. ```spring.profiles.include``` 用于抽取公共配置，比如h2，mybatis-plus，redis等等
 
    ```yaml
    spring:
@@ -342,6 +348,31 @@ spring:
        # 导入其他配置（本处以eureka，feign为例）
        include: eureka,feign
    ```
+
+## 命令行参数
+
+启动Spring Boot项目时传递参数，有三种参数形式：
+
+1. 选项参数（见 <span style="color:red;font-weight:bold;">java -jar xxx.jar  --xxx=yyy</span>）
+2. 非选项参数（如 <span style="color:red;font-weight:bold;">java -jar xxx.jar xxx yyy</span>）
+3. 系统参数（见 <span style="color:red;font-weight:bold;">java -Dxxx=yyy -jar xxx.jar</span>）
+
+<span style="color:red;font-weight:bold;">java -Dxxx=yyy -jar xxx.jar</span>
+
+1. -Dxxx=yyy必须在-jar之前；
+2. 此法增加的参数被设置到应用的系统属性中，可通过System.getProperty(“server.port”)获取。
+
+<span style="color:red;font-weight:bold;">java -jar xxx.jar  --xxx=yyy</span>
+
+1. --xxx=yyy必须在-jar之后；
+2. 此法增加的参数属于命令行参数，会作为SpringBoot启动的main方法的String[] args参数；
+3. 有时在Windows下无效。
+
+If you need to access the application arguments that were passed to SpringApplication.run(…), you can inject a org.springframework.boot.ApplicationArguments bean. **The ApplicationArguments interface provides access to both the raw String[] arguments as well as parsed option and non-option arguments**, as shown in the following example:
+
+<img src="./images/20220526131916.png" >
+
+[https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.spring-application.application-arguments](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.spring-application.application-arguments)
 
 # 接口返回值统一处理
 
@@ -474,7 +505,7 @@ public class HandlerExceptionResolverComposite implements HandlerExceptionResolv
 
 By default, if you use the “Starters”, Logback is used for logging.
 
-![](./images/20220326212707.png)
+<img src="./images/20220326212707.png" />
 
 By default, Spring Boot logs only to the console and does not write log files. If you want to write log files in
 addition to the console output, you need to set a `logging.file.name` or `logging.file.path` property (for example, in
@@ -520,61 +551,82 @@ public interface HandlerMethodReturnValueHandler {
 }
 ```
 
-# Validation
+# Q & A
 
-[SpringBoot 实现各种参数校验](https://www.cnblogs.com/huanshilang/p/15923045.html)
+1. 配置URL忽略大小写，解决 405 Method Not Allowed
 
-# Swagger
+   ```java
+   @Configuration
+   public class WebConfig extends WebMvcConfigurationSupport {
+       @Override
+       public void configurePathMatch(PathMatchConfigurer configurer) {
+           AntPathMatcher matcher = new AntPathMatcher();
+           matcher.setCaseSensitive(false);
+           configurer.setPathMatcher(matcher);
+       }
+   }
+   ```
 
-[https://zhuanlan.zhihu.com/p/265492734](https://zhuanlan.zhihu.com/p/265492734)
+2. [Spring Boot返回前端Long型丢失精度](https://www.jianshu.com/p/f46699ea331a?hmsr=toutiao.io&utm_medium=toutiao.io&utm_source=toutiao.io)
 
-# 单元测试
+   问题：数据库中存储的是：`812782555915911412`，显示出来却成了`812782555915911400`，后面2位变成了0。
 
-JUnit 5作为测试框架，Mockito来模拟，AssertJ建立断言，Lombok减少冗余代码
+   原因：JavaScript中数字的精度是有限的，Java的Long类型的数字超出了JavaScript的处理范围。
 
-[https://blog.csdn.net/darkjune/article/details/114256161](https://blog.csdn.net/darkjune/article/details/114256161)
+   解决：让Javascript把数字当成字符串进行处理。
 
-[https://reflectoring.io/spring-boot-web-controller-test/](https://reflectoring.io/spring-boot-web-controller-test/)
+   * Jackson有个配置参数WRITE_NUMBERS_AS_STRINGS，可以强制将所有数字全部转成字符串输出。这种方式的优点是使用方便，不需要调整代码；缺点是颗粒度太大。
 
-# Question
+     ```yaml
+     spring:
+       jackson:
+         generator:
+           write_numbers_as_strings: true
+     ```
 
-## 配置URL忽略大小写，解决 405 Method Not Allowed
+   * 使用 `@JsonSerialize(using=ToStringSerializer.class)`这种方式的优点是颗粒度可以很精细；缺点同样是太精细，如果需要调整的字段比较多会比较麻烦。
 
-```java
-@Configuration
-public class WebConfig extends WebMvcConfigurationSupport {
-    @Override
-    public void configurePathMatch(PathMatchConfigurer configurer) {
-        AntPathMatcher matcher = new AntPathMatcher();
-        matcher.setCaseSensitive(false);
-        configurer.setPathMatcher(matcher);
-    }
-}
-```
+   * 自定义ObjectMapper
 
-## [Spring Boot返回前端Long型丢失精度](https://www.jianshu.com/p/f46699ea331a?hmsr=toutiao.io&utm_medium=toutiao.io&utm_source=toutiao.io)
+     ```java
+     @Bean("jackson2ObjectMapperBuilderCustomizer")
+     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+         Jackson2ObjectMapperBuilderCustomizer customizer = new Jackson2ObjectMapperBuilderCustomizer() {
+             @Override
+             public void customize(Jackson2ObjectMapperBuilder jacksonObjectMapperBuilder) {
+                 jacksonObjectMapperBuilder.serializerByType(Long.class, ToStringSerializer.instance)
+                         .serializerByType(Long.TYPE, ToStringSerializer.instance);
+             }
+         };
+         return customizer;
+     }
+     ```
 
-## WebMvcConfigurer 与 WebMvcConfigurationSupport
+   * 使用HttpMessageConverter
 
-[WebMvcConfigurer 与 WebMvcConfigurationSupport避坑指南](https://blog.csdn.net/z69183787/article/details/108587048)
+3. WebMvcConfigurer vs WebMvcConfigurationSupport
 
-[WebMvcConfigurationSupport和WebMvcConfigurer的区别](https://blog.csdn.net/kehonghg/article/details/81180731)
+   [WebMvcConfigurer 与 WebMvcConfigurationSupport避坑指南](https://blog.csdn.net/z69183787/article/details/108587048)
 
-## regex vs ant
+   [WebMvcConfigurationSupport和WebMvcConfigurer的区别](https://blog.csdn.net/kehonghg/article/details/81180731)
 
-regex expression
+4. regex vs ant
 
-| 通配符 | 说明                 |
-| ------ | -------------------- |
-| .      | 除换行符的任意单字符 |
-| ?      | 匹配零个或一个       |
-| +      | 匹配一个或多个       |
-| *      | 匹配零个或多个       |
+   regex expression
 
-ant风格
+   | 通配符 | 说明                 |
+   | ------ | -------------------- |
+   | .      | 除换行符的任意单字符 |
+   | ?      | 匹配零个或一个       |
+   | +      | 匹配一个或多个       |
+   | *      | 匹配零个或多个       |
 
-| 通配符 | 说明               |
-| ------ | ------------------ |
-| ?      | 匹配一个字符       |
-| *      | 匹配零个或多个字符 |
-| **     | 匹配零个或多个目录 |
+      ant style
+
+   | 通配符 | 说明               |
+   | ------ | ------------------ |
+   | ?      | 匹配一个字符       |
+   | *      | 匹配零个或多个字符 |
+   | **     | 匹配零个或多个目录 |
+
+4. TODO
