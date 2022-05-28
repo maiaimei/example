@@ -1,6 +1,6 @@
 package cn.maiaimei.example.model;
 
-import cn.maiaimei.framework.spring.boot.validation.ValidationGroup;
+import cn.maiaimei.framework.validation.group.ValidationGroup;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

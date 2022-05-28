@@ -4,7 +4,7 @@ import cn.maiaimei.example.model.UserRequest;
 import cn.maiaimei.example.model.UserResponse;
 import cn.maiaimei.example.service.UserService;
 import cn.maiaimei.framework.beans.PageResult;
-import cn.maiaimei.framework.spring.boot.validation.ValidationGroup;
+import cn.maiaimei.framework.validation.group.ValidationGroup;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

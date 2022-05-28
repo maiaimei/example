@@ -1,6 +1,6 @@
 package cn.maiaimei.example.model;
 
-import cn.maiaimei.framework.spring.boot.validation.ValidationGroup;
+import cn.maiaimei.framework.validation.group.ValidationGroup;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.annotations.ApiModel;

@@ -291,7 +291,7 @@ server:
 ```yaml
 spring:
   profiles:
-  	# 激活开发环境
+    # 激活XX环境
     active: dev
     # 多环境配置
     group:
