@@ -1,31 +1,10 @@
-# editor directories and files
-.idea
-.vscode
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-*.iml
-*.ipr
-*.iws
-*.ini
-
-# build tools: maven & gradle
-.gradle
-build
-out
-target
-
-# java
-*.class
-
-# node
-.nyc_output
 node_modules
-coverage
-dist
+/dist
+
+# local env files
+.env.local
+.env.*.local
 
 # log files
 *.log
@@ -36,6 +15,28 @@ pnpm-debug.log*
 logs
 log
 
-# local env files
-.env.local
-.env.*.local
+# editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.iml
+*.ipr
+*.iws
+*.ini
+
+# maven & gradle
+.gradle
+build
+out
+target
+
+# java
+*.class
+
+# node
+.nyc_output
+coverage

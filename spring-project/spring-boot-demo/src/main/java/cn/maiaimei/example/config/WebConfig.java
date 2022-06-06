@@ -4,7 +4,6 @@ import cn.maiaimei.framework.spring.boot.web.filter.RequestResponseLoggingFilter
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.web.filter.AbstractRequestLoggingFilter;
@@ -15,8 +14,8 @@ import java.util.Arrays;
 
 @Slf4j
 @Configuration
-public class WebLogConfig {
-    @Bean
+public class WebConfig {
+    //@Bean
     public FilterRegistrationBean requestResponseLoggingFilter() {
         RequestResponseLoggingFilter requestResponseLoggingFilter = new RequestResponseLoggingFilter();
         requestResponseLoggingFilter.setExcludeUris(Arrays.asList("/swagger"));
