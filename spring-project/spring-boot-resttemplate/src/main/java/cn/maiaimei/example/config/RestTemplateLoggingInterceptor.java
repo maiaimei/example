@@ -58,6 +58,6 @@ public class RestTemplateLoggingInterceptor implements ClientHttpRequestIntercep
     }
 
     private String formatLog(String key, Object value) {
-        return String.format("%15s: %s", key, value);
+        return String.format("%-15s: %s", key, value);
     }
 }
