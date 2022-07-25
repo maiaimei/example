@@ -1,6 +1,7 @@
-package cn.maiaimei.example.config;
+package cn.maiaimei.example.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -16,9 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class RestTemplateLoggingInterceptor implements ClientHttpRequestInterceptor {
+public class RestClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        // 添加请求头
+        HttpHeaders headers = request.getHeaders();
+        headers.add("Cookie", "SESSIONID=b8dd5bd9-9fb7-48cb-a86b-e079cb554fb8");
+
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         ClientHttpResponse response = execution.execute(request, body);
@@ -42,16 +47,15 @@ public class RestTemplateLoggingInterceptor implements ClientHttpRequestIntercep
             }
         }
 
+        // 记录请求响应日志
         List<String> list = new ArrayList<>();
         list.add(formatLog("RequestUri", request.getURI().toString()));
         list.add(formatLog("RequestMethod", request.getMethodValue()));
         list.add(formatLog("RequestHeaders", request.getHeaders()));
-        //list.add(formatLog("RequestParams", null));
         list.add(formatLog("RequestBody", new String(reqBody, StandardCharsets.UTF_8)));
         list.add(formatLog("ResponseStatus", response.getRawStatusCode()));
         list.add(formatLog("ResponseHeaders", response.getHeaders()));
         list.add(formatLog("ResponseBody", resBody.toString()));
-
         log.info("\n{}\ncompleted request in {} ms", String.join("\n", list), stopWatch.getTotalTimeMillis());
 
         return response;

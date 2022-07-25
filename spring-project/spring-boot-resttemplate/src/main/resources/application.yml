@@ -1,3 +1,7 @@
 global-config:
   response:
     show-trace: true
+
+#spring:
+#  jackson:
+#    default-property-inclusion: non_null

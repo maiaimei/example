@@ -1,4 +1,4 @@
-package cn.maiaimei.example.config;
+package cn.maiaimei.example.client;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,15 +11,16 @@ import java.util.List;
 
 @Configuration
 public class RestTemplateConfig {
-    @Bean
-    public RestTemplate restTemplate() {
+    @Bean("customRestTemplate")
+    public RestTemplate customRestTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         BufferingClientHttpRequestFactory bufferingClientHttpRequestFactory = new BufferingClientHttpRequestFactory(factory);
 
         RestTemplate restTemplate = new RestTemplate(bufferingClientHttpRequestFactory);
         List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
-        interceptors.add(new RestTemplateLoggingInterceptor());
+        interceptors.add(new RestClientHttpRequestInterceptor());
         restTemplate.setInterceptors(interceptors);
+        // restTemplate.setErrorHandler(new RestClientResponseErrorHandler());
         return restTemplate;
     }
 }

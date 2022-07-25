@@ -1,23 +1,20 @@
 package cn.maiaimei.example.controller;
 
-import cn.maiaimei.example.model.User;
+import cn.maiaimei.example.client.HttpClient;
+import cn.maiaimei.example.model.UserEntity;
 import cn.maiaimei.example.model.UserPagingQueryRequest;
-import cn.maiaimei.example.util.HttpClient;
 import cn.maiaimei.framework.beans.Result;
 import cn.maiaimei.framework.util.JSON;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @RestController
-@RequestMapping(("/api"))
+@RequestMapping(("/api/users"))
 public class ApiController {
     private static final String baseUrl = "http://localhost:8080/users";
     private static final String PAGING_QUERY_USER_ENDPOINT = "/pagingQuery";
@@ -25,42 +22,35 @@ public class ApiController {
     @Autowired
     private HttpClient httpClient;
 
-    @GetMapping(value = "/pageQuery", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<User> pageQuery(UserPagingQueryRequest request, @RequestHeader Map<String, String> headers) {
+    @GetMapping(value = "/pagingQuery", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<UserEntity> pagingQuery(UserPagingQueryRequest request, @RequestHeader Map<String, String> headers) {
         Map<String, Object> params = JSON.toMap(request);
-        Result<List<User>> result = httpClient.send(buildUrl(PAGING_QUERY_USER_ENDPOINT), headers, new ParameterizedTypeReference<Result<List<User>>>() {
+        Result<List<UserEntity>> result = httpClient.send(buildUrl(PAGING_QUERY_USER_ENDPOINT), headers, new ParameterizedTypeReference<Result<List<UserEntity>>>() {
         }, params);
-        log.info("{}", result);
         return result.getData();
     }
 
-    @GetMapping(value = "/pagingQuery", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result pagingQuery(UserPagingQueryRequest request, @RequestHeader Map<String, String> headers) {
-        Map<String, Object> params = JSON.toMap(request);
-        return httpClient.send(buildUrl(PAGING_QUERY_USER_ENDPOINT), headers, Result.class, params);
-    }
-
     @GetMapping("/{id}")
-    public Result<User> get(@PathVariable Long id) {
-        return httpClient.send(buildUrl("/" + id), new ParameterizedTypeReference<Result<User>>() {
+    public Result<UserEntity> get(@PathVariable Long id) {
+        return httpClient.get(buildUrl("/" + id), new ParameterizedTypeReference<Result<UserEntity>>() {
         });
     }
 
     @PostMapping
-    public Result<User> create(@RequestBody User user) {
-        return httpClient.send(baseUrl, user, new ParameterizedTypeReference<Result<User>>() {
+    public Result<UserEntity> create(@RequestBody UserEntity userEntity) {
+        return httpClient.post(baseUrl, userEntity, new ParameterizedTypeReference<Result<UserEntity>>() {
         });
     }
 
     @PutMapping
-    public Result<User> update(@RequestBody User user) {
-        return httpClient.exchange(baseUrl, HttpMethod.PUT, user, new ParameterizedTypeReference<Result<User>>() {
+    public Result<UserEntity> update(@RequestBody UserEntity userEntity) {
+        return httpClient.put(baseUrl, userEntity, new ParameterizedTypeReference<Result<UserEntity>>() {
         });
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        httpClient.exchange(buildUrl("/" + id), HttpMethod.DELETE, Void.class);
+        httpClient.delete(buildUrl("/" + id));
     }
 
     private String buildUrl(String path) {

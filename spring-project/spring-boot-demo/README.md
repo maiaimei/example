@@ -157,6 +157,8 @@ Filter的执行由Servlet容器回调完成，而拦截器通常通过动态代�
 
 Filter的生命周期由Servlet容器管理，而拦截器则可以通过IoC容器来管理，因此可以通过注入等方式来获取其他Bean的实例，因此使用会更方便。
 
+<img src="./images/20220723210146.png">
+
 [20年全新-Spring Boot 2.x从青铜到王者之钻石篇、filter、interceptor、listener、架构师、SpringBoot](https://www.bilibili.com/video/BV1oZ4y1K7hC)
 
 [Spring Boot实战：拦截器与过滤器](https://www.cnblogs.com/paddix/p/8365558.html)
@@ -548,6 +550,45 @@ public interface HandlerMethodReturnValueHandler {
 	boolean supportsReturnType(MethodParameter returnType);
 	void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception;
+}
+```
+
+# 忽略NULL属性值，不传递给前端
+
+## 局部解决
+
+使用 ```@JsonInclude``(JsonInclude.Include.NON_NULL)``` 标记在字段上
+
+## 全局解决
+
+在 yml 文件中添加配置
+
+```yaml
+spring:
+  jackson:
+    default-property-inclusion: non_null
+```
+
+# 前端Long字段精度丢失问题
+
+## 局部解决
+
+使用 ```@JsonSerialize(using = ToStringSerializer.class)``` 标记在字段上
+
+## 全局解决
+
+```java
+@Configuration
+public class JacksonConfig {
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addSerializer(Long.class, ToStringSerializer.instance)
+                .addSerializer(Long.TYPE, ToStringSerializer.instance);
+        objectMapper.registerModule(simpleModule);
+        return objectMapper;
+    }
 }
 ```
 
