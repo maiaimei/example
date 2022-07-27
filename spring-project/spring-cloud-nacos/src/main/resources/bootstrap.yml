@@ -1,0 +1,23 @@
+spring:
+  application:
+    # 配置应用名
+    name: spring-cloud-nacos
+  cloud:
+    nacos:
+      config:
+        # 配置 Nacos server 的地址
+        server-addr: 192.168.1.23:8848
+        # namespace, separation configuration of different environments. e.g. dev
+        namespace: 864ee127-efe0-482f-bd7f-8ea7bd74d63d
+        # 多配置集
+        extension-configs:
+          - group: DEFAULT_GROUP
+            # 多配置集，dataId要加上文件后缀，否则无法读取配置？？
+            data-id: spring-cloud-nacos-swagger.yaml
+            refresh: true
+          - group: DEFAULT_GROUP
+            data-id: spring-cloud-nacos-redis.yaml
+            refresh: true
+      discovery:
+        server-addr: 192.168.1.23:8848
+        namespace: 864ee127-efe0-482f-bd7f-8ea7bd74d63d

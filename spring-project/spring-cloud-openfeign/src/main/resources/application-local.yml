@@ -1,0 +1,11 @@
+# If you don’t want to use Eureka,
+# you can configure a list of servers in your external configuration using SimpleDiscoveryClient.
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            users-service:
+              - uri: http://localhost:8080
+              - uri: http://localhost:8081
