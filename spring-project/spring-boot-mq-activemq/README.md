@@ -1,0 +1,1 @@
+[https://docs.spring.io/spring-boot/docs/current/reference/html/messaging.html#messaging.jms.activemq](https://docs.spring.io/spring-boot/docs/current/reference/html/messaging.html#messaging.jms.activemq)
