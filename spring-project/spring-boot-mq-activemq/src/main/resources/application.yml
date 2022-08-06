@@ -4,3 +4,11 @@ spring:
     broker-url: tcp://192.168.1.19:61616
     user: admin
     password: admin
+    packages:
+      # 解决ObjectMessage解包（强转）时异常
+      # javax.jms.JMSException: Failed to build body from content.
+      # Serializable class not available to broker.
+      # Reason: java.lang.ClassNotFoundException: Forbidden class cn.maiaimei.example.User!
+      # This class is not trusted to be serialized as ObjectMessage payload.
+      # https://stackoverflow.com/questions/36619432/springboot-activemq-how-to-set-trusted-packages
+      trust-all: true
