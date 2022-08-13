@@ -12,3 +12,15 @@ spring:
       # This class is not trusted to be serialized as ObjectMessage payload.
       # https://stackoverflow.com/questions/36619432/springboot-activemq-how-to-set-trusted-packages
       trust-all: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+springfox:
+  enabled: true
+  documentation:
+    swagger-ui:
+      enabled: true
+      title: ActiveMQ Api Document
+      description: This is a restful api document of ActiveMQ.
+      version: 1.0.0
