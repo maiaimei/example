@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqls>
+    <sql key="user.insert">
+        insert into sys_user (id,nickname,username,password) values (?,?,?,?)
+    </sql>
+    <sql key="user.update">
+        update sys_user
+        set nickname=?,username=?,password=?
+        where id=?
+    </sql>
+</sqls>

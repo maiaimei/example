@@ -5,8 +5,8 @@ import cn.maiaimei.example.mapper.UserMapper;
 import cn.maiaimei.example.model.UserRequest;
 import cn.maiaimei.example.model.UserResponse;
 import cn.maiaimei.framework.exception.BusinessException;
-import cn.maiaimei.framework.spring.boot.beans.SFID;
 import cn.maiaimei.framework.util.BeanUtils;
+import cn.maiaimei.framework.util.SFID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
