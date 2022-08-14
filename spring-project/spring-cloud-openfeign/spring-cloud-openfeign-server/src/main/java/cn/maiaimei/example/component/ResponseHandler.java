@@ -29,7 +29,7 @@ public class ResponseHandler implements ResponseBodyAdvice<Object> {
     @SneakyThrows
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        log.info("response: {}", mapper.writeValueAsString(body));
+        log.info("response:{}", mapper.writeValueAsString(body));
         return body;
     }
 }

@@ -1,7 +1,5 @@
-package cn.maiaimei.example.config;
+package cn.maiaimei.example.component;
 
-import cn.maiaimei.example.component.RequestHandlerInterceptor;
-import cn.maiaimei.example.component.RequestWrapperFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

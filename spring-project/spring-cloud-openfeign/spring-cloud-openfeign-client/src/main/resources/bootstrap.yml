@@ -39,9 +39,4 @@ feign:
         readTimeout: 5000
         loggerLevel: full
         requestInterceptors:
-          - cn.maiaimei.example.component.FeignClientRequestInterceptor
-
-# 以下配置若开启，Nacos报错
-#logging:
-#  level:
-#    cn.maiaimei.example.client.UserClient: DEBUG
+          - cn.maiaimei.example.component.FeignRequestInterceptor

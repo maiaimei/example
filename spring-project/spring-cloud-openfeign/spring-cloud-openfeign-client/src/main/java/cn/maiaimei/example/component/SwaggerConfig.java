@@ -1,4 +1,4 @@
-package cn.maiaimei.example.config;
+package cn.maiaimei.example.component;
 
 import io.swagger.annotations.Api;
 import lombok.Data;
