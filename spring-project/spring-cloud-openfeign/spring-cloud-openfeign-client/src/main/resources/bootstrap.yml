@@ -1,0 +1,47 @@
+server:
+  port: 7777
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: spring-cloud-openfeign-client
+  #  profiles:
+  #    active: local
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.1.23:8848
+        # dev
+        namespace: 864ee127-efe0-482f-bd7f-8ea7bd74d63d
+        group: DEFAULT_GROUP
+  jackson:
+    default-property-inclusion: non_null
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+springfox:
+  enabled: true
+  documentation:
+    swagger-ui:
+      enabled: true
+      title: Spring Cloud OpenFeign Api Document
+      description: This is a restful api document of Spring Cloud OpenFeign.
+      version: 1.0-SNAPSHOT
+
+# openfeign
+feign:
+  client:
+    config:
+      users-service:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+        requestInterceptors:
+          - cn.maiaimei.example.component.FeignClientRequestInterceptor
+
+# 以下配置若开启，Nacos报错
+#logging:
+#  level:
+#    cn.maiaimei.example.client.UserClient: DEBUG

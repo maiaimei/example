@@ -13,7 +13,7 @@ spring:
         extension-configs:
           - group: DEFAULT_GROUP
             # 多配置集，dataId要加上文件后缀，否则无法读取配置？？
-            data-id: spring-cloud-nacos-swagger.yaml
+            data-id: spring-cloud-nacos-db.yaml
             refresh: true
           - group: DEFAULT_GROUP
             data-id: spring-cloud-nacos-redis.yaml

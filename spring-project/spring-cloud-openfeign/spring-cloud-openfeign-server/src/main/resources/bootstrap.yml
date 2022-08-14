@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: spring-cloud-openfeign-server
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.1.23:8848
+        # dev
+        namespace: 864ee127-efe0-482f-bd7f-8ea7bd74d63d
+        group: DEFAULT_GROUP

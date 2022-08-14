@@ -12,7 +12,7 @@
 
 ```shell
 tar -xvf nacos-server-$version.tar.gz
-cd nacos/bin
+cd /opt/nacos/bin
 
 # 启动命令(standalone代表着单机模式运行，非集群模式)
 sh startup.sh -m standalone
@@ -49,6 +49,26 @@ spring:
         # nacos config dataId name.
         name: spring-cloud-nacos
         file-extension: yaml
+```
+
+### 单配置集
+
+```yaml
+spring:
+  application:
+    # 配置应用名
+    name: spring-cloud-nacos
+  cloud:
+    nacos:
+      config:
+        # 配置 Nacos server 的地址
+        server-addr: 192.168.1.23:8848
+        # nacos config dataId name.
+        name: spring-cloud-nacos
+        file-extension: yaml
+        # namespace, separation configuration of different environments. e.g. dev
+        namespace: 864ee127-efe0-482f-bd7f-8ea7bd74d63d
+        group: DEFAULT_GROUP
 ```
 
 ### 多配置集
