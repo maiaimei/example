@@ -1,0 +1,18 @@
+@startuml
+
+' - private 私有
+' # protected 受保护
+' ~ package private 包内可见
+' + public 公有
+class Dummy {
+ -field1
+ #field2
+ ~field3
+ +field4
+ -method1()
+ #method2()
+ ~method3()
+ +method4()
+}
+
+@enduml

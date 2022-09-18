@@ -1,0 +1,29 @@
+@startuml
+
+'泛化关系（继承）：用空心三角形+实线表示。
+Class01 <|-- Class02
+Class29 ^-- Class30
+' 实现
+Class11 <|.. Class12
+Class17 ..|> Class18
+
+'聚合关系（aggregation）：聚合表示一种弱的’拥有‘关系，体现的是A对象可以包含B对象，但B对象不是A对象的一部分。。用空心的菱形+实线箭头表示。
+Class05 o-- Class06
+'组合关系（合成关系）：是一种强的’拥有‘关系，体现了严格的部分与整体的关系，部分和整体的生命周期一样。
+Class03 *-- Class04
+Class19 <--* Class20
+
+' 关联关系（association）：当一个类知道另一个类时，可以用关联。用实线箭头表示。
+Class13 --> Class14
+' 依赖关系（dependency），用虚线箭头表示
+Class15 ..> Class16
+
+Class07 .. Class08
+Class09 -- Class10
+Class21 #-- Class22
+Class23 x-- Class24
+Class25 }-- Class26
+Class27 +-- Class28
+
+
+@enduml
