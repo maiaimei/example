@@ -11,22 +11,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@TableName("t_user")
+@TableName("t_dictionary")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class Dictionary {
     @TableId(type = IdType.INPUT)
     @JsonSerialize(using = ToStringSerializer.class)
     Long id;
-    
-    @TableField
-    String nickname;
+
+    @TableId(type = IdType.INPUT)
+    @JsonSerialize(using = ToStringSerializer.class)
+    Long pid;
 
     @TableField
-    String username;
+    String dicKey;
 
     @TableField
-    String password;
+    String dicValue;
 }

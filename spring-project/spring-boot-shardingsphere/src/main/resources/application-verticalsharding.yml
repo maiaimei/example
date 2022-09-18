@@ -1,0 +1,30 @@
+########## 垂直分片-垂直分库（专库专用） ##########
+
+# 模式配置。可选配置：Memory、Standalone、Cluster
+spring.shardingsphere.mode.type=Memory
+
+  # 配置真实数据源
+spring.shardingsphere.datasource.names=ds_user,ds_order
+
+  # 配置第 1 个数据源
+spring.shardingsphere.datasource.ds_user.type=com.zaxxer.hikari.HikariDataSource
+spring.shardingsphere.datasource.ds_user.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.ds_user.jdbc-url=jdbc:mysql://192.168.1.12:3310/db_user
+spring.shardingsphere.datasource.ds_user.username=root
+spring.shardingsphere.datasource.ds_user.password=123
+
+  # 配置第 2 个数据源
+spring.shardingsphere.datasource.ds_order.type=com.zaxxer.hikari.HikariDataSource
+spring.shardingsphere.datasource.ds_order.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.ds_order.jdbc-url=jdbc:mysql://192.168.1.12:3311/db_order
+spring.shardingsphere.datasource.ds_order.username=root
+spring.shardingsphere.datasource.ds_order.password=123
+
+# 标准分片表配置
+# 由数据源名 + 表名组成，以小数点分隔。多个表以逗号分隔，支持 inline 表达式。
+# 缺省表示使用已知数据源与逻辑表名称生成数据节点，用于广播表（即每个库中都需要一个同样的表用于关联查询，多为字典表）或只分库不分表且所有库的表结构完全一致的情况
+spring.shardingsphere.rules.sharding.tables.t_user.actual-data-nodes=ds_user.t_user
+spring.shardingsphere.rules.sharding.tables.t_order.actual-data-nodes=ds_order.t_order
+
+  # 打印 SQL
+spring.shardingsphere.props.sql-show=true

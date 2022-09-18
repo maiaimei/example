@@ -1,0 +1,55 @@
+########## 水平分片 ##########
+
+# 模式配置。可选配置：Memory、Standalone、Cluster
+spring.shardingsphere.mode.type=Memory
+
+  # 配置真实数据源
+spring.shardingsphere.datasource.names=ds_order0,ds_order1
+
+  # 配置第 1 个数据源
+spring.shardingsphere.datasource.ds_order0.type=com.zaxxer.hikari.HikariDataSource
+spring.shardingsphere.datasource.ds_order0.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.ds_order0.jdbc-url=jdbc:mysql://192.168.1.12:3312/db_order
+spring.shardingsphere.datasource.ds_order0.username=root
+spring.shardingsphere.datasource.ds_order0.password=123
+
+  # 配置第 2 个数据源
+spring.shardingsphere.datasource.ds_order1.type=com.zaxxer.hikari.HikariDataSource
+spring.shardingsphere.datasource.ds_order1.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.ds_order1.jdbc-url=jdbc:mysql://192.168.1.12:3313/db_order
+spring.shardingsphere.datasource.ds_order1.username=root
+spring.shardingsphere.datasource.ds_order1.password=123
+
+# 标准分片表配置
+# 由数据源名 + 表名组成，以小数点分隔。多个表以逗号分隔，支持 inline 表达式。
+# 缺省表示使用已知数据源与逻辑表名称生成数据节点，用于广播表（即每个库中都需要一个同样的表用于关联查询，多为字典表）或只分库不分表且所有库的表结构完全一致的情况
+spring.shardingsphere.rules.sharding.tables.t_order.actual-data-nodes=ds_order{0..1}.t_order${0..1}
+spring.shardingsphere.rules.sharding.tables.t_order.actual-data-nodes=ds_order{0..1}.t_order_item${0..1}
+
+# 分库策略
+# 用于单分片键的标准分片场景
+# 分片列名称
+spring.shardingsphere.rules.sharding.tables.t_order.database-strategy.standard.sharding-column=user_id
+# 分片算法名称
+spring.shardingsphere.rules.sharding.tables.t_order.database-strategy.standard.sharding-algorithm-name=sharding_alg_mod
+
+# 分表策略，同分库策略
+spring.shardingsphere.rules.sharding.tables.t_order.table-strategy.standard.sharding-column=id
+spring.shardingsphere.rules.sharding.tables.t_order.table-strategy.standard.sharding-algorithm-name=sharding_alg_mod
+
+# 绑定表
+spring.shardingsphere.rules.sharding.binding-tables[0]=t_order,t_order_item
+
+# 广播表
+spring.shardingsphere.rules.sharding.broadcast-tables[0]=t_dic
+
+# 分片算法配置
+# 取模分片算法
+spring.shardingsphere.rules.sharding.sharding-algorithms.sharding_alg_mod.type=MOD
+spring.shardingsphere.rules.sharding.sharding-algorithms.sharding_alg_mod.props.sharding-count=2
+# 哈希取模分片算法
+spring.shardingsphere.rules.sharding.sharding-algorithms.sharding_alg_hash_mod.type=HASH_MOD
+spring.shardingsphere.rules.sharding.sharding-algorithms.sharding_alg_hash_mod.props.sharding-count=2
+
+  # 打印 SQL
+spring.shardingsphere.props.sql-show=true

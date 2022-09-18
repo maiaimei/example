@@ -1,7 +1,8 @@
-package cn.maiaimei.example.mapper;
+package cn.maiaimei.example;
 
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
+import cn.maiaimei.example.mapper.UserMapper;
 import cn.maiaimei.example.model.User;
 import cn.maiaimei.example.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @Slf4j
 @SpringBootTest
-public class UserMapperTest {
+public class ReadWriteSplittingTest {
     @Autowired
     private UserMapper userMapper;
     

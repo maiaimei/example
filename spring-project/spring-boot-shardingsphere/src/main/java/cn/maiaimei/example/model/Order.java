@@ -11,22 +11,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@TableName("t_user")
+import java.math.BigDecimal;
+
+@TableName("t_order")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class Order {
     @TableId(type = IdType.INPUT)
     @JsonSerialize(using = ToStringSerializer.class)
-    Long id;
-    
-    @TableField
-    String nickname;
+    private Long id;
 
     @TableField
-    String username;
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long userId;
 
     @TableField
-    String password;
+    private BigDecimal totalAmount;
 }
