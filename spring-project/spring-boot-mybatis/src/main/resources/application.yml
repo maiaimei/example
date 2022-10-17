@@ -1,0 +1,14 @@
+server:
+  servlet:
+    # 解决静态页面中文乱码
+    encoding:
+      enabled: true
+      force: true
+      charset: utf-8
+spring:
+  profiles:
+    include: swagger,h2,mybatis2
+logging:
+  config: classpath:logback-spring.xml
+global-error:
+  show-trace: true
