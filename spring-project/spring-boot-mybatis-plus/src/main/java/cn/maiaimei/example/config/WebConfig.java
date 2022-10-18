@@ -1,6 +1,6 @@
 package cn.maiaimei.example.config;
 
-import cn.maiaimei.framework.spring.boot.web.filter.RequestResponseLoggingFilter;
+import cn.maiaimei.framework.web.http.RequestResponseLoggingFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,17 +9,13 @@ import org.springframework.core.Ordered;
 import java.util.Arrays;
 
 @Configuration
-public class WebLogConfig {
+public class WebConfig {
     @Bean
-    public FilterRegistrationBean requestResponseLoggingFilter() {
+    public FilterRegistrationBean<RequestResponseLoggingFilter> requestResponseLoggingFilter() {
         RequestResponseLoggingFilter requestResponseLoggingFilter = new RequestResponseLoggingFilter();
-        requestResponseLoggingFilter.setExcludeUris(Arrays.asList("/swagger", "/h2-console"));
-        requestResponseLoggingFilter.setIncludeRemoteHost(true);
-        requestResponseLoggingFilter.setIncludeDevice(true);
-        requestResponseLoggingFilter.setIncludeOs(true);
-        //requestResponseLoggingFilter.setIncludeResponseBody(true);
+        requestResponseLoggingFilter.setExcludeUris(Arrays.asList("/swagger", "/v2/api-docs", "/h2-console"));
 
-        FilterRegistrationBean bean = new FilterRegistrationBean();
+        FilterRegistrationBean<RequestResponseLoggingFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(requestResponseLoggingFilter);
         bean.setName("requestResponseLoggingFilter");
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);

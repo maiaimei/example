@@ -1,0 +1,22 @@
+{
+  "records": [
+    {
+      "id": "1581924449823887360",
+      "nickname": "test1",
+      "username": "test1"
+    },
+    {
+      "id": "1581924730875809792",
+      "nickname": "test2",
+      "username": "test2"
+    },
+    {
+      "id": "1581924757840990208",
+      "nickname": "test3",
+      "username": "test3"
+    }
+  ],
+  "total": 9,
+  "current": 1,
+  "size": 3
+}

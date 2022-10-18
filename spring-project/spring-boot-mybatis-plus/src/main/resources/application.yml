@@ -1,5 +1,4 @@
 server:
-  port: 9001
   servlet:
     # 解决静态页面中文乱码
     encoding:
@@ -9,3 +8,7 @@ server:
 spring:
   profiles:
     include: h2,mybatis-plus,swagger
+logging:
+  config: classpath:logback-spring.xml
+global-error:
+  show-trace: true

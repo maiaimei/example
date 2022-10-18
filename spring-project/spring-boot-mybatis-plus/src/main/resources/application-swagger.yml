@@ -4,11 +4,8 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher # 解决启动时swagger报错
 
-springfox:
+swagger:
   enabled: true
-  documentation:
-    swagger-ui:
-      enabled: true
-      title: spring-boot-mybatis-plus api document
-      description: This is a restful api document of spring-boot-mybatis-plus.
-      version: 1.0.0
+  title: spring-boot-mybatis-plus api document
+  description: This is a restful api document of spring-boot-mybatis-plus.
+  version: 1.0.0

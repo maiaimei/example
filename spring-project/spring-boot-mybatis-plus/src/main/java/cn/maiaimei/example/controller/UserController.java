@@ -1,9 +1,10 @@
 package cn.maiaimei.example.controller;
 
-import cn.maiaimei.example.model.UserRequest;
-import cn.maiaimei.example.model.UserResponse;
+import cn.maiaimei.example.pojo.model.UserQueryRequest;
+import cn.maiaimei.example.pojo.model.UserRequest;
+import cn.maiaimei.example.pojo.model.UserResponse;
 import cn.maiaimei.example.service.UserService;
-import cn.maiaimei.framework.beans.PageResult;
+import cn.maiaimei.framework.beans.PagingResult;
 import cn.maiaimei.framework.validation.group.ValidationGroup;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.util.List;
 
 @Api(tags = "用户管理")
 @Validated
@@ -26,8 +26,8 @@ public class UserController {
 
     @ApiOperation(value = "创建用户")
     @PostMapping
-    public UserResponse create(@ApiParam @Validated({ValidationGroup.CheckInOrder.class}) @RequestBody UserRequest user) {
-        return userService.create(user);
+    public UserResponse insert(@ApiParam @Validated({ValidationGroup.CheckInOrder.class}) @RequestBody UserRequest user) {
+        return userService.insert(user);
     }
 
     @ApiOperation(value = "修改用户")
@@ -49,15 +49,10 @@ public class UserController {
     }
 
     @ApiOperation(value = "分页查询用户")
-    @GetMapping("/pageQuery")
-    public PageResult pageQuery(@Min(1) @RequestParam Integer pageIndex,
-                                @Min(1) @Max(100) @RequestParam Integer pageSize) {
-        return userService.pageQuery(pageIndex, pageSize);
-    }
-
-    @ApiOperation(value = "查询全部用户")
-    @GetMapping("/listAll")
-    public List<UserResponse> listAll() {
-        return userService.listAll();
+    @PostMapping("/pagequery")
+    public PagingResult<UserResponse> pageQuery(@Min(1) @RequestParam Integer current,
+                                                @Min(1) @Max(100) @RequestParam Integer size,
+                                                @RequestBody(required = false) UserQueryRequest userQueryRequest) {
+        return userService.pageQuery(current, size, userQueryRequest);
     }
 }

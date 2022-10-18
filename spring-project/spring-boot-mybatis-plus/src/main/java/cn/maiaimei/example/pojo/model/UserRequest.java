@@ -1,4 +1,4 @@
-package cn.maiaimei.example.model;
+package cn.maiaimei.example.pojo.model;
 
 import cn.maiaimei.framework.validation.group.ValidationGroup;
 import io.swagger.annotations.ApiModel;
@@ -23,19 +23,19 @@ public class UserRequest {
     private Long id;
 
     @NotBlank(groups = {ValidationGroup.OrderA.class})
-    @Length(min = 6, max = 20, groups = {ValidationGroup.OrderB.class})
-    @Pattern(regexp = "[a-zA-Z0-9]{6,20}", groups = {ValidationGroup.OrderC.class})
-    @ApiModelProperty(value = "账号", required = true, example = "guest")
+    @Length(min = 3, max = 50, groups = {ValidationGroup.OrderB.class})
+    @ApiModelProperty(value = "昵称", required = true, example = "Tester")
+    private String nickname;
+
+    @NotBlank(groups = {ValidationGroup.OrderA.class})
+    @Length(min = 3, max = 20, groups = {ValidationGroup.OrderB.class})
+    @Pattern(regexp = "[a-zA-Z0-9]{3,20}", groups = {ValidationGroup.OrderC.class})
+    @ApiModelProperty(value = "账号", required = true, example = "Tester")
     private String username;
 
-    @NotBlank(groups = {ValidationGroup.OrderA.class})
-    @Length(min = 6, max = 20, groups = {ValidationGroup.OrderB.class})
-    @Pattern(regexp = "[a-zA-Z0-9\\@\\#\\$]{6,20}", groups = {ValidationGroup.OrderC.class})
+    @NotBlank(groups = {ValidationGroup.Create.class})
+    @Length(min = 3, max = 20, groups = {ValidationGroup.Create.class})
+    @Pattern(regexp = "[a-zA-Z0-9\\@\\#\\$]{3,20}", groups = {ValidationGroup.Create.class})
     @ApiModelProperty(value = "密码", required = true, example = "123456")
     private String password;
-
-    @NotBlank(groups = {ValidationGroup.OrderA.class})
-    @Length(min = 3, max = 50, groups = {ValidationGroup.OrderB.class})
-    @ApiModelProperty(value = "昵称", required = true, example = "来宾")
-    private String nickname;
 }
