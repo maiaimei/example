@@ -25,4 +25,4 @@
 
 # 相关资料
 
-[Python 基础教程 | 菜鸟教程](https://m.runoob.com/python/)https://www.bilibili.com/video/BV1py4y1t7bJ)
+[Python 基础教程 | 菜鸟教程](https://m.runoob.com/python/)
