@@ -1,0 +1,14 @@
+- name: 创建用户
+  base_url: http://localhost:8080
+  request:
+    method: post
+    url: /users
+    json: { "nickname": "python1","username": "python1","password": "1234567" }
+  validate:
+- name: 创建用户
+  base_url: http://localhost:8080
+  request:
+    method: post
+    url: /users
+    json: { "nickname": "python2","username": "python2","password": "1234567" }
+  validate:

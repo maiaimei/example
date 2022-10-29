@@ -40,3 +40,8 @@ target
 # node
 .nyc_output
 coverage
+
+# pytest
+.pytest_cache
+/python-project/pytest-demo/report/
+!pytest.ini
