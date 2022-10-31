@@ -1,6 +1,6 @@
 package cn.maiaimei.example.config;
 
-import cn.maiaimei.framework.spring.boot.web.filter.RequestResponseLoggingFilter;
+import cn.maiaimei.framework.web.http.RequestResponseLoggingFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +14,6 @@ public class WebLogConfig {
     public FilterRegistrationBean requestResponseLoggingFilter() {
         RequestResponseLoggingFilter requestResponseLoggingFilter = new RequestResponseLoggingFilter();
         requestResponseLoggingFilter.setExcludeUris(Arrays.asList("/swagger", "/h2-console"));
-        requestResponseLoggingFilter.setIncludeRemoteHost(true);
-        requestResponseLoggingFilter.setIncludeDevice(true);
-        requestResponseLoggingFilter.setIncludeOs(true);
-        //requestResponseLoggingFilter.setIncludeResponseBody(true);
 
         FilterRegistrationBean bean = new FilterRegistrationBean();
         bean.setFilter(requestResponseLoggingFilter);

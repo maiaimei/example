@@ -192,4 +192,4 @@ public class FastDFSClientConfig {
 
 启动网关层：cn.maiaimei.example.GatewayApplication80
 
-启动应用层：cn.maiaimei.example.FastDFSApplication9002
+启动应用层：cn.maiaimei.example.FastDFSApplication

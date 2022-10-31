@@ -1,5 +1,4 @@
 server:
-  port: 9002
   servlet:
     # 解决静态页面中文乱码
     encoding:

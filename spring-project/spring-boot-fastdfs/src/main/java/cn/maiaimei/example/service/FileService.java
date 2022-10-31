@@ -2,9 +2,9 @@ package cn.maiaimei.example.service;
 
 import cn.maiaimei.example.mapper.FileMapper;
 import cn.maiaimei.example.model.FileModel;
-import cn.maiaimei.framework.beans.PageResult;
-import cn.maiaimei.framework.mybatis.plus.util.PageUtils;
-import cn.maiaimei.framework.spring.boot.beans.SFID;
+import cn.maiaimei.framework.beans.PaginationResult;
+import cn.maiaimei.framework.mybatisplus.util.PaginationUtils;
+import cn.maiaimei.framework.util.SFID;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
@@ -30,9 +30,9 @@ public class FileService extends ServiceImpl<FileMapper, FileModel> {
         save(fileModel);
     }
 
-    public PageResult pageQuery(Integer current,
-                                Integer size) {
+    public PaginationResult pageQuery(Integer current,
+                                      Integer size) {
         Page page = page(new Page(current, size));
-        return PageUtils.getPageResult(page, FileModel.class);
+        return PaginationUtils.build(page, FileModel.class);
     }
 }
