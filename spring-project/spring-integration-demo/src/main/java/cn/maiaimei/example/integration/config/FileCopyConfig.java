@@ -1,5 +1,7 @@
-package cn.maiaimei.example.config;
+package cn.maiaimei.example.integration.config;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -17,14 +19,17 @@ import org.springframework.messaging.MessageHandler;
 import java.io.File;
 
 /**
- * 实现从源文件夹拷贝文本文件至目标文件夹
  * https://docs.spring.io/spring-integration/docs/current/reference/html/file.html#files
  */
 @Configuration
-public class FileSupportConfig {
-    private static final String INPUT_DIR = "E:\\app\\upload\\in";
-    private static final String OUTPUT_DIR = "E:\\app\\upload\\out";
-    private static final String FILE_PATTERN = "*.txt";
+@ConditionalOnExpression(value = "false")
+public class FileCopyConfig {
+    @Value("${file-copy.input-directory}")
+    private String inputDir;
+    @Value("${file-copy.output-directory}")
+    private String outDir;
+    @Value("${file-copy.filename-pattern}")
+    private String fileNamePattern;
 
     @Bean(name = "fileChannel")
     public MessageChannel fileChannel() {
@@ -34,16 +39,18 @@ public class FileSupportConfig {
     @Bean
     @InboundChannelAdapter(value = "fileChannel", poller = @Poller(fixedDelay = "1000"))
     public MessageSource<File> fileReadingMessageSource() {
+        // A FileReadingMessageSource can be used to consume files from the filesystem. 
+        // This is an implementation of MessageSource that creates messages from a file system directory. 
         FileReadingMessageSource sourceReader = new FileReadingMessageSource();
-        sourceReader.setDirectory(new File(INPUT_DIR));
-        sourceReader.setFilter(new SimplePatternFileListFilter(FILE_PATTERN));
+        sourceReader.setDirectory(new File(inputDir));
+        sourceReader.setFilter(new SimplePatternFileListFilter(fileNamePattern));
         return sourceReader;
     }
 
     @Bean
     @ServiceActivator(inputChannel = "fileChannel")
     public MessageHandler fileWritingMessageHandler() {
-        FileWritingMessageHandler handler = new FileWritingMessageHandler(new File(OUTPUT_DIR));
+        FileWritingMessageHandler handler = new FileWritingMessageHandler(new File(outDir));
         handler.setFileExistsMode(FileExistsMode.REPLACE);
         handler.setExpectReply(false);
         return handler;

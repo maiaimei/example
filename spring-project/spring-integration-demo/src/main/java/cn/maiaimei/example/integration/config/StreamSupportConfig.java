@@ -1,5 +1,6 @@
-package cn.maiaimei.example.config;
+package cn.maiaimei.example.integration.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -17,6 +18,7 @@ import org.springframework.messaging.MessageHandler;
  * https://docs.spring.io/spring-integration/docs/current/reference/html/stream.html#stream
  */
 @Configuration
+@ConditionalOnExpression(value = "false")
 public class StreamSupportConfig {
     @Bean(name = "stdChannel")
     public MessageChannel inputChannel() {

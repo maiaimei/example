@@ -1,0 +1,4 @@
+file-copy:
+  input-directory: E:\app\upload\in
+  output-directory: E:\app\upload\out
+  filename-pattern: "*.jpeg"
