@@ -38,19 +38,62 @@ Message Channel：消息传输的载体。
 
 [https://docs.spring.io/spring-integration/docs/current/reference/html/channel.html#channel-interceptors](https://docs.spring.io/spring-integration/docs/current/reference/html/channel.html#channel-interceptors)
 
-## Message Endpoint
+```
+<int:channel id= "someChannel" ... />
+
+@Bean
+public MessageChannel someChannel() {
+	return new QueueChannel(100);
+}
+```
+
+## Message Endoint
 
 - Message Transformer：消息转换器，用于转换消息内容和格式。
+
 - Message Filter：消息过滤器，判断一个消息是否应该被传输。
+
+  ```
+  @org.springframework.integration.annotation.Filter
+  ```
+
 - Message Router：消息路由器，用于判断将消息发往哪个通道。
+
+  ```
+  @org.springframework.integration.annotation.Router
+
 - Splitter：消息分割器，用于将单个消息分割为多个消息。
+
+  ```
+  @org.springframework.integration.annotation.Splitter
+  ```
+
 - Aggregator：与Splitter相反，将多个消息聚合为一个消息。
+
+  ```
+  @org.springframework.integration.annotation.Transformer
+  ```
+
 - Service Activator：消息最终的消费方。可调用Spring的Bean来处理消息，并将处理后的结果输出到指定的消息通道。
+
+  ```
+  <int:service-activator id="someService" ... />
+  @org.springframework.integration.annotation.ServiceActivator
+  ```
+
 - Channel Adapter：通道适配器，用于单向集成，可以是输入也可以是输出。入站适配器位于流的开头，出站适配器终止流。
+
+  ```
+  <int:inbound-channel-adapter id= "someAdapter" ... />
+  @org.springframework.integration.annotation.InboundChannelAdapter
+  ```
+
 - Gateway：网关，类似于Channel Adapter，是双向的。
 
-# Code Example
+  ```
+  @org.springframework.integration.annotation.Gateway
+  ```
 
-| XML版                        | 注解版                      |
-| ---------------------------- | --------------------------- |
-| hello-integration-config.xml | HelloIntegrationConfig.java |
+# Spring Integration Samples
+
+[https://github.com/spring-projects/spring-integration-samples](https://github.com/spring-projects/spring-integration-samples)

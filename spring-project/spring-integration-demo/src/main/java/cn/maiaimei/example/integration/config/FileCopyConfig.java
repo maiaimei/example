@@ -46,7 +46,7 @@ public class FileCopyConfig {
         sourceReader.setFilter(new SimplePatternFileListFilter(fileNamePattern));
         return sourceReader;
     }
-
+    
     @Bean
     @ServiceActivator(inputChannel = "fileChannel")
     public MessageHandler fileWritingMessageHandler() {
