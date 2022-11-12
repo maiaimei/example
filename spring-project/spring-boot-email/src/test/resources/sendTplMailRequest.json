@@ -1,0 +1,17 @@
+{
+  "orderNo": "Test123456",
+  "commodities": [
+    {
+      "title": "膳太 秋季全家健康带给喝滋补品养生炖汤煲汤料 痰湿滋润拒燥热广东煲汤材料干货 共10大包",
+      "src": "https://m.360buyimg.com/babel/jfs/t1/185317/37/21039/189304/61260ff5E979107fd/2444038cb8584865.jpg",
+      "price": "151.6",
+      "count": 1
+    },
+    {
+      "title": "烟台苹果 正宗山东栖霞红富士苹果 当季新鲜脆甜水果送礼 （普快）3斤小果装",
+      "src": "https://m.360buyimg.com/babel/jfs/t1/198163/16/19862/127625/61af7789Eeab5c122/73cb5299c89bdb20.jpg",
+      "price": "39.9",
+      "count": 1
+    }
+  ]
+}
