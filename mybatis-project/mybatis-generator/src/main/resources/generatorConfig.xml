@@ -28,6 +28,10 @@
                         connectionURL="${spring.datasource.mysql.jdbcUrl}"
                         userId="${spring.datasource.mysql.username}"
                         password="${spring.datasource.mysql.password}">
+            <!-- MyBatis Generator 代码生成器生成表字段不正确或选择错数据库，添加连接数据库参数 nullCatalogMeansCurrent=true -->
+            <property name="nullCatalogMeansCurrent" value="true"/>
+            <!-- MyBatis Generator 逆向生成没有根据主键的select,update和delete，添加useInformationSchema=true，且数据表需要设置主键 -->
+            <property name="useInformationSchema" value="true"/>
             <property name="delimitIdentifiers" value="true"/>
         </jdbcConnection>
 
@@ -37,18 +41,18 @@
         </javaTypeResolver>
 
         <!-- javaBean的生成策略 -->
-        <javaModelGenerator targetPackage="${java-model.target-package}" targetProject="${java-model.target-project}">
+        <javaModelGenerator targetPackage="${javaModel.targetPackage}" targetProject="${javaModel.targetProject}">
             <property name="enableSubPackages" value="true"/>
             <property name="trimStrings" value="true"/>
         </javaModelGenerator>
 
         <!-- SQL映射文件的生成策略 -->
-        <sqlMapGenerator targetPackage="${sql-map.target-package}" targetProject="${sql-map.target-project}">
+        <sqlMapGenerator targetPackage="${sqlMap.targetPackage}" targetProject="${sqlMap.targetProject}">
             <property name="enableSubPackages" value="true"/>
         </sqlMapGenerator>
 
         <!-- Mapper接口的生成策略 -->
-        <javaClientGenerator targetPackage="${java-client.target-package}" targetProject="${java-client.target-project}"
+        <javaClientGenerator targetPackage="${javaClient.targetPackage}" targetProject="${javaClient.targetProject}"
                              type="XMLMAPPER">
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>

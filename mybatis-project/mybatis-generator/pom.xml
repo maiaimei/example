@@ -37,6 +37,7 @@
                     <configurationFile>src/main/resources/generatorConfig.xml</configurationFile>
                     <!-- 允许覆盖生成的文件 -->
                     <overwrite>true</overwrite>
+                    <verbose>true</verbose>
                 </configuration>
                 <dependencies>
                     <dependency>

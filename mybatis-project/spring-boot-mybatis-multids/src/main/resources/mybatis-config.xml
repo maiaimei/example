@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        
+        <!-- 指定 MyBatis 所用日志的具体实现，未指定时将自动查找。 -->
+        <setting name="logImpl" value="org.apache.ibatis.logging.slf4j.Slf4jImpl"/>
+
+        <!-- 
+        当没有为参数指定特定的 JDBC 类型时，空值的默认 JDBC 类型。 
+        某些数据库驱动需要指定列的 JDBC 类型，多数情况直接用一般类型即可，比如 NULL、VARCHAR 或 OTHER。 
+        -->
+        <setting name="jdbcTypeForNull" value="NULL"/>
+
+    </settings>
+</configuration>
