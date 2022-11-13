@@ -4,16 +4,16 @@
         "https://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <!-- 引用外部配置文件，通过 ${xxx} 来引用配置文件的值 -->
-    <properties resource="jdbc.properties"/>
+    <properties resource="application.properties"/>
 
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
-                <property name="driver" value="${mysql.driver}"/>
-                <property name="url" value="${mysql.url}"/>
-                <property name="username" value="${mysql.username}"/>
-                <property name="password" value="${mysql.password}"/>
+                <property name="driver" value="${spring.datasource.mysql.driverClassName}"/>
+                <property name="url" value="${spring.datasource.mysql.jdbcUrl}"/>
+                <property name="username" value="${spring.datasource.mysql.username}"/>
+                <property name="password" value="${spring.datasource.mysql.password}"/>
             </dataSource>
         </environment>
     </environments>

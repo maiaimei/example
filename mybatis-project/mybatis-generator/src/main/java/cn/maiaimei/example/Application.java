@@ -22,7 +22,7 @@ public class Application {
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
         SqlSession sqlSession = sqlSessionFactory.openSession();
         DbMapper dbMapper = sqlSession.getMapper(DbMapper.class);
-        List<String> tableNames = dbMapper.selectAllTableNamesFromMySql();
+        List<String> tableNames = dbMapper.selectAllTableNamesFromMySql("testdb1");
         for (String tableName : tableNames) {
             // 过滤表
             if (tableName.contains(PREFIX)) {

@@ -4,7 +4,7 @@
         "./mybatis-generator-config_1_0.dtd"> <!-- http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd -->
 <generatorConfiguration>
     <!-- 引用外部配置文件，通过 ${xxx} 来引用配置文件的值 -->
-    <properties resource="jdbc.properties"/>
+    <properties resource="application.properties"/>
 
     <!--
     targetRuntime: 执行生成的逆向工程的版本
@@ -15,16 +15,19 @@
 
         <property name="javaFileEncoding" value="UTF-8"/>
 
+        <!--生成mapper.xml时覆盖原文件-->
+        <plugin type="org.mybatis.generator.plugins.UnmergeableXmlMappersPlugin"/>
+
         <commentGenerator>
             <!-- 是否去除自动生成的注释 true：是 ： false:否 -->
             <property name="suppressAllComments" value="true"/>
         </commentGenerator>
 
         <!-- 数据库的连接信息 -->
-        <jdbcConnection driverClass="${mysql.driver}"
-                        connectionURL="${mysql.url}"
-                        userId="${mysql.username}"
-                        password="${mysql.password}">
+        <jdbcConnection driverClass="${spring.datasource.mysql.driverClassName}"
+                        connectionURL="${spring.datasource.mysql.jdbcUrl}"
+                        userId="${spring.datasource.mysql.username}"
+                        password="${spring.datasource.mysql.password}">
             <property name="delimitIdentifiers" value="true"/>
         </jdbcConnection>
 
@@ -33,20 +36,20 @@
             <property name="forceBigDecimals" value="false"/>
         </javaTypeResolver>
 
-        <!-- javaBean的生成策略 targetProject=".\src\main\java" -->
-        <javaModelGenerator targetPackage="cn.maiaimei.example.pojo.entity" targetProject="E:\app\tmp\java">
+        <!-- javaBean的生成策略 -->
+        <javaModelGenerator targetPackage="${java-model.target-package}" targetProject="${java-model.target-project}">
             <property name="enableSubPackages" value="true"/>
             <property name="trimStrings" value="true"/>
         </javaModelGenerator>
 
-        <!-- SQL映射文件的生成策略 targetProject=".\src\main\resources" -->
-        <sqlMapGenerator targetPackage="cn.maiaimei.example.mapper" targetProject="E:\app\tmp\resources">
+        <!-- SQL映射文件的生成策略 -->
+        <sqlMapGenerator targetPackage="${sql-map.target-package}" targetProject="${sql-map.target-project}">
             <property name="enableSubPackages" value="true"/>
         </sqlMapGenerator>
 
-        <!-- Mapper接口的生成策略 targetProject=".\src\main\java" -->
-        <javaClientGenerator type="XMLMAPPER"
-                             targetPackage="cn.maiaimei.example.mapper" targetProject="E:\app\tmp\java">
+        <!-- Mapper接口的生成策略 -->
+        <javaClientGenerator targetPackage="${java-client.target-package}" targetProject="${java-client.target-project}"
+                             type="XMLMAPPER">
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
 
