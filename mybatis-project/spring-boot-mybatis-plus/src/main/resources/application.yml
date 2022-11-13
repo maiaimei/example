@@ -10,5 +10,5 @@ spring:
     include: h2,mybatis-plus,swagger
 logging:
   config: classpath:logback-spring.xml
-global-error:
+response:
   show-trace: true
