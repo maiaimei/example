@@ -2,6 +2,7 @@ package cn.maiaimei.example.controller;
 
 import cn.maiaimei.example.model.UserEntity;
 import cn.maiaimei.framework.util.SFID;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Api
 @RestController
 @RequestMapping(("/users"))
 public class UserController {

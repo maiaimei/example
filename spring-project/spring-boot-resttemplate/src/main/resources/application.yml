@@ -1,7 +1,14 @@
-global-config:
-  response:
-    show-trace: true
-
-#spring:
-#  jackson:
-#    default-property-inclusion: non_null
+# 访问地址： /swagger-ui/index.html
+spring:
+  #  jackson:
+  #    default-property-inclusion: non_null
+  mvc:
+    pathmatch:
+      # 解决启动时swagger报错
+      matching-strategy: ant_path_matcher
+swagger:
+  enabled: true
+  title: spring-boot-resttemplate
+  description: This is api of spring-boot-resttemplate
+response:
+  show-trace: true

@@ -5,6 +5,7 @@ import cn.maiaimei.example.model.UserEntity;
 import cn.maiaimei.framework.beans.Result;
 import cn.maiaimei.framework.beans.ResultUtils;
 import cn.maiaimei.framework.util.JSON;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,8 @@ class ApiControllerTest {
         ParameterizedTypeReference<Result<List<UserEntity>>> parameterizedTypeReference = new ParameterizedTypeReference<Result<List<UserEntity>>>() {
         };
 
-        List<UserEntity> userEntities = JSON.readFileAsList("user-pagingQuery-response.json", UserEntity.class);
+        List<UserEntity> userEntities = JSON.readFileAsObject("user-pagingQuery-response.json", new TypeReference<List<UserEntity>>() {
+        });
         ResponseEntity<Result<List<UserEntity>>> responseEntity = new ResponseEntity<Result<List<UserEntity>>>(ResultUtils.success(userEntities), HttpStatus.OK);
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(), eq(parameterizedTypeReference))).thenReturn(responseEntity);
 
