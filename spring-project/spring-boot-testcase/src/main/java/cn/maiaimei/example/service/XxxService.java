@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class OtherService {
-    public String methodA() {
+public class XxxService {
+    public String hello() {
         try {
             TimeUnit.SECONDS.sleep(5);
         } catch (InterruptedException e) {
@@ -15,7 +15,7 @@ public class OtherService {
         return "hello";
     }
 
-    public String methodB() {
+    public String world() {
         try {
             TimeUnit.SECONDS.sleep(5);
         } catch (InterruptedException e) {

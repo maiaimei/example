@@ -13,7 +13,7 @@ public class Axios {
     private ThreadPoolTaskExecutor asyncTaskExecutor;
 
     public <U> CompletableFuture<U> call(Supplier<U> supplier) {
-        return CompletableFuture.supplyAsync(() -> supplier.get(), asyncTaskExecutor);
+        return CompletableFuture.supplyAsync(supplier, asyncTaskExecutor);
     }
 
     public void await(CompletableFuture<?>... cfs) {

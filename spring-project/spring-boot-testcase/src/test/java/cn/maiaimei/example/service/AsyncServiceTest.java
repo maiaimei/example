@@ -18,24 +18,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
+/**
+ * @ExtendWith(MockitoExtension.class) + @InjectMocks + @Mock/@Spy
+ */
 @ExtendWith(MockitoExtension.class)
-class DemoServiceTest {
+class AsyncServiceTest {
     @InjectMocks
-    DemoService demoService;
+    AsyncService asyncService;
 
     @Mock
-    OtherService otherService;
+    XxxService xxxService;
 
     @Mock
     ThreadPoolTaskExecutor asyncTaskExecutor;
 
     @Spy
     Axios axios;
-    
+
     @Test
-    void testMethodA() {
-        when(otherService.methodA()).thenReturn("hi");
-        when(otherService.methodB()).thenReturn("java");
+    void testAsyncMethod1() {
+        when(xxxService.hello()).thenReturn("你好");
+        when(xxxService.world()).thenReturn("世界");
         // 新增对异步线程里面Runnable方法的驱动
         doAnswer(
                 (InvocationOnMock invocation) -> {
@@ -43,20 +46,20 @@ class DemoServiceTest {
                     return null;
                 }
         ).when(asyncTaskExecutor).execute(any(Runnable.class));
-        String actual = demoService.methodA();
+        String actual = asyncService.asyncMethod1();
         assertEquals("hi, java", actual);
     }
 
     @SneakyThrows
     @Test
-    void testMethodB() {
+    void testAsyncMethod2() {
         Field asyncTaskExecutorField = Axios.class.getDeclaredField("asyncTaskExecutor");
         asyncTaskExecutorField.setAccessible(Boolean.TRUE);
         asyncTaskExecutorField.set(axios, asyncTaskExecutor);
         asyncTaskExecutorField.setAccessible(Boolean.FALSE);
 
-        when(otherService.methodA()).thenReturn("hi");
-        when(otherService.methodB()).thenReturn("java");
+        when(xxxService.hello()).thenReturn("你好");
+        when(xxxService.world()).thenReturn("世界");
         // 新增对异步线程里面Runnable方法的驱动
         doAnswer(
                 (InvocationOnMock invocation) -> {
@@ -64,7 +67,7 @@ class DemoServiceTest {
                     return null;
                 }
         ).when(this.asyncTaskExecutor).execute(any(Runnable.class));
-        String actual = demoService.methodB();
+        String actual = asyncService.asyncMethod2();
         assertEquals("hi, java", actual);
     }
 }
