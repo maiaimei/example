@@ -1,3 +1,4 @@
+# MySQL
 spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
@@ -5,3 +6,35 @@ spring:
     url: jdbc:mysql://192.168.1.12/testdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2B8
     username: root
     password: 123456
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+
+# PostgreSQL
+#spring:
+#  datasource:
+#    type: com.zaxxer.hikari.HikariDataSource
+#    driver-class-name: org.postgresql.Driver
+#    url: jdbc:postgresql://192.168.1.25/testdb
+#    username: postgres
+#    password:
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+
+# H2
+#spring:
+#  datasource:
+#    type: com.zaxxer.hikari.HikariDataSource
+#    driver-class-name: org.h2.Driver
+#    url: jdbc:h2:tcp://localhost/E:/app/data/testdb
+#    username: root
+#    password: 123456
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.H2Dialect

@@ -30,6 +30,12 @@ public class FirstUser {
     @Column
     private String password;
 
+    @Column
+    private Boolean is_enabled;
+
+    @Column
+    private Boolean is_deleted;
+
     @CreationTimestamp
     @Column(name = "gmt_create")
     private LocalDateTime gmtCreate;

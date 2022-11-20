@@ -1,6 +1,6 @@
 spring:
   profiles:
-    #active: single
-    active: multiple
+    active: single
+    #active: multiple
   jpa:
     show-sql: true

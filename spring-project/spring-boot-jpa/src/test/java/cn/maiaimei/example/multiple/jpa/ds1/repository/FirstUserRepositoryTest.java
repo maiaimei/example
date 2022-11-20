@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Example;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -19,11 +20,17 @@ public class FirstUserRepositoryTest {
 
     @Test
     void testInsert() {
+        LocalDateTime now = LocalDateTime.now();
+
         FirstUser admin = FirstUser.builder()
                 .id(SFID.randomSFID())
                 .nickname("admin")
                 .username("admin")
                 .password(PasswordHelper.getRandomPassword())
+                .is_enabled(Boolean.TRUE)
+                .is_deleted(Boolean.FALSE)
+                .gmtCreate(now)
+                .gmtModified(now)
                 .build();
         firstUserRepository.save(admin);
 
@@ -32,15 +39,20 @@ public class FirstUserRepositoryTest {
                 .nickname("guest")
                 .username("guest")
                 .password(PasswordHelper.getRandomPassword())
+                .is_enabled(Boolean.TRUE)
+                .is_deleted(Boolean.FALSE)
+                .gmtCreate(now)
+                .gmtModified(now)
                 .build();
         firstUserRepository.save(guest);
     }
 
     @Test
     void testUpdate() {
+        LocalDateTime now = LocalDateTime.now();
         FirstUser user = firstUserRepository.findOne(Example.of(FirstUser.builder().username("admin").build())).orElseGet(FirstUser::new);
-        user.setNickname("超级管理员1");
-        user.setPassword(PasswordHelper.getRandomPassword());
+        user.setIs_enabled(Boolean.FALSE);
+        user.setGmtModified(LocalDateTime.now());
         firstUserRepository.save(user);
     }
 
