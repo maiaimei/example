@@ -1,5 +1,7 @@
 package cn.maiaimei.example.config;
 
+import cn.maiaimei.example.component.CustomTaskDecorator;
+import cn.maiaimei.example.constant.GlobalConstant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.SchedulingTaskExecutor;
@@ -38,38 +40,39 @@ public class ThreadPoolConfig {
      */
     @Bean
     public SchedulingTaskExecutor schedulingTaskExecutor() {
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(SCHEDULER_POOL_SIZE);
-        threadPoolTaskScheduler.setThreadNamePrefix(SCHEDULER_THREAD_NAME_PREFIX);
-        threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
-        return threadPoolTaskScheduler;
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(SCHEDULER_POOL_SIZE);
+        scheduler.setThreadNamePrefix(SCHEDULER_THREAD_NAME_PREFIX);
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        return scheduler;
     }
 
 
     /**
-     * 创建执行异步任务的线程池，用于调用 @Async("asyncThreadPoolTaskExecutor")注解的方法
-     *
-     * @return
+     * 创建执行异步任务的线程池
+     * <p>
+     * 用于执行 @Async("asyncTaskExecutor") 标记的异步方法，或者 AsyncHelper.call(...) 的方法
      */
-    @Bean("asyncThreadPoolTaskExecutor")
+    @Bean(GlobalConstant.ASYNC_TASK_EXECUTOR)
     public ThreadPoolTaskExecutor asyncThreadPoolTaskExecutor() {
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        // 核心线程数量
-        threadPoolTaskExecutor.setCorePoolSize(ASYNC_CORE_POOL_SIZE);
-        // 最大线程数量
-        threadPoolTaskExecutor.setMaxPoolSize(ASYNC_MAX_POOL_SIZE);
-        // 队列中最大任务数
-        threadPoolTaskExecutor.setQueueCapacity(ASYNC_QUEUE_CAPACITY);
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         //  线程名称前缀
-        threadPoolTaskExecutor.setThreadNamePrefix(ASYNC_THREAD_NAME_PREFIX);
-        // 当达到最大线程数时如何处理新任务（拒绝策略）
-        threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setThreadNamePrefix(ASYNC_THREAD_NAME_PREFIX);
+        // 核心线程数量
+        executor.setCorePoolSize(ASYNC_CORE_POOL_SIZE);
+        // 最大线程数量
+        executor.setMaxPoolSize(ASYNC_MAX_POOL_SIZE);
+        // 队列中最大任务数
+        executor.setQueueCapacity(ASYNC_QUEUE_CAPACITY);
         // 线程空闲后最大存活时间
-        threadPoolTaskExecutor.setKeepAliveSeconds(ASYNC_KEEP_ALIVE_SECONDS);
+        executor.setKeepAliveSeconds(ASYNC_KEEP_ALIVE_SECONDS);
+        // 当达到最大线程数时如何处理新任务（拒绝策略）
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setTaskDecorator(new CustomTaskDecorator());
         // 初始化线程池
-        threadPoolTaskExecutor.initialize();
+        executor.initialize();
         // 关闭线程池
-        threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(true);
-        return threadPoolTaskExecutor;
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        return executor;
     }
 }

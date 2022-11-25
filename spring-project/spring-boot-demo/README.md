@@ -189,6 +189,125 @@ Aware调用链：
 
 <img src="./images/20220313135230.png" />
 
+# AOP
+
+一、Advice(通知、切面)： 某个连接点所采用的处理逻辑，也就是向连接点注入的代码。
+
+- @Before： 前置增强，相当于BeforeAdvice。
+- @After： 最终增强，不管是正常退出或者抛出异常都会执行。
+- @AfterReturning： 后置增强，相当于AfterReturningAdvice, 方法正常退出时执行。
+- @AfterThrowing： 异常抛出增强，相当于ThrowsAdvice。
+- @Around： 环绕增强，相当于MethodInterceptor。
+
+二、JointPoint(连接点)：程序运行中的某个阶段点，比如方法的调用、异常的抛出等。
+
+```
+org.aspectj.lang.JoinPoint
+org.aspectj.lang.ProceedingJoinPoint
+```
+
+三、Pointcut(切入点)： JoinPoint的集合，是程序中需要注入Advice的位置的集合，指明Advice要在什么样的条件下才能被触发，在程序中主要体现为书写切入点表达式。
+
+- execution：用于匹配方法执行的连接点；
+
+  ```
+  execution(修饰符匹配? 返回值匹配 类路径匹配? 方法名匹配(参数匹配)异常类型匹配?) 
+  execution(modifiers-pattern? ret-type-pattern declaring-type-pattern? name-pattern(param-pattern)throws-pattern?) 
+  
+  * 表示任何返回值，全路径的类名等
+  … 表示包及其子包，包及其子包的任意类的任意方法，零个或多个任意参数等
+  
+  拦截所有 controller 请求：
+  execution(* *.*.controller..*.*(..))
+  ```
+
+- within：用于匹配指定类型内的方法执行；
+
+- this：用于匹配当前AOP代理对象类型的执行方法；注意是AOP代理对象的类型匹配，这样就可能包括引入接口也类型匹配；
+
+- target：用于匹配当前目标对象类型的执行方法；注意是目标对象的类型匹配，这样就不包括引入接口也类型匹配；
+
+- args：用于匹配当前执行的方法传入的参数为指定类型的执行方法；
+
+- @within：用于匹配所有持有指定注解类型内的方法；
+
+  ```
+  带有@Transactional标注的所有类的任意方法：
+  @within(org.springframework.transaction.annotation.Transactional)
+  ```
+
+- @target：用于匹配当前目标对象类型的执行方法，其中目标对象持有指定的注解；
+
+  ```
+  带有@Transactional标注的所有类的任意方法：
+  @target(org.springframework.transaction.annotation.Transactional)
+  ```
+
+- @annotation：用于匹配当前执行方法持有指定注解的方法；
+
+  ```
+  带有@Transactional标注的任意方法：@annotation(org.springframework.transaction.annotation.Transactional)
+  ```
+
+- @args：用于匹配当前执行的方法传入的参数持有指定注解的执行；
+
+  ```
+  参数带有@Transactional标注的方法：
+  @args(org.springframework.transaction.annotation.Transactional)
+  ```
+
+> @within和@target针对类的注解
+>
+> @annotation是针对方法的注解
+
+```java
+import cn.maiaimei.example.constant.GlobalConstant;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
+
+import java.util.UUID;
+
+@Aspect
+@Component
+public class JobAspect {
+    private static final Logger log = LoggerFactory.getLogger(JobAspect.class);
+
+    @Pointcut("@annotation(org.springframework.scheduling.annotation.Scheduled)")
+    public void pointcut() {
+    }
+
+    @Around("pointcut()")
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+        MDC.put(GlobalConstant.TRACE_ID, UUID.randomUUID().toString().replaceAll("-", ""));
+        String name = pjp.getSignature().getName();
+        Object[] args = pjp.getArgs();
+        Object result = null;
+        try {
+            // @Before
+            log.info("【环绕前置通知】【{}方法开始】", name);
+            // 相当于method.invoke(obj,args)，通过反射来执行接口中的方法
+            result = pjp.proceed();
+            // @AfterReturning
+            log.info("【环绕返回通知】【{}方法返回】，返回值：{}", name, result);
+        } catch (Exception e) {
+            // @AfterThrowing
+            log.error("【环绕异常通知】【{}方法异常】，参数：{}", name, args, e);
+        } finally {
+            // @After
+            log.info("【环绕后置通知】【{}方法结束】", name);
+            MDC.remove(GlobalConstant.TRACE_ID);
+        }
+        return result;
+    }
+}
+```
+
 # 配置文件
 
 ## 配置优先级

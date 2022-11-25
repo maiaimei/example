@@ -14,8 +14,6 @@ public class ScheduleTaskConfig implements SchedulingConfigurer {
     @Autowired
     SchedulingTaskExecutor schedulingTaskExecutor;
 
-    //private static final int FIVE = 5;
-
     /**
      * 应用场景：
      * 一个定时器类中有n个定时任务，有每30秒执行一次的还有每1分钟执行一次的，出现问题的定时任务是0点整时执行的定时任务到了0点没有执行。
@@ -32,7 +30,6 @@ public class ScheduleTaskConfig implements SchedulingConfigurer {
      */
     @Override
     public void configureTasks(ScheduledTaskRegistrar scheduledTaskRegistrar) {
-        // scheduledTaskRegistrar.setScheduler(Executors.newScheduledThreadPool(FIVE));
         scheduledTaskRegistrar.setScheduler(schedulingTaskExecutor);
     }
 }
