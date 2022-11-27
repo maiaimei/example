@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: my-pod-nginx-tomcat
+  name: my-pod-nginx-tomcat-svc
+  namespace: default
+spec:
+  ports:
+  - port: 20080         # 集群内访问，在其他pod内可以通过serviceIp:port或者serviceName.namespace.svc:port访问
+    protocol: TCP
+    targetPort: 80      # 同一个pod中，不同container之间网络共享
+    nodePort: 40080     # 与type: NodePort一起使用
+    name: my-pod-nginx
+  - port: 28080         # 集群内访问，在其他pod内可以通过serviceIp:port或者serviceName.namespace.svc:port访问
+    protocol: TCP
+    targetPort: 8080    # 同一个pod中，不同container之间网络共享
+    nodePort: 48080     # 与type: NodePort一起使用   
+    name: my-pod-tomcat 
+  type: NodePort        # type设置为NodePort，就可以让外网访问了
+  selector:
+    run: my-pod-nginx-tomcat   # 通过selector来寻找相同label的pod

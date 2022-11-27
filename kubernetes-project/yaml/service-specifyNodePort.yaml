@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: my-pod-nginx
+  name: my-pod-nginx-svc
+  namespace: default
+spec:
+  ports:
+  - port: 10080         # 集群内访问，在其他pod内可以通过serviceIp:port或者serviceName.namespace.svc:port访问
+    protocol: TCP
+    targetPort: 80      # 同一个pod中，不同container之间网络共享
+    nodePort: 30080     # 与type: NodePort一起使用
+  type: NodePort        # type设置为NodePort，就可以让外网访问了
+  selector:
+    run: my-pod-nginx   # 通过selector来寻找相同label的pod

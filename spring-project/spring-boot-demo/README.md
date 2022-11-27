@@ -47,6 +47,8 @@ public @interface ComponentScan {
 
 参考：cn.maiaimei.example.config.BeanConfig
 
+## 实现BeanDefinitionRegistryPostProcessor接口
+
 # Bean 依赖注入
 
 ## 构造器注入
@@ -78,6 +80,10 @@ with @Autowired</span>
 # Bean 生命周期
 
 创建到销毁的过程...参考：cn.maiaimei.example.BeanLifeCycle
+
+# Bean 移除
+
+
 
 # Application Events and Listeners
 

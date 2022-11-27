@@ -1,6 +1,5 @@
 package cn.maiaimei.example.controller;
 
-import cn.maiaimei.framework.beans.ErrorMap;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -34,10 +33,11 @@ public class ErrorPageController {
      */
     @RequestMapping("/servererror")
     public ModelAndView servererror() {
-        ErrorMap map = ErrorMap.builder()
-                .message("登录账号或密码错误")
-                .build();
-        return new ModelAndView("error/500", map);
+//        ErrorMap map = ErrorMap.builder()
+//                .message("登录账号或密码错误")
+//                .build();
+//        return new ModelAndView("error/500", map);
+        return null;
     }
 
     /**

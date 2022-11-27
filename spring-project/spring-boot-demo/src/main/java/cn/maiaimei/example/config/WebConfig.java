@@ -1,6 +1,6 @@
 package cn.maiaimei.example.config;
 
-import cn.maiaimei.framework.spring.boot.web.filter.RequestResponseLoggingFilter;
+import cn.maiaimei.framework.web.http.RequestResponseLoggingFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -19,10 +19,6 @@ public class WebConfig {
     public FilterRegistrationBean requestResponseLoggingFilter() {
         RequestResponseLoggingFilter requestResponseLoggingFilter = new RequestResponseLoggingFilter();
         requestResponseLoggingFilter.setExcludeUris(Arrays.asList("/swagger"));
-        requestResponseLoggingFilter.setIncludeRemoteHost(true);
-        requestResponseLoggingFilter.setIncludeDevice(true);
-        requestResponseLoggingFilter.setIncludeOs(true);
-        requestResponseLoggingFilter.setIncludeResponseBody(true);
 
         FilterRegistrationBean bean = new FilterRegistrationBean();
         bean.setFilter(requestResponseLoggingFilter);

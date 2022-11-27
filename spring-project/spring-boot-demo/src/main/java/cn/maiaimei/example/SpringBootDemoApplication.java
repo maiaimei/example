@@ -1,8 +1,9 @@
 package cn.maiaimei.example;
 
-import cn.maiaimei.framework.spring.boot.web.EnableGlobalException;
-import cn.maiaimei.framework.spring.boot.web.EnableGlobalResponse;
+import cn.maiaimei.framework.web.EnableGlobalException;
+import cn.maiaimei.framework.web.EnableGlobalResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
@@ -17,7 +18,7 @@ import java.util.Set;
  * @ServletComponentScan 用于扫描Servlet组件，如： @WebListener @WebFilter
  */
 @Slf4j
-@EnableGlobalException(isShowTrace = false)
+@EnableGlobalException
 @EnableGlobalResponse
 //@ServletComponentScan
 @SpringBootApplication
@@ -26,6 +27,12 @@ public class SpringBootDemoApplication {
         log.info("the raw String[] arguments: {}", String.join(",", args));
 
         ConfigurableApplicationContext applicationContext = SpringApplication.run(SpringBootDemoApplication.class, args);
+
+        try {
+            log.info("myComponent={}", applicationContext.getBean("myComponent"));
+        } catch (NoSuchBeanDefinitionException ex) {
+            log.error("No bean named 'myComponent' available, myComponent is removed by MyBeanDefinitionRegistryPostProcessor");
+        }
 
 //        System.out.println("==================================================");
 //

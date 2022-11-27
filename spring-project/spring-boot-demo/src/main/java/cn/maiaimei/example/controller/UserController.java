@@ -2,7 +2,7 @@ package cn.maiaimei.example.controller;
 
 import cn.maiaimei.example.model.User;
 import cn.maiaimei.framework.exception.BusinessException;
-import cn.maiaimei.framework.spring.boot.beans.SFID;
+import cn.maiaimei.framework.util.SFID;
 import cn.maiaimei.framework.validation.group.ValidationGroup;
 import io.swagger.annotations.*;
 import org.springframework.validation.annotation.Validated;
