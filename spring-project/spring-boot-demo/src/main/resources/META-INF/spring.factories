@@ -1,14 +1,24 @@
-#org.springframework.context.ApplicationListener=\
-#  cn.maiaimei.example.ael.listener.MyApplicationStartingEventListener,\
-#  cn.maiaimei.example.ael.listener.MyApplicationEnvironmentPreparedEventListener,\
-#  cn.maiaimei.example.ael.listener.MyApplicationContextInitializedEventListener,\
-#  cn.maiaimei.example.ael.listener.MyApplicationPreparedEventListener,\
-#  cn.maiaimei.example.ael.listener.MyApplicationStartedEventListener,\
-#  cn.maiaimei.example.ael.listener.MyAvailabilityChangeEventListener,\
-#  cn.maiaimei.example.ael.listener.MyApplicationReadyEventListener,\
-#  cn.maiaimei.example.ael.listener.MyApplicationFailedEventListener,\
-#  cn.maiaimei.example.ael.listener.MyWebServerInitializedEventListener,\
-#  cn.maiaimei.example.ael.listener.MyContextRefreshedEventListener,\
-#  cn.maiaimei.example.ael.listener.custom.MyApplicationEventListener3,\
-#  cn.maiaimei.example.ael.listener.custom.MyApplicationEventListener4,\
-#  cn.maiaimei.example.ael.listener.custom.MyApplicationEventListener5
+org.springframework.boot.BootstrapRegistryInitializer=\
+  cn.maiaimei.example.boot.MyBootstrapRegistryInitializer
+
+org.springframework.context.ApplicationContextInitializer=\
+  cn.maiaimei.example.boot.MyApplicationContextInitializer
+
+# cn.maiaimei.example.boot.event.MyApplicationListener,\
+org.springframework.context.ApplicationListener=\
+  cn.maiaimei.example.boot.event.MyApplicationStartingEventListener,\
+  cn.maiaimei.example.boot.event.MyApplicationEnvironmentPreparedEventListener,\
+  cn.maiaimei.example.boot.event.MyApplicationContextInitializedEventListener,\
+  cn.maiaimei.example.boot.event.MyApplicationPreparedEventListener,\
+  cn.maiaimei.example.boot.event.MyApplicationStartedEventListener,\
+  cn.maiaimei.example.boot.event.MyAvailabilityChangeEventListener,\
+  cn.maiaimei.example.boot.event.MyApplicationReadyEventListener,\
+  cn.maiaimei.example.boot.event.MyApplicationFailedEventListener,\
+  cn.maiaimei.example.boot.event.MyWebServerInitializedEventListener,\
+  cn.maiaimei.example.boot.event.MyContextRefreshedEventListener,\
+  cn.maiaimei.example.event.MyApplicationEventListener3,\
+  cn.maiaimei.example.event.MyApplicationEventListener4,\
+  cn.maiaimei.example.event.MyApplicationEventListener5
+
+org.springframework.boot.SpringApplicationRunListener=\
+  cn.maiaimei.example.boot.MySpringApplicationRunListener

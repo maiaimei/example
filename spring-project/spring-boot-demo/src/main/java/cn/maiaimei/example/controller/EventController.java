@@ -1,6 +1,6 @@
 package cn.maiaimei.example.controller;
 
-import cn.maiaimei.example.ael.event.MyApplicationEvent;
+import cn.maiaimei.example.event.MyApplicationEvent;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = "Spring事件发布与监听")
+@Api(tags = "事件发布与监听")
 @Slf4j
 @RestController
 @RequestMapping("/event")
@@ -26,14 +26,14 @@ public class EventController {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    @GetMapping("/release")
-    public void release(@RequestParam String message) {
+    @GetMapping("/publish/1")
+    public void publish1(@RequestParam String message) {
         log.info("发布事件 ===> {}", message);
         applicationContext.publishEvent(new MyApplicationEvent(message));
     }
 
-    @GetMapping("/publish")
-    public void publish(@RequestParam String message) {
+    @GetMapping("/publish/2")
+    public void publish2(@RequestParam String message) {
         log.info("发布事件 ===> {}", message);
         applicationEventPublisher.publishEvent(new MyApplicationEvent(message));
     }

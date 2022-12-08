@@ -1,5 +1,4 @@
 server:
-  port: 8084
   servlet:
     # 解决静态页面中文乱码
     encoding:
@@ -7,18 +6,25 @@ server:
       force: true
       charset: utf-8
 
-logging:
-  level:
-    org.springframework.web.filter.CommonsRequestLoggingFilter: debug
-  # logging.file.path 和 logging.file.name 同时存在时，只有 logging.file.name 生效
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher # 解决启动时swagger报错
+
+#logging:
+#  level:
+#    org.springframework.web.filter.CommonsRequestLoggingFilter: debug
+#  # logging.file.path 和 logging.file.name 同时存在时，只有 logging.file.name 生效
 #  file:
 #    path: E:\logs # 日志文件名缺省值spring.log
 #    name: application.log
 
+swagger:
+  enabled: true
+  title: spring-boot-demo
+  description: spring-boot-demo
+  version: 1.0-SNAPSHOT
+
 SFID:
   datacenterId: 2
   workerId: 2
-
-spring:
-  profiles:
-    include: swagger

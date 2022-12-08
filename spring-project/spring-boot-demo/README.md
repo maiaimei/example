@@ -45,45 +45,44 @@ public @interface ComponentScan {
 
 ## @Import
 
-参考：cn.maiaimei.example.config.BeanConfig
+```java
+public @interface Import {
+    /**
+     * {@link Configuration @Configuration}, 
+     * {@link ImportSelector},
+     * {@link ImportBeanDefinitionRegistrar}, 
+     * or regular component classes to import.
+     */
+    Class<?>[] value();
+}
+```
+
+## @ImportResource
+
+```java
+// 导入XML配置，注入Bean
+@ImportResource("classpath:beans.xml")
+```
 
 ## 实现BeanDefinitionRegistryPostProcessor接口
 
+## 实现FactoryBean接口
+
 # Bean 依赖注入
-
-## 构造器注入
-
-<span style="color:red;">If a bean has more than one constructor, you will need to mark the one you want Spring to use
-with @Autowired</span>
-
-## 属性注入
-
-<span style="color:red;">Field injection is not recommended</span>
-
-## Setter方法注入
 
 ## @Autowired, @Resource, @Inject
 
-- @Autowired 按byType自动注入；@Resource 按byName自动注入；@Inject 按byType自动注入 。
-- @Autowired 是 spring 提供的注解；@Resource 是JDK自带的注解；@Inject 是JSR 330中的规范，需要导入javax.inject包。
-- @Autowired
-  在根据类型进行自动装配时，如果该类型存在多个不同名称的Bean，则会按照名称进行匹配，如果属性名称与Bean名称相同则装配成功，否则失败。如果需要按指定名称进行装配，则需要配合@Qualifier注解，可以解决“Could not
-  autowire. There is more than one bean of 'Xxx' type.”
-- @Autowired 有个属性为required，可以配置为false。如果配置为false，当没有找到相应Bean时，系统不会报错。
-- @Autowired 通过 “ AutowiredAnnotationBeanPostProcessor ” 类实现的依赖注入。
-- @Inject 在根据类型进行自动装配时，如果需要按指定名称进行装配，则需要配合@Named注解。
-
-参考：cn.maiaimei.example.BeanDependencyInjection
-
-[https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-standard-annotations](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-standard-annotations)
-
 # Bean 生命周期
 
-创建到销毁的过程...参考：cn.maiaimei.example.BeanLifeCycle
+org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#doCreateBean
 
-# Bean 移除
+org.springframework.beans.factory.support.DisposableBeanAdapter#destroy
 
+# @ConfigurationProperties 配置绑定
 
+@Component + @ConfigurationProperties
+
+@Configuration + @EnableConfigurationProperties + @ConfigurationProperties
 
 # Application Events and Listeners
 
@@ -96,7 +95,8 @@ with @Autowired</span>
    2.1 ```@Component```标记类 + ```@EventListener```标记方法 + ```@Order```标记方法（可选）  
    2.2 ```@Component```标记类 + 实现```ApplicationListener``` + ```@Order```标记类（可选）  
    2.3
-   在类路径下添加META-INF/spring.factories文件，写入键值对org.springframework.context.ApplicationListener=com.example.project.MyListener + 实现```ApplicationListener```接口 + ```@Order```标记类（可选）
+   在类路径下添加META-INF/spring.factories文件，写入键值对org.springframework.context.ApplicationListener=com.example.project.MyListener
+   + 实现```ApplicationListener```接口 + ```@Order```标记类（可选）
 3. 发布事件：注入```ApplicationContext```或```ApplicationEventPublisher```实例，调用```publishEvent```方法
 
 Some events are actually triggered before the ApplicationContext is created, so you cannot register a listener on those
@@ -165,15 +165,53 @@ Filter的生命周期由Servlet容器管理，而拦截器则可以通过IoC容�
 
 <img src="./images/20220723210146.png">
 
+## 过滤器
+
+过滤器定义：
+
+实现 javax.servlet.Filter 接口
+
+过滤器注册：
+
+1. 主函数类添加@ServletComponentScan注解 + 实现 javax.servlet.Filter 接口的类添加@WebFilter注解，这种方式注册的过滤器无法保证过滤器之间的执行顺序。
+
+2. FilterRegistrationBean，通过setOrder保证过滤器之间的执行顺序。
+
+   ```java
+   @Bean
+   public FilterRegistrationBean<MyFilter> myFilterRegistrationBean() {
+       FilterRegistrationBean<MyFilter> bean = new FilterRegistrationBean<>();
+       bean.setFilter(new MyFilter());
+       bean.setName("myFilter");
+       bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+       bean.addUrlPatterns("/*");
+       return bean;
+   }
+   ```
+
+## 拦截器
+
+拦截器定义：
+
+实现 org.springframework.web.servlet.HandlerInterceptor 接口
+
+拦截器注册：
+
+实现 org.springframework.web.servlet.config.annotation.WebMvcConfigurer 接口，重写 addInterceptors 方法
+
 [20年全新-Spring Boot 2.x从青铜到王者之钻石篇、filter、interceptor、listener、架构师、SpringBoot](https://www.bilibili.com/video/BV1oZ4y1K7hC)
 
 [Spring Boot实战：拦截器与过滤器](https://www.cnblogs.com/paddix/p/8365558.html)
 
 [SpringBoot拦截器](https://blog.csdn.net/weixin_52120555/article/details/123327175)
 
+# 后置处理器BeanPostProcessor
+
 # Aware
 
 Aware，能够感知的，实现XxxAware接口的类，能够获取到Xxx的功能。
+
+org.springframework.context.support.ApplicationContextAwareProcessor
 
 <img src="./images/20220313133700.png" />
 
@@ -265,54 +303,6 @@ org.aspectj.lang.ProceedingJoinPoint
 > @within和@target针对类的注解
 >
 > @annotation是针对方法的注解
-
-```java
-import cn.maiaimei.example.constant.GlobalConstant;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
-
-import java.util.UUID;
-
-@Aspect
-@Component
-public class JobAspect {
-    private static final Logger log = LoggerFactory.getLogger(JobAspect.class);
-
-    @Pointcut("@annotation(org.springframework.scheduling.annotation.Scheduled)")
-    public void pointcut() {
-    }
-
-    @Around("pointcut()")
-    public Object around(ProceedingJoinPoint pjp) throws Throwable {
-        MDC.put(GlobalConstant.TRACE_ID, UUID.randomUUID().toString().replaceAll("-", ""));
-        String name = pjp.getSignature().getName();
-        Object[] args = pjp.getArgs();
-        Object result = null;
-        try {
-            // @Before
-            log.info("【环绕前置通知】【{}方法开始】", name);
-            // 相当于method.invoke(obj,args)，通过反射来执行接口中的方法
-            result = pjp.proceed();
-            // @AfterReturning
-            log.info("【环绕返回通知】【{}方法返回】，返回值：{}", name, result);
-        } catch (Exception e) {
-            // @AfterThrowing
-            log.error("【环绕异常通知】【{}方法异常】，参数：{}", name, args, e);
-        } finally {
-            // @After
-            log.info("【环绕后置通知】【{}方法结束】", name);
-            MDC.remove(GlobalConstant.TRACE_ID);
-        }
-        return result;
-    }
-}
-```
 
 # 配置文件
 
@@ -465,7 +455,8 @@ spring:
 
 1. ```spring.profiles.active``` 与环境有关的，```spring.profiles.include``` 与环境无关的。
 
-2. The properties from spring.profile.include override default properties. The properties from active profiles override spring.profile.include and default properties.
+2. The properties from spring.profile.include override default properties. The properties from active profiles override
+   spring.profile.include and default properties.
 
 3. ```spring.profiles.include``` 用于抽取公共配置，比如h2，mybatis-plus，redis等等
 
@@ -480,7 +471,7 @@ spring:
 
 启动Spring Boot项目时传递参数，有三种参数形式：
 
-1. 选项参数（见 <span style="color:red;font-weight:bold;">java -jar xxx.jar  --xxx=yyy</span>）
+1. 选项参数（见 <span style="color:red;font-weight:bold;">java -jar xxx.jar --xxx=yyy</span>）
 2. 非选项参数（如 <span style="color:red;font-weight:bold;">java -jar xxx.jar xxx yyy</span>）
 3. 系统参数（见 <span style="color:red;font-weight:bold;">java -Dxxx=yyy -jar xxx.jar</span>）
 
@@ -489,13 +480,15 @@ spring:
 1. -Dxxx=yyy必须在-jar之前；
 2. 此法增加的参数被设置到应用的系统属性中，可通过System.getProperty(“server.port”)获取。
 
-<span style="color:red;font-weight:bold;">java -jar xxx.jar  --xxx=yyy</span>
+<span style="color:red;font-weight:bold;">java -jar xxx.jar --xxx=yyy</span>
 
 1. --xxx=yyy必须在-jar之后；
 2. 此法增加的参数属于命令行参数，会作为SpringBoot启动的main方法的String[] args参数；
 3. 有时在Windows下无效。
 
-If you need to access the application arguments that were passed to SpringApplication.run(…), you can inject a org.springframework.boot.ApplicationArguments bean. **The ApplicationArguments interface provides access to both the raw String[] arguments as well as parsed option and non-option arguments**, as shown in the following example:
+If you need to access the application arguments that were passed to SpringApplication.run(…), you can inject a
+org.springframework.boot.ApplicationArguments bean. **The ApplicationArguments interface provides access to both the raw
+String[] arguments as well as parsed option and non-option arguments**, as shown in the following example:
 
 <img src="./images/20220526131916.png" >
 
@@ -677,3 +670,16 @@ public interface HandlerMethodReturnValueHandler {
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception;
 }
 ```
+
+# Q & A
+
+## @ImportResource 和 @PropertySource 区别
+
+1. @ImportResource 用于导入xml文件
+2. @PropertySource 用于导入 properties、yaml文件
+
+# 相关链接
+
+[尚硅谷Spring注解驱动教程(雷丰阳源码级讲解)](https://www.bilibili.com/video/BV1gW411W7wy)
+
+[【尚硅谷】SpringBoot2零基础入门教程（spring boot2干货满满）](https://www.bilibili.com/video/BV19K4y1L7MT)

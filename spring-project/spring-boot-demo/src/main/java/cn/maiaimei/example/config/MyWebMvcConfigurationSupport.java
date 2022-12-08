@@ -1,10 +1,13 @@
 package cn.maiaimei.example.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
-//@Configuration
+@ConditionalOnExpression("false")
+@Configuration
 public class MyWebMvcConfigurationSupport extends WebMvcConfigurationSupport {
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
