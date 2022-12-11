@@ -7,6 +7,11 @@ server:
       charset: utf-8
 
 spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:tcp://localhost/E:/app/data/testdb
+    username: root
+    password: 123456
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher # 解决启动时swagger报错
