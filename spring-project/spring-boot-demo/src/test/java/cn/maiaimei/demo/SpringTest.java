@@ -58,9 +58,7 @@ public class SpringTest {
     }
 
     /**
-     * {@link DefaultListableBeanFactory} beanFactory
-     * <p>
-     * beanDefinitionMap:
+     * beanDefinition -> {@link DefaultListableBeanFactory#registerBeanDefinition(java.lang.String, org.springframework.beans.factory.config.BeanDefinition)}
      * org.springframework.context.annotation.internalConfigurationAnnotationProcessor = {@link ConfigurationClassPostProcessor}
      * org.springframework.context.annotation.internalAutowiredAnnotationProcessor = {@link AutowiredAnnotationBeanPostProcessor}
      * org.springframework.context.annotation.internalCommonAnnotationProcessor = {@link CommonAnnotationBeanPostProcessor}
@@ -69,10 +67,7 @@ public class SpringTest {
      * <p>
      * beanPostProcessor
      * ApplicationContextAwareProcessor implements BeanPostProcessor -> setXxxAware
-     * ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, MergedBeanDefinitionPostProcessor
      * <p>
-     * TODO: 调试
-     * refresh() -> invokeBeanFactoryPostProcessors(beanFactory) -> {@link ConfigurationClassPostProcessor#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)}
      */
     @Test
     void testBeanRegisterAndDependencyInjection() {
