@@ -28,6 +28,11 @@ public class MailController {
         mailService.sendHtmlMail(mailRequest, attachments);
     }
 
+    @PostMapping("/sendTplMail")
+    public void sendTplMail(String to, @RequestBody Map<String, Object> orderInfo) {
+        mailService.sendTplMail(to, orderInfo);
+    }
+
     /**
      * swagger上传文件需要设置headers = "content-type=multipart/form-data"
      */
@@ -36,10 +41,5 @@ public class MailController {
         for (MultipartFile attachment : attachments) {
             System.out.println(attachment.getOriginalFilename());
         }
-    }
-
-    @PostMapping("/sendTplMail")
-    public void sendTplMail(String to, @RequestBody Map<String, Object> orderInfo) {
-        mailService.sendTplMail(to, orderInfo);
     }
 }
