@@ -1,4 +1,4 @@
-package cn.maiaimei.example.model;
+package cn.maiaimei.example.pojo.model;
 
 import lombok.Data;
 

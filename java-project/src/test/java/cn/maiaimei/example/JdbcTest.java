@@ -2,7 +2,7 @@ package cn.maiaimei.example;
 
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
-import cn.maiaimei.example.model.UserModel;
+import cn.maiaimei.example.pojo.model.UserModel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
