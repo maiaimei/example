@@ -1,0 +1,8 @@
+sftp:
+  host: 192.168.1.28
+  port: 22
+  username: sftpuser
+  password: sftpuser
+  # 服务器上传文件路径为 /data/sftp/sftpuser/upload 这里仅配置 upload/ 即可，否则会报错！！！
+  remoteDirectory: upload/
+  localDirectory: E:/tmp/download
