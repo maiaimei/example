@@ -5,10 +5,11 @@ import cn.maiaimei.framework.validation.group.ValidationGroup;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Data
 public class UserRequest {
-    @NotBlank(groups = {ValidationGroup.Update.class})
+    @NotNull(groups = {ValidationGroup.Update.class})
     private Long id;
 
     @NotBlank(groups = {ValidationGroup.OrderA.class})

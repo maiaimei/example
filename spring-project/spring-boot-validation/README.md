@@ -1,4 +1,4 @@
-# 自定义验证规则
+## 自定义验证规则
 
 ```java
 @Documented
@@ -41,7 +41,7 @@ public class PasswordValidator implements ConstraintValidator<Password, String> 
 }
 ```
 
-# 多字段联合校验
+## 多字段联合校验
 
 ```java
 @GroupSequenceProvider(value = LeaveSequenceProvider.class)
@@ -78,8 +78,15 @@ public class LeaveSequenceProvider implements DefaultGroupSequenceProvider<Leave
 }
 ```
 
-# 国际化配置
+## 国际化配置
 
 <img src="./images/20220528201612.png" />
 
 <img src="./images/20220528201842.png" />
+
+## @Valid 和 @Validated 的区别
+
+@Valid: `javax.validation.Valid` ，不支持分组校验
+
+@Validated: `org.springframework.validation.annotation.Validated`，支持分组校验
+

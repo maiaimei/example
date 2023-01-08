@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 @GroupSequenceProvider(value = LeaveSequenceProvider.class)
 @Data
 public class LeaveRequest {
-    @NotBlank(groups = {ValidationGroup.Update.class})
+    @NotNull(groups = {ValidationGroup.Update.class})
     private Long id;
 
     @NotNull(groups = {ValidationGroup.OrderA.class})

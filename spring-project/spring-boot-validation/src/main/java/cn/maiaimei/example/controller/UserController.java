@@ -12,7 +12,7 @@ import javax.validation.constraints.Min;
 
 @Api(tags = "用户管理")
 @Slf4j
-@Validated
+@Validated // 整个类启用校验，如果入参有bean validation校验注解，则自动校验
 @RestController
 @RequestMapping("/users")
 public class UserController {

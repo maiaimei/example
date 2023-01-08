@@ -12,7 +12,7 @@ import javax.validation.constraints.Min;
 
 @Api(tags = "请假管理")
 @Slf4j
-@Validated
+@Validated // 校验简单类型参数
 @RestController
 @RequestMapping("/leaves")
 public class LeaveController {

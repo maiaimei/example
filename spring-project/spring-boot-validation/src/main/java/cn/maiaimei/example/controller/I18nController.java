@@ -1,5 +1,6 @@
 package cn.maiaimei.example.controller;
 
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Locale;
 
+@Api(tags = "国际化消息")
 @Slf4j
 @RestController
 public class I18nController {
