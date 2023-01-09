@@ -17,7 +17,7 @@ public class PersonController {
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
-        ValidationResult result = ValidationUtils.validateParameters(this, method, new Object[]{id});
+        ValidationResult result = ValidationUtils.validParameters(this, method, new Object[]{id});
         if (result.isHasErrors()) {
             result.getErrorMessages().forEach(System.out::println);
         }

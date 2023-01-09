@@ -40,35 +40,19 @@ public class ValidationUtils {
         FAIL_FAST_EXECUTABLE_VALIDATOR = FAIL_FAST_VALIDATOR.forExecutables();
     }
 
-    public static <T> ValidationResult valid(T object) {
-        // 默认校验组是 javax.validation.groups.Default
-        Set<ConstraintViolation<T>> constraintViolations = VALIDATOR.validate(object);
-        return checkConstraintViolations(constraintViolations);
-    }
-
     public static <T> ValidationResult valid(T object, Class<?>... groups) {
+        // 若省略groups，默认校验组是 javax.validation.groups.Default
         Set<ConstraintViolation<T>> constraintViolations = VALIDATOR.validate(object, groups);
-        return checkConstraintViolations(constraintViolations);
-    }
-
-    public static <T> ValidationResult validFailFast(T object) {
-        // 默认校验组是 javax.validation.groups.Default
-        Set<ConstraintViolation<T>> constraintViolations = FAIL_FAST_VALIDATOR.validate(object);
-        return checkConstraintViolations(constraintViolations);
-    }
-
-    public static <T> ValidationResult validFailFast(T object, Class<?>... groups) {
-        Set<ConstraintViolation<T>> constraintViolations = FAIL_FAST_VALIDATOR.validate(object, groups);
         return checkConstraintViolations(constraintViolations);
     }
 
     /**
      * non-bean（简单类型）入参校验
      */
-    public static <T> ValidationResult validateParameters(T object,
-                                                          Method method,
-                                                          Object[] parameterValues,
-                                                          Class<?>... groups) {
+    public static <T> ValidationResult validParameters(T object,
+                                                       Method method,
+                                                       Object[] parameterValues,
+                                                       Class<?>... groups) {
         Set<ConstraintViolation<T>> constraintViolations = EXECUTABLE_VALIDATOR.validateParameters(object, method, parameterValues, groups);
         return checkConstraintViolations(constraintViolations);
     }
@@ -76,13 +60,41 @@ public class ValidationUtils {
     /**
      * non-bean（简单类型）返回值校验
      */
-    public static <T> ValidationResult validateReturnValue(T object,
-                                                           Method method,
-                                                           Object returnValue,
-                                                           Class<?>... groups) {
+    public static <T> ValidationResult validReturnValue(T object,
+                                                        Method method,
+                                                        Object returnValue,
+                                                        Class<?>... groups) {
         Set<ConstraintViolation<T>> constraintViolations = EXECUTABLE_VALIDATOR.validateReturnValue(object, method, returnValue, groups);
         return checkConstraintViolations(constraintViolations);
     }
+
+    public static <T> ValidationResult failFastValid(T object, Class<?>... groups) {
+        Set<ConstraintViolation<T>> constraintViolations = FAIL_FAST_VALIDATOR.validate(object, groups);
+        return checkConstraintViolations(constraintViolations);
+    }
+
+    /**
+     * non-bean（简单类型）入参校验
+     */
+    public static <T> ValidationResult failFastValidParameters(T object,
+                                                               Method method,
+                                                               Object[] parameterValues,
+                                                               Class<?>... groups) {
+        Set<ConstraintViolation<T>> constraintViolations = FAIL_FAST_EXECUTABLE_VALIDATOR.validateParameters(object, method, parameterValues, groups);
+        return checkConstraintViolations(constraintViolations);
+    }
+
+    /**
+     * non-bean（简单类型）返回值校验
+     */
+    public static <T> ValidationResult failFastValidReturnValue(T object,
+                                                                Method method,
+                                                                Object returnValue,
+                                                                Class<?>... groups) {
+        Set<ConstraintViolation<T>> constraintViolations = FAIL_FAST_EXECUTABLE_VALIDATOR.validateReturnValue(object, method, returnValue, groups);
+        return checkConstraintViolations(constraintViolations);
+    }
+
 
     private static <T> ValidationResult checkConstraintViolations(Set<ConstraintViolation<T>> constraintViolations) {
         ValidationResult validationResult = new ValidationResult();

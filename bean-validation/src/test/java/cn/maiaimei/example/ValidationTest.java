@@ -30,7 +30,7 @@ public class ValidationTest {
     @Test
     void testBeanValidFailFast() {
         Person person = buildPerson();
-        ValidationResult result = ValidationUtils.validFailFast(person, Default.class, Person.Update.class);
+        ValidationResult result = ValidationUtils.failFastValid(person, Default.class, Person.Update.class);
         printValidationResult(result);
     }
 
