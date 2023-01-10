@@ -1,6 +1,7 @@
 package cn.maiaimei.example.controller;
 
 import cn.maiaimei.example.dto.UserRequest;
+import cn.maiaimei.example.validation.constraints.Alphanumeric;
 import cn.maiaimei.framework.validation.group.ValidationGroup;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -9,19 +10,23 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
+@Validated
 @Slf4j
 @Api
 @RestController
 @RequestMapping("/demos")
 public class DemoController {
+    @ApiOperation(value = "测试@Alphanumeric注解")
+    @GetMapping("/testAlphanumeric")
+    public void testAlphanumeric(@Alphanumeric(maxlength = 3, required = true) @RequestParam(required = false) String value) {
+        log.info("value={}", value);
+    }
+
     @ApiOperation(value = "测试@Valid注解")
     @PostMapping("/testValid")
     public String testValid(@Valid @RequestBody UserRequest request, BindingResult bindingResult) {

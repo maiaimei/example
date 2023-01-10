@@ -7,6 +7,9 @@ import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 约束级联（级联校验）
+ */
 public class LeaveSequenceProvider implements DefaultGroupSequenceProvider<LeaveRequest> {
     @Override
     public List<Class<?>> getValidationGroups(LeaveRequest leaveRequest) {
