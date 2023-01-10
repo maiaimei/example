@@ -14,13 +14,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = {SexValidator.class})
 public @interface Sex {
-    // 必须的属性
     String message() default "{cn.maiaimei.example.validation.constraints.Sex.message}";
 
-    // 必须的属性
     Class<?>[] groups() default {};
 
-    // 必须的属性
     Class<? extends Payload>[] payload() default {};
 
     boolean required() default false;

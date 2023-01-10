@@ -3,6 +3,7 @@ package cn.maiaimei.example.util;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.internal.engine.ValidatorImpl;
 import org.hibernate.validator.internal.metadata.core.ConstraintHelper;
+import org.hibernate.validator.resourceloading.PlatformResourceBundleLocator;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintViolation;
@@ -11,6 +12,7 @@ import javax.validation.Validator;
 import javax.validation.executable.ExecutableValidator;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,7 @@ public class ValidationUtils {
 
     static {
         VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+
         // 快速失败
         FAIL_FAST_VALIDATOR = Validation.byProvider(HibernateValidator.class)
                 .configure().failFast(Boolean.TRUE)
@@ -96,7 +99,7 @@ public class ValidationUtils {
     }
 
 
-    private static <T> ValidationResult checkConstraintViolations(Set<ConstraintViolation<T>> constraintViolations) {
+    public static <T> ValidationResult checkConstraintViolations(Set<ConstraintViolation<T>> constraintViolations) {
         ValidationResult validationResult = new ValidationResult();
         validationResult.setHasErrors(Boolean.FALSE);
         if (constraintViolations != null && constraintViolations.size() > 0) {
@@ -107,5 +110,14 @@ public class ValidationUtils {
             validationResult.setErrorMessages(errorMessages);
         }
         return validationResult;
+    }
+
+    private static Validator getValidator(String language) {
+        Locale.setDefault(new Locale(language));
+        return Validation.byDefaultProvider().configure()
+                // 自定义国际化文件配置
+                .messageInterpolator(new ValidationResourceBundleMessageInterpolator(new PlatformResourceBundleLocator("i18n/ValidationMessages")))
+                .buildValidatorFactory()
+                .getValidator();
     }
 }
