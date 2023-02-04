@@ -1,6 +1,6 @@
 package cn.maiaimei.example.config;
 
-import cn.maiaimei.framework.web.http.RequestResponseLoggingFilter;
+import cn.maiaimei.framework.web.servlet.RequestResponseLoggingFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

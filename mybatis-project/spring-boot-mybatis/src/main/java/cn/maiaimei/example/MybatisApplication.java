@@ -1,8 +1,8 @@
 package cn.maiaimei.example;
 
 import cn.maiaimei.framework.swagger.EnableSwagger;
-import cn.maiaimei.framework.web.EnableGlobalException;
-import cn.maiaimei.framework.web.EnableGlobalResponse;
+import cn.maiaimei.framework.web.servlet.EnableGlobalException;
+import cn.maiaimei.framework.web.servlet.EnableGlobalResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
