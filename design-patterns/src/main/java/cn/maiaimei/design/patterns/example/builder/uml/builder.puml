@@ -13,10 +13,10 @@ buildPartC()
 Product getProduct()
 }
 
-class ConcreteBuilderX implements Builder{
+class ConcreteBuilder1 implements Builder{
 }
 
-class ConcreteBuilderY implements Builder{
+class ConcreteBuilder2 implements Builder{
 }
 
 class Director{

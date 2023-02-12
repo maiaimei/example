@@ -1,4 +1,4 @@
-package cn.maiaimei.example.proxy;
+package cn.maiaimei.design.patterns.example.proxy;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,23 +18,23 @@ public class JDKDynamicProxy {
         Subject proxySubject = (Subject) Proxy.newProxyInstance(realSubject.getClass().getClassLoader(), realSubject.getClass().getInterfaces(), new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                log.info("before");
+                log.info("{} 前置处理请求", proxy.getClass().getSimpleName());
                 Object result = method.invoke(realSubject, args);
-                log.info("after");
+                log.info("{} 后置处理请求", proxy.getClass().getSimpleName());
                 return result;
             }
         });
-        proxySubject.request();
+        proxySubject.handleRequest();
     }
 
     interface Subject {
-        void request();
+        void handleRequest();
     }
 
     static class RealSubject implements Subject {
         @Override
-        public void request() {
-            log.info("request");
+        public void handleRequest() {
+            log.info("{} 处理请求", this.getClass().getSimpleName());
         }
     }
 }

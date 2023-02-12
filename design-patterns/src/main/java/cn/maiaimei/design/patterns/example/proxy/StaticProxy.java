@@ -1,4 +1,4 @@
-package cn.maiaimei.example.proxy;
+package cn.maiaimei.design.patterns.example.proxy;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,17 +10,17 @@ public class StaticProxy {
     public static void main(String[] args) {
         RealSubject realSubject = new RealSubject();
         ProxySubject proxySubject = new ProxySubject(realSubject);
-        proxySubject.request();
+        proxySubject.handleRequest();
     }
 
     interface Subject {
-        void request();
+        void handleRequest();
     }
 
     static class RealSubject implements Subject {
         @Override
-        public void request() {
-            log.info("request");
+        public void handleRequest() {
+            log.info("{} 处理请求", this.getClass().getSimpleName());
         }
     }
 
@@ -32,10 +32,10 @@ public class StaticProxy {
         }
 
         @Override
-        public void request() {
-            log.info("before");
-            target.request();
-            log.info("after");
+        public void handleRequest() {
+            log.info("{} 前置处理请求", this.getClass().getSimpleName());
+            target.handleRequest();
+            log.info("{} 后置处理请求", this.getClass().getSimpleName());
         }
     }
 }

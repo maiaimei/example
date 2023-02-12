@@ -1,4 +1,4 @@
-package cn.maiaimei.example.proxy.jdbc;
+package cn.maiaimei.design.patterns.example.proxy.jdbc;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 @Slf4j
-public class JdbcMain {
+public class JdbcApplication {
     @SneakyThrows
     public static void main(String[] args) {
         String sql = "select 1 from dual";

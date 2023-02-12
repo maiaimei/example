@@ -1,4 +1,4 @@
-package cn.maiaimei.example.proxy.jdbc;
+package cn.maiaimei.design.patterns.example.proxy.jdbc;
 
 import lombok.SneakyThrows;
 
@@ -29,11 +29,13 @@ public class DBCP {
             } catch (ClassNotFoundException | SQLException e) {
                 e.printStackTrace();
             }
-            // ConnectionProxy connectionProxy = new ConnectionProxy(connection);
+            // 使用静态代理创建数据库连接对象
+            // ConnectionStaticProxy connectionProxy = new ConnectionStaticProxy(connection);
+            // 使用JDK动态代理创建数据库连接对象
             Connection connectionProxy = (Connection) Proxy.newProxyInstance(
                     ClassLoader.getSystemClassLoader(),
                     new Class[]{Connection.class},
-                    new ConnectionJDKProxy(connection)
+                    new ConnectionJDKDynamicProxy(connection)
             );
             POOL.add(connectionProxy);
         }

@@ -1,4 +1,4 @@
-package cn.maiaimei.example.proxy.jdbc;
+package cn.maiaimei.design.patterns.example.proxy.jdbc;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -7,10 +7,10 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 
 @Slf4j
-public class ConnectionJDKProxy implements InvocationHandler {
+public class ConnectionJDKDynamicProxy implements InvocationHandler {
     private Connection connection;
 
-    public ConnectionJDKProxy(Connection connection) {
+    public ConnectionJDKDynamicProxy(Connection connection) {
         this.connection = connection;
     }
 

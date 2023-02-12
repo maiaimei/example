@@ -1,4 +1,4 @@
-package cn.maiaimei.example.proxy;
+package cn.maiaimei.design.patterns.example.proxy;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.Enhancer;
@@ -18,19 +18,22 @@ public class CGLibDynamicProxy {
         enhancer.setCallback(new MethodInterceptor() {
             @Override
             public Object intercept(Object target, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-                log.info("before");
-                Object result = proxy.invokeSuper(target, args);
-                log.info("after");
-                return result;
+                if ("handleRequest".equals(method.getName())) {
+                    log.info("{} 前置处理请求", proxy.getClass().getSimpleName());
+                    Object result = proxy.invokeSuper(target, args);
+                    log.info("{} 后置处理请求", proxy.getClass().getSimpleName());
+                    return result;
+                }
+                return null;
             }
         });
         RealSubject proxySubject = (RealSubject) enhancer.create();
-        proxySubject.request();
+        proxySubject.handleRequest();
     }
 
     static class RealSubject {
-        public void request() {
-            log.info("request");
+        public void handleRequest() {
+            log.info("{} 处理请求", this.getClass().getSimpleName());
         }
     }
 }

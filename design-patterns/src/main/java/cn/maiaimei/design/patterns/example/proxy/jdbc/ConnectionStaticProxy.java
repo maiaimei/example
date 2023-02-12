@@ -1,4 +1,4 @@
-package cn.maiaimei.example.proxy.jdbc;
+package cn.maiaimei.design.patterns.example.proxy.jdbc;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,10 +8,10 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 
 @Slf4j
-public class ConnectionProxy implements Connection {
+public class ConnectionStaticProxy implements Connection {
     private Connection connection;
 
-    public ConnectionProxy(Connection connection) {
+    public ConnectionStaticProxy(Connection connection) {
         this.connection = connection;
     }
 

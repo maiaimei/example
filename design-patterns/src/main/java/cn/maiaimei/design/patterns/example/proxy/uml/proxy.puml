@@ -6,16 +6,16 @@ ProxySubject --> RealSubject
 Client --> Subject
 
 interface Subject {
-+ request()
++ handleRequest()
 }
 
 class RealSubject implements Subject {
-+ request()
++ handleRequest()
 }
 
 class ProxySubject implements Subject {
 - RealSubject realSubject
-+ request()
++ handleRequest()
 }
 
 class Client{

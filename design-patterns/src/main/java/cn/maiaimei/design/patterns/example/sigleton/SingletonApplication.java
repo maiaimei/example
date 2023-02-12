@@ -1,4 +1,4 @@
-package cn.maiaimei.example.sigleton;
+package cn.maiaimei.design.patterns.example.sigleton;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -8,24 +8,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
-public class SingletonMain {
+public class SingletonApplication {
     @SneakyThrows
     public static void main(String[] args) {
         int cnt = 10;
-        ExecutorService executor = Executors.newFixedThreadPool(10);
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         CountDownLatch countDownLatch = new CountDownLatch(cnt);
-        log.info("begin");
         for (int i = 0; i < cnt; i++) {
             executor.submit(() -> {
-                // SingletonA instance = SingletonA.getInstance();
-                // SingletonB instance = SingletonB.getInstance();
-                SingletonC instance = SingletonC.getInstance();
+                //Singleton1 instance = Singleton1.getInstance();
+                //Singleton2 instance = Singleton2.getInstance();
+                //Singleton3 instance = Singleton3.getInstance();
+                //Singleton4 instance = Singleton4.getInstance();
+                Singleton5 instance = Singleton5.getInstance();
                 log.info("{}", instance);
                 countDownLatch.countDown();
             });
         }
         countDownLatch.await();
         executor.shutdown();
-        log.info("end");
     }
 }
