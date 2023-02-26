@@ -27,6 +27,9 @@ log
 *.ipr
 *.iws
 *.ini
+.settings
+*.project
+*.classpath
 
 # maven & gradle
 .gradle
