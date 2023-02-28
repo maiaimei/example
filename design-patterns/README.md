@@ -68,6 +68,17 @@
 
 ### 外观模式
 
+### 装饰器模式
+
+装饰器模式 (Decorator Pattern)，又称包装器模式 (Wrapper Pattern)，动态地给一个对象添加一些额外的职责。
+
+![](/images/decorator.png)
+
+应用场景：
+
+1. Java IO 类中的应用
+2. MyBatis 中 Cache的应用
+
 ## 行为型模式
 
 ### 状态模式
