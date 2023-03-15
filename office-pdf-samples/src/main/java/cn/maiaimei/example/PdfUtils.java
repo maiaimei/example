@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * TODO: refactor PdfUtils
+ */
 public class PdfUtils {
     private static final Logger log = LoggerFactory.getLogger(PdfUtils.class);
 
