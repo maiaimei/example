@@ -1,0 +1,25 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /project
+
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher # 解决启动时swagger报错
+  servlet:
+    # org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException: 
+    # The field files exceeds its maximum permitted size of 1048576 bytes.
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 40MB
+
+# 读取pom的参数： @xxx@
+swagger:
+  enabled: true
+  title: @artifactId@
+  description: @description@
+  version: @version@
+
+response:
+  show-trace: true
