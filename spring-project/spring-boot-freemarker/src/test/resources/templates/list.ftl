@@ -28,23 +28,53 @@ listing a sequence (or collection):
 </#list>
 
 listing a sequence (or collection):
-<#list emptyUsers as user>
-    <#-- Part repeated for each item -->
-    username: ${user.username}
-<#else>
-    <#-- Part executed when there are 0 items -->
-    no users
+<#if users??>
+[
+<#list users as user>
+    {
+        "id": ${user.id?c},
+        "username": "${user.username}",
+        "password": "${user.password}",
+        "gmtCreated": "${user.gmtCreated}",
+        "gmtModified": "${user.gmtModified}"
+    }<#if user_index < (users?size - 1)>,</#if>
 </#list>
+]
+</#if>
 
 listing a sequence (or collection):
 <#list users>
     <#-- Part executed once if we have more than 0 items -->
+[
     <#items as user>
         <#-- Part repeated for each item -->
-        username: ${user.username}
+    {
+        "id": ${user.id?c},
+        "username": "${user.username}",
+        "password": "${user.password}",
+        "gmtCreated": "${user.gmtCreated}",
+        "gmtModified": "${user.gmtModified}"
+    }<#sep>, </#sep>
     </#items>
+]
     <#-- Part executed once if we have more than 0 items -->
 <#else>
     <#-- Part executed when there are 0 items -->
-    no users
+[]
+</#list>
+
+break directive:
+<#list 1..10 as x>
+    ${x}
+    <#if x == 3>
+        <#break>
+    </#if>
+</#list>
+
+continue directive:
+<#list 1..5 as x>
+    <#if x == 3>
+        <#continue>
+    </#if>
+    ${x}
 </#list>

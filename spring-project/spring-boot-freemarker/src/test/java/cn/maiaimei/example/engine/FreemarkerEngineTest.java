@@ -13,7 +13,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -86,7 +89,6 @@ class FreemarkerEngineTest {
         root.put("num", 5);
         root.put("hash", map);
         root.put("users", users);
-        root.put("emptyUsers", Collections.emptyList());
         freemarkerEngine.writeToConsole("list.ftl", root);
     }
 }
