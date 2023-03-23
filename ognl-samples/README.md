@@ -1,0 +1,1 @@
+[OGNL](https://commons.apache.org/proper/commons-ognl/) stands for Object-Graph Navigation Language; it is an expression language for getting and setting properties of Java objects, plus other extras such as list projection and selection and lambda expressions. You use the same expression for both getting and setting the value of a property.
