@@ -1,0 +1,6 @@
+logging:
+  # 设置日志级别，root表示整个项目，可以指定到某个包下，也可以具体到某个类名（日志级别的值不区分大小写）
+  level:
+    # 指定某个包下的日志级别，多个包不同日志级别写多行即可
+    cn.maiaimei.example.controller: trace
+    cn.maiaimei.example.service: debug
