@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:int="http://www.springframework.org/schema/integration"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <!-- 
+    https://docs.spring.io/spring-integration/docs/current/reference/html/core.html#channel-adapter 
+    
+    A channel adapter is an endpoint that connects a message channel to some other system or transport. 
+    Channel adapters may be either inbound or outbound. 
+    
+    An inbound-channel-adapter element (a SourcePollingChannelAdapter in Java configuration) 
+    can invoke any method on a Spring-managed object 
+    and send a non-null return value to a MessageChannel 
+    after converting the method’s output to a Message.
+    
+    An outbound-channel-adapter element (a @ServiceActivator for Java configuration) 
+    can also connect a MessageChannel to any POJO consumer method that should be invoked with the payload of messages sent to that channel. 
+    -->
+
+    <int:channel id="channel1"/>
+    <int:channel id="channel2"/>
+
+    <int:inbound-channel-adapter ref="producerService" method="produce1" channel="channel1">
+        <int:poller fixed-rate="${inbound-channel-adapter-fixed-rate}"/>
+    </int:inbound-channel-adapter>
+
+    <int:inbound-channel-adapter ref="producerService" method="produce2" channel="channel2">
+        <int:poller cron="${inbound-channel-adapter-cron}"/>
+    </int:inbound-channel-adapter>
+
+    <int:outbound-channel-adapter channel="channel1" ref="consumerService" method="consume1"/>
+    <int:outbound-channel-adapter channel="channel2" ref="consumerService" method="consume2"/>
+
+</beans:beans>

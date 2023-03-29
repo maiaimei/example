@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:int="http://www.springframework.org/schema/integration"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <int:channel id="exampleChannelB">
+        <int:interceptors>
+            <int:ref bean="trafficMonitoringInterceptor"/>
+        </int:interceptors>
+    </int:channel>
+
+    <!-- Global Channel Interceptor Configuration Sample1 start -->
+    <int:channel-interceptor pattern="example*" order="0">
+        <beans:bean class="cn.maiaimei.example.interceptor.GlobalChannelInterceptorA"/>
+    </int:channel-interceptor>
+    <!-- Global Channel Interceptor Configuration Sample1 end -->
+
+    <!-- Global Channel Interceptor Configuration Sample2 start -->
+    <int:channel-interceptor ref="globalChannelInterceptorB" pattern="example*" order="1"/>
+    <beans:bean id="globalChannelInterceptorB" class="cn.maiaimei.example.interceptor.GlobalChannelInterceptorB"/>
+    <!-- Global Channel Interceptor Configuration Sample2 end -->
+
+</beans:beans>
