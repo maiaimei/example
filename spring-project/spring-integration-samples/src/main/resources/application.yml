@@ -1,5 +1,20 @@
 spring:
   profiles:
-    active: dev
-inbound-channel-adapter-fixed-rate: 1805000
-inbound-channel-adapter-cron: 0/5 30 * * * ?
+    active: local
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+swagger:
+  enabled: true
+  title: @artifactId@
+  description: @description@
+  version: @version@
+
+inbound-channel-adapter-fixed-rate: 3605000
+inbound-channel-adapter-cron: 0/5 * 1 * * ?
+
+external-system:
+  example:
+    env:
+      sit: http://localhost:8080/example/sit
+      uat: http://localhost:8080/example/uat
