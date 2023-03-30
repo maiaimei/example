@@ -37,7 +37,11 @@ class MessageChannelTest {
         exampleChannel.send(message);
         final Message<?> receiveMessage = exampleChannel.receive();
         assertEquals(message.getPayload(), receiveMessage.getPayload());
+    }
 
+    @Test
+    void testChannelInterceptor4ExampleChannelB() {
+        final Message<String> message = MessageBuilder.withPayload("Hello ChannelInterceptor").build();
         exampleChannelB.subscribe(receiveMsg -> {
             assertEquals(message.getPayload(), receiveMsg.getPayload());
         });

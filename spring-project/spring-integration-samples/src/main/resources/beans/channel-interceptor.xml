@@ -10,7 +10,9 @@
 
     <int:channel id="exampleChannelB">
         <int:interceptors>
+            <int:ref bean="exampleChannelBInterceptorA"/>
             <int:ref bean="trafficMonitoringInterceptor"/>
+            <int:ref bean="exampleChannelBInterceptorB"/>
         </int:interceptors>
     </int:channel>
 
