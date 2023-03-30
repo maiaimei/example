@@ -1,2 +1,5 @@
+spring:
+  profiles:
+    active: dev
 inbound-channel-adapter-fixed-rate: 1805000
 inbound-channel-adapter-cron: 0/5 30 * * * ?

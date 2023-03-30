@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context
+			https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 
+    在xml中使用${xxx}，本质上是使用了<context:property-placeholder location="/path/file.properties"/>
+    这个配置创建了一个org.springframework.beans.factory.config.PropertySourcesPlaceholderConfigurer的bean
+    当程序加载到context:property-placeholder时，会扫描所有的bean，然后适配
+    如果项目中引入多个资源文件，那么在第一次扫描所有bean的时候会有不适配的情况发生，异常如下：
+    Caused by: java.lang.IllegalArgumentException: Could not resolve placeholder 'xxx' in value "${xxx}" 
+    解决方法是：
+    加入ignore-unresolvable="true"配置，
+    这个配置告诉spring，没有找到配置时用${}替代，然后再检查下其他资源文件，看看有没有相关配置，有的话再填进去。
+    -->
+    <context:property-placeholder location="classpath:application.yml" ignore-unresolvable="true"/>
+
+</beans:beans>

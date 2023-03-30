@@ -7,7 +7,6 @@
 			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			https://www.springframework.org/schema/integration/spring-integration.xsd">
-
     <!-- 
     https://docs.spring.io/spring-integration/docs/current/reference/html/core.html#channel-adapter 
     
