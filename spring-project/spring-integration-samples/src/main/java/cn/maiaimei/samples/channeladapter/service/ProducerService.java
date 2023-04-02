@@ -1,12 +1,10 @@
-package cn.maiaimei.example.service;
+package cn.maiaimei.samples.channeladapter.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Slf4j
-@Service
 public class ProducerService {
 
     public String produce1() {

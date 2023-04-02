@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @Disabled
 @SpringBootTest
-class ExampleGatewayTest {
+class GatewayTest {
 
     @Autowired
     ExampleGateway exampleGateway;

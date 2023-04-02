@@ -26,14 +26,17 @@
     <int:channel id="channel2"/>
 
     <int:inbound-channel-adapter ref="producerService" method="produce1" channel="channel1">
-        <int:poller fixed-rate="${inbound-channel-adapter-fixed-rate}"/>
+        <int:poller fixed-rate="5000"/>
     </int:inbound-channel-adapter>
 
     <int:inbound-channel-adapter ref="producerService" method="produce2" channel="channel2">
-        <int:poller cron="${inbound-channel-adapter-cron}"/>
+        <int:poller cron="0/5 * * * * ?"/>
     </int:inbound-channel-adapter>
 
     <int:outbound-channel-adapter channel="channel1" ref="consumerService" method="consume1"/>
-    <int:outbound-channel-adapter channel="channel2" ref="consumerService" method="consume2"/>
+    <int:service-activator input-channel="channel2" ref="consumerService" method="consume2"/>
+
+    <beans:bean id="producerService" class="cn.maiaimei.samples.channeladapter.service.ProducerService"/>
+    <beans:bean id="consumerService" class="cn.maiaimei.samples.channeladapter.service.ConsumerService"/>
 
 </beans:beans>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:int="http://www.springframework.org/schema/integration"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <int:channel id="directChannel"/>
+    <int:channel id="numberChannel" datatype="java.lang.Number"/>
+    <int:channel id="queueChannel">
+        <int:queue capacity="25"/>
+    </int:channel>
+    <int:channel id="priorityChannel">
+        <int:priority-queue capacity="20"/>
+    </int:channel>
+    <int:publish-subscribe-channel id="pubsubChannel" task-executor="someExecutor"/>
+    <int:channel id="executorChannel">
+        <int:dispatcher task-executor="someExecutor"/>
+    </int:channel>
+
+    <beans:bean id="someExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"/>
+
+</beans:beans>
+

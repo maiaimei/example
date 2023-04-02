@@ -8,23 +8,35 @@
 			http://www.springframework.org/schema/integration
 			https://www.springframework.org/schema/integration/spring-integration.xsd">
 
-    <int:channel id="exampleChannelB">
+    <!-- *Channel Interceptor Configuration start -->
+    <int:channel id="exampleChannel">
+        <int:queue capacity="10"/>
         <int:interceptors>
-            <int:ref bean="exampleChannelBInterceptorA"/>
+            <int:ref bean="trafficMonitoringInterceptorA"/>
             <int:ref bean="trafficMonitoringInterceptor"/>
-            <int:ref bean="exampleChannelBInterceptorB"/>
+            <int:ref bean="trafficMonitoringInterceptorB"/>
         </int:interceptors>
     </int:channel>
+    <beans:bean id="trafficMonitoringInterceptor"
+                class="cn.maiaimei.samples.channelinterceptor.interceptor.TrafficMonitoringInterceptor"/>
+    <beans:bean id="trafficMonitoringInterceptorA"
+                class="cn.maiaimei.samples.channelinterceptor.interceptor.TrafficMonitoringInterceptorA"/>
+    <beans:bean id="trafficMonitoringInterceptorB"
+                class="cn.maiaimei.samples.channelinterceptor.interceptor.TrafficMonitoringInterceptorB"/>
+    <!-- *Channel Interceptor Configuration end -->
 
-    <!-- Global Channel Interceptor Configuration Sample1 start -->
+    <!-- Global Channel Interceptor Configuration start -->
     <int:channel-interceptor pattern="example*" order="0">
-        <beans:bean class="cn.maiaimei.example.interceptor.GlobalChannelInterceptorA"/>
+        <beans:bean class="cn.maiaimei.samples.channelinterceptor.interceptor.GlobalChannelInterceptorA"/>
     </int:channel-interceptor>
-    <!-- Global Channel Interceptor Configuration Sample1 end -->
 
-    <!-- Global Channel Interceptor Configuration Sample2 start -->
     <int:channel-interceptor ref="globalChannelInterceptorB" pattern="example*" order="1"/>
-    <beans:bean id="globalChannelInterceptorB" class="cn.maiaimei.example.interceptor.GlobalChannelInterceptorB"/>
-    <!-- Global Channel Interceptor Configuration Sample2 end -->
+    <beans:bean id="globalChannelInterceptorB"
+                class="cn.maiaimei.samples.channelinterceptor.interceptor.GlobalChannelInterceptorB"/>
+
+    <int:channel-interceptor ref="globalChannelInterceptorC" pattern="example*" order="2"/>
+    <beans:bean id="globalChannelInterceptorC"
+                class="cn.maiaimei.samples.channelinterceptor.interceptor.GlobalChannelInterceptorC"/>
+    <!-- Global Channel Interceptor Configuration end -->
 
 </beans:beans>

@@ -1,4 +1,4 @@
-package cn.maiaimei.example.interceptor;
+package cn.maiaimei.samples.channelinterceptor.interceptor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;

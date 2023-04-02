@@ -1,6 +1,6 @@
 package cn.maiaimei.example;
 
-import cn.maiaimei.example.config.TestConfg;
+import cn.maiaimei.samples.messagechannel.MessageChannelAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,40 +22,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestConfg.class)
+@ContextConfiguration(classes = MessageChannelAutoConfiguration.class)
 class MessageChannelTest {
+    
+    @Autowired
+    DirectChannel directChannel;
 
     @Autowired
-    QueueChannel exampleChannel;
+    QueueChannel queueChannel;
 
     @Autowired
-    DirectChannel exampleChannelB;
-
-    @Test
-    void testChannelInterceptor() {
-        final Message<String> message = MessageBuilder.withPayload("Hello ChannelInterceptor").build();
-        exampleChannel.send(message);
-        final Message<?> receiveMessage = exampleChannel.receive();
-        assertEquals(message.getPayload(), receiveMessage.getPayload());
-    }
-
-    @Test
-    void testChannelInterceptor4ExampleChannelB() {
-        final Message<String> message = MessageBuilder.withPayload("Hello ChannelInterceptor").build();
-        exampleChannelB.subscribe(receiveMsg -> {
-            assertEquals(message.getPayload(), receiveMsg.getPayload());
-        });
-        exampleChannelB.send(message);
-    }
-
-    @Test
-    void testQueueChannel() {
-        final Message<String> message = MessageBuilder.withPayload("Hello QueueChannel").build();
-        final QueueChannel channel = new QueueChannel();
-        channel.send(message);
-        final Message<?> receiveMessage = channel.receive();
-        assertEquals(message.getPayload(), receiveMessage.getPayload());
-    }
+    PublishSubscribeChannel pubsubChannel;
 
     @Test
     void testDirectChannel() {
@@ -66,10 +43,18 @@ class MessageChannelTest {
                 assertEquals(message.getPayload(), receiveMessage.getPayload());
             }
         };
-        final DirectChannel channel = new DirectChannel();
-        channel.subscribe(messageHandler);
-        channel.send(message);
+        directChannel.subscribe(messageHandler);
+        directChannel.send(message);
     }
+
+    @Test
+    void testQueueChannel() {
+        final Message<String> message = MessageBuilder.withPayload("Hello QueueChannel").build();
+        queueChannel.send(message);
+        final Message<?> receiveMessage = queueChannel.receive();
+        assertEquals(message.getPayload(), receiveMessage.getPayload());
+    }
+
 
     @Test
     void testPublishSubscribeChannel() {
@@ -88,10 +73,9 @@ class MessageChannelTest {
                 assertEquals(message.getPayload(), receiveMessage.getPayload());
             }
         };
-        final PublishSubscribeChannel channel = new PublishSubscribeChannel();
-        channel.subscribe(messageHandlerA);
-        channel.subscribe(messageHandlerB);
-        channel.send(message);
+        pubsubChannel.subscribe(messageHandlerA);
+        pubsubChannel.subscribe(messageHandlerB);
+        pubsubChannel.send(message);
     }
 
 }

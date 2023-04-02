@@ -10,9 +10,6 @@ swagger:
   description: @description@
   version: @version@
 
-inbound-channel-adapter-fixed-rate: 3605000
-inbound-channel-adapter-cron: 0/5 * 1 * * ?
-
 external-system:
   example:
     env:
