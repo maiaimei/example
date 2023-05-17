@@ -1,38 +1,71 @@
-# junit
+# JUnit
 
 [https://junit.org/junit5/docs/current/user-guide/](https://junit.org/junit5/docs/current/user-guide/)
 
 IntelliJ IDEA supports running tests on the JUnit Platform since version 2016.2. For details please see the [post on the IntelliJ IDEA blog](https://blog.jetbrains.com/idea/2016/08/using-junit-5-in-intellij-idea/). Note, however, that it is recommended to use IDEA 2017.3 or newer since these newer versions of IDEA will download the following JARs automatically based on the API version used in the project: `junit-platform-launcher`, `junit-jupiter-engine`, and `junit-vintage-engine`.
 
-# mockito
+JUnit3中测试用例需要继承TestCase类
 
-## 打桩
+JUnit4中测试用例无需继承TestCase类，只需标记@Test注解即可。
+
+|                          | JUnit3     | JUnit4       | JUnit5      |
+| ------------------------ | ---------- | ------------ | ----------- |
+| 所有测试用例前仅执行一次 | N/A        | @BeforeClass | @BeforeAll  |
+| 每个测试用例前执行       | setUp()    | @Before      | @BeforeEach |
+| 执行测试用例             | N/A        | @Test        | @Test       |
+| 每个测试用例后执行       | tearDown() | @After       | @AfterEach  |
+| 所有测试用例后仅执行一次 | N/A        | @AfterClass  | @AfterAll   |
+
+# Mockito
+
+[https://site.mockito.org/](https://site.mockito.org/)
+
+- [`mock()`](https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#mock-java.lang.Class-)/[`@Mock`](https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mock.html): create mock
+  - optionally specify how it should behave via [`Answer`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/stubbing/Answer.html)/[`MockSettings`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/MockSettings.html)
+  - [`when()`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#when-T-)/[`given()`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/BDDMockito.html#given-T-) to specify how a mock should behave
+  - If the provided answers don’t fit your needs, write one yourself extending the [`Answer`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/stubbing/Answer.html) interface
+- [`spy()`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#spy-T-)/[`@Spy`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Spy.html): partial mocking, real methods are invoked but still can be verified and stubbed
+- [`@InjectMocks`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/InjectMocks.html): automatically inject mocks/spies fields annotated with `@Spy` or `@Mock`
+- [`verify()`](https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#verify-T-): to check methods were called with given arguments
+  - can use flexible argument matching, for example any expression via the [`any()`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/ArgumentMatchers.html#any--)
+  - or capture what arguments were called using [`@Captor`](http://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Captor.html) instead
+
+What are the limitations of Mockito: [https://github.com/mockito/mockito/wiki/FAQ](https://github.com/mockito/mockito/wiki/FAQ)
+
+## stubbing
 
 ```java
-when(mock.isOk()).thenReturn(true);
+// 有返回值
+when(mockObject.someMethod()).thenReturn(someReturnValue);
+doReturn(someReturnValue).when(mockObject).someMethod();
 
-when(mock.isOk()).thenThrow(exception);
+// 无返回值
+doNothing().when(mockObject).someMethod();
 
-doReturn().when(mock).someMethod();
-
-doNothing().when(mock).someVoidMethod();
-
-doThrow(exception).when(mock).someVoidMethod();
+// 抛出异常
+when(mockObject.someMethod()).thenThrow(someException);
+doThrow(someException).when(mockObject).someMethod();
 ```
 
-## 断言
+## assertion
 
 ```java
-verify(mock, times(1)).someMethod(any());
-
-verify(mock, atLeast(1)).someMethod(any());
-
-verify(mock, atLeastOnce()).someMethod(any());
-
-verify(mock, never()).get(someMethod());
-
-assertEquals(expected, actual);
+// org.junit.jupiter.api.Assertions
+// 方法是否被调用
+verify(mockObject, never()).someMethod("never called");
+verify(mockObject, atLeastOnce()).someMethod("called at least once");
+verify(mockObject, atLeast(2)).someMethod("called at least twice");
+verify(mockObject, atMost(3)).someMethod("called at most three times");
+verify(mockObject, times(4)).someMethod("called four times");
 ```
+
+# PowerMock
+
+[http://powermock.github.io/](http://powermock.github.io/)
+
+[https://www.cnblogs.com/zhu-tingting/p/7359756.html](https://www.cnblogs.com/zhu-tingting/p/7359756.html)
+
+[https://blog.csdn.net/qq_39273039/article/details/107653810](https://blog.csdn.net/qq_39273039/article/details/107653810)
 
 # Q & A
 

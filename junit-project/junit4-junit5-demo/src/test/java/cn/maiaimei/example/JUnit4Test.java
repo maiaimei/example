@@ -1,20 +1,24 @@
 package cn.maiaimei.example;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
+/**
+ * JUnit4中测试用例无需继承TestCase类，只需标记@Test注解即可
+ * 一个JUnit4的单元测试用例执行顺序为：@BeforeClass -> @Before -> @Test -> @After -> @AfterClass，@BeforeClass和@AfterClass仅执行一次
+ */
 @Slf4j
-public class Demo02Test {
+public class JUnit4Test {
     private Integer m, n;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUpOnce() {
         log.info("run once before any of the test methods in the class");
     }
 
-    @BeforeEach
+    @Before
     public void setUp() {
         m = 1;
         n = 1;
@@ -35,14 +39,14 @@ public class Demo02Test {
         assertEquals(0, result.intValue());
     }
 
-    @AfterEach
+    @After
     public void tearDown() {
         m = null;
         n = null;
         log.info("run after each test in the class, m={}, n={}", m, n);
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownOnce() {
         log.info("run once after all the tests in the class");
     }

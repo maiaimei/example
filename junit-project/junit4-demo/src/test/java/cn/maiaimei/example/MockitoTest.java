@@ -1,17 +1,18 @@
 package cn.maiaimei.example;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class Demo03Test {
+@SuppressWarnings("all")
+@RunWith(MockitoJUnitRunner.class)
+public class MockitoTest {
     @Mock
     private List list;
 
@@ -20,8 +21,8 @@ public class Demo03Test {
         list.add(1);
 
         // 断言
-        //verify(list, times(1)).add(any());
-        //verify(list, atLeast(1)).add(any());
+        verify(list, times(1)).add(any());
+        verify(list, atLeast(1)).add(any());
         verify(list, atLeastOnce()).add(any());
     }
 

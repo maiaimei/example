@@ -5,8 +5,12 @@ import org.junit.*;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * JUnit4中测试用例无需继承TestCase类，只需标记@Test注解即可
+ * 一个JUnit4的单元测试用例执行顺序为：@BeforeClass -> @Before -> @Test -> @After -> @AfterClass，@BeforeClass和@AfterClass仅执行一次
+ */
 @Slf4j
-public class Demo02Test {
+public class JUnit4Test {
     private Integer m, n;
 
     @BeforeClass

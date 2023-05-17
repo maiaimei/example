@@ -1,20 +1,20 @@
 package cn.maiaimei.example;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-public class Demo02Test {
+public class Junit5Test {
     private Integer m, n;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpOnce() {
         log.info("run once before any of the test methods in the class");
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         m = 1;
         n = 1;
@@ -35,14 +35,14 @@ public class Demo02Test {
         assertEquals(0, result.intValue());
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         m = null;
         n = null;
         log.info("run after each test in the class, m={}, n={}", m, n);
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownOnce() {
         log.info("run once after all the tests in the class");
     }

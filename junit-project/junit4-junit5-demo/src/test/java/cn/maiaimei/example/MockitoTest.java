@@ -10,8 +10,9 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.class)
-public class Demo03Test {
+public class MockitoTest {
     @Mock
     private List list;
 
@@ -20,8 +21,8 @@ public class Demo03Test {
         list.add(1);
 
         // 断言
-        //verify(list, times(1)).add(any());
-        //verify(list, atLeast(1)).add(any());
+        verify(list, times(1)).add(any());
+        verify(list, atLeast(1)).add(any());
         verify(list, atLeastOnce()).add(any());
     }
 
