@@ -1,0 +1,12 @@
+# /swagger-ui/index.html
+spring:
+  mvc:
+    pathmatch:
+      # 解决启动时swagger报错
+      matching-strategy: ant_path_matcher
+swagger:
+  enabled: true
+  title: spring-boot-validation
+  description: This is a restful api document of spring-boot-validation.
+  version: 1.0.0
+  base-package: cn.maiaimei.example.controller
