@@ -1,7 +1,0 @@
-## 国际化失败消息
-## 如果需要自定义国际化文件名和位置，则添加如下配置（或者使用配置类，见cn.maiaimei.example.config.MessageConfig）
-#spring:
-#  messages:
-#    # 配置国际化，多个配置文件以逗号分隔。i18n/ValidationMessages 在cn.maiaimei.framework:validation-spring-boot-starter中定义
-#    basename: i18n/ValidationMessages,i18n/messages
-#    encoding: UTF-8
