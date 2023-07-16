@@ -2,6 +2,7 @@ package cn.maiaimei.example;
 
 import cn.maiaimei.example.controller.PersonController;
 import cn.maiaimei.example.model.Education;
+import cn.maiaimei.example.model.People;
 import cn.maiaimei.example.model.Person;
 import cn.maiaimei.example.validation.model.ValidationResult;
 import cn.maiaimei.example.validation.utils.ValidationUtils;
@@ -13,6 +14,21 @@ import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class ValidationTest {
+
+  @Test
+  void testValidateByAnnotation() {
+    final Person person = new Person();
+    ValidationResult result = ValidationUtils.validate(person);
+    printValidationResult(result);
+  }
+
+  @Test
+  void testValidateByXML() {
+    final People people = new People();
+    people.setSex("T");
+    ValidationResult result = ValidationUtils.validate(people);
+    printValidationResult(result);
+  }
 
   @Test
   void testValidateBean() {

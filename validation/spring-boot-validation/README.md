@@ -78,15 +78,32 @@ public class LeaveSequenceProvider implements DefaultGroupSequenceProvider<Leave
 }
 ```
 
-## 国际化配置
+## 国际化失败信息
 
 <img src="./images/20220528201612.png" />
 
 <img src="./images/20220528201842.png" />
 
+## 配置快速失败
+
+```java
+@Configuration
+public class HibernateValidatorConfiguration {
+    @Bean
+    public Validator validator(){
+        return Validation.byProvider(HibernateValidator.class)
+            .configure().failFast(Boolean.TRUE)
+            .buildValidatorFactory().getValidator();
+    }
+}
+```
+
 ## @Valid 和 @Validated 的区别
 
-@Valid: `javax.validation.Valid` ，不支持分组校验
+`@Valid`: `javax.validation.Valid` ，不支持分组校验
 
-@Validated: `org.springframework.validation.annotation.Validated`，支持分组校验
+`@Validated`: `org.springframework.validation.annotation.Validated`，支持分组校验
 
+`@Validated`对`@Valid`进行了二次封装，在使用上并没有区别，但在分组、注解位置、嵌套验证等功能上有所不同。
+
+![](./images/20230716145241.png)

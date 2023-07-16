@@ -2,6 +2,10 @@
 
 [https://beanvalidation.org/](https://beanvalidation.org/)
 
+[https://hibernate.org/validator/](https://hibernate.org/validator/)
+
+[https://hibernate.org/validator/releases/](https://hibernate.org/validator/releases/)
+
 [java代码简洁之道 用bean validation和hibernate validator提升代码质量,让代码少点臭味道](https://www.bilibili.com/video/BV17i4y157Ah)
 
 [Bean Validation完结篇：你必须关注的边边角角（约束级联、自定义约束、自定义校验器、国际化失败消息...）](https://www.bbsmax.com/A/kjdwljbEzN/)
@@ -14,17 +18,35 @@
 
 <img src="./images/20230108101247.png" />
 
-## 约束和校验类的绑定原理
+## 约束和校验器绑定原理
 
 XxxValidator 校验 @Xxx，如：`NotBlankValidator` 校验 `@NotBlank`
 
 XxxValidator 实现接口 `javax.validation.ConstraintValidator`
 
-XxxValidator 和 @Xxx 的绑定关系在`org.hibernate.validator.internal.metadata.core.ConstraintHelper` 设置
+XxxValidator 和 @Xxx 的绑定关系在`org.hibernate.validator.internal.metadata.core.ConstraintHelper` 设置</span>
 
-## 约束级联（级联校验）
+根据`@Xxx`在`org.hibernate.validator.internal.metadata.core.ConstraintHelper#getDefaultValidatorDescriptors`中找`XxxValidator`
 
-## 自定义约束+自定义校验器
+## 自定义约束及校验器
+
+- 与普通注解相比，这种自定义注解需要增加元注解`@Constraint`，并通过validatedBy参数指定验证器。
+
+- 依据JSR规范，定义三个通用参数：message（校验失败保存信息）、groups（分组）和payload（负载）。
+
+- 自定义额外所需配置参数
+
+- 定义内部`List`接口，参数是该自定义注解数组，配合元注解`@Repeatable`，可使该注解可以重复添加。
+
+## 校验模式
+
+hibernate validator 有两种校验模式：普通模式和快速失败模式。
+
+- 普通模式：校验所有属性，并返回所有的失败信息；
+
+- 快速失败模式：当有一个校验失败就会返回。
+
+## 级联校验
 
 ## 国际化失败消息
 
@@ -100,3 +122,65 @@ public abstract class AbstractMessageInterpolator implements MessageInterpolator
 
 2. 规律同上，依次类推，递归的匹配所有的占位符（若占位符没匹配上，原样输出，并不是输出null哦~）
 需要注意的是，因为{在此处是特殊字符，若你就想输出{，请转义：\{
+
+## Configuring via XML
+
+https://docs.jboss.org/hibernate/validator/6.2/reference/en-US/html_single/#chapter-xml-configuration
+
+META-INF/validation.xml
+
+```xml
+<validation-config
+  xmlns="http://xmlns.jcp.org/xml/ns/validation/configuration"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/validation/configuration
+            http://xmlns.jcp.org/xml/ns/validation/configuration/validation-configuration-2.0.xsd"
+  version="2.0">
+
+  <default-provider>org.hibernate.validator.HibernateValidator</default-provider>
+
+  <constraint-mapping>META-INF/validation/xxx.xml</constraint-mapping>
+
+</validation-config>
+```
+
+xxx.xml
+
+```xml
+<constraint-mappings
+  xmlns="http://xmlns.jcp.org/xml/ns/validation/mapping"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/validation/mapping
+            http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
+  version="2.0">
+</constraint-mappings>
+```
+
+[https://docs.jboss.org/hibernate/validator/8.0/reference/en-US/html_single/#validator-gettingstarted](https://docs.jboss.org/hibernate/validator/8.0/reference/en-US/html_single/#section-mapping-xml-constraints)
+
+META-INF/validation.xml
+
+```xml
+<validation-config
+        xmlns="https://jakarta.ee/xml/ns/validation/configuration"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/validation/configuration
+            https://jakarta.ee/xml/ns/validation/validation-configuration-3.0.xsd"
+        version="3.0">
+</validation-config>
+```
+
+xxx.xml
+
+```xml
+<constraint-mappings
+        xmlns="https://jakarta.ee/xml/ns/validation/mapping"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/validation/mapping
+            https://jakarta.ee/xml/ns/validation/validation-mapping-3.0.xsd"
+        version="3.0">
+</constraint-mappings>
+```
+
+
+
