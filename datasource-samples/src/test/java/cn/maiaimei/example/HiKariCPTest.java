@@ -1,77 +1,36 @@
 package cn.maiaimei.example;
 
-import cn.maiaimei.example.config.TestDBConfig;
+import cn.maiaimei.example.model.DBProperties;
 import cn.maiaimei.example.util.HiKariCPUtils;
 import com.zaxxer.hikari.HikariConfig;
 import java.sql.Connection;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 @Slf4j
-public class HiKariCPTest extends AbstractDBCPTest {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class HiKariCPTest extends AbstractDBTest {
 
-  String key = "testdb";
+  private static final String key = "testdb";
 
   @Override
   protected Connection getConnection() {
     return HiKariCPUtils.getConnection(key);
   }
 
-  @BeforeEach
-  public void setUp() {
-    HiKariCPUtils.createDataSource(key, getHikariConfig(key));
-  }
-
-  @AfterEach
-  public void tearDown() {
-    HiKariCPUtils.closeConnection(key);
-  }
-
-  @Test
-  public void test_list() {
-    log.info("-------------------1st list---------------------");
-    list();
-    log.info("-------------------2nd list-------------------");
-    list();
-    log.info("-------------------3rd list-------------------");
-    list();
-  }
-
-  @Test
-  public void test_get() {
-    get(1594223173233131520L);
-    get(1594223173619007488L);
-  }
-
-  @Test
-  public void test_insert() {
-    insert();
-    insert();
-    insert();
-  }
-
-  @Test
-  public void test_update() {
-    update(1698195993469784064L);
-    update(1698202322368335872L);
-    update(1698202322552885248L);
-  }
-
-  @Test
-  public void test_delete() {
-    delete(1698195993469784064L);
-    delete(1698202322368335872L);
-    delete(1698202322552885248L);
-  }
-
-  private HikariConfig getHikariConfig(String key) {
+  @BeforeAll
+  public static void beforeAll() {
+    final DBProperties dbProperties = DBProperties.newInstance();
     HikariConfig config = new HikariConfig();
-    config.setDriverClassName(TestDBConfig.driverClassName);
-    config.setJdbcUrl(TestDBConfig.url);
-    config.setUsername(TestDBConfig.username);
-    config.setPassword(TestDBConfig.password);
+    config.setDriverClassName(dbProperties.getDriverClassName());
+    config.setJdbcUrl(dbProperties.getUrl());
+    config.setUsername(dbProperties.getUsername());
+    config.setPassword(dbProperties.getPassword());
     config.setPoolName("HikariPool-" + key);
     config.setMaximumPoolSize(1);
     config.setMinimumIdle(1);
@@ -79,6 +38,53 @@ public class HiKariCPTest extends AbstractDBCPTest {
     config.setIdleTimeout(600000);
     config.setConnectionTimeout(30000);
     config.setAutoCommit(true);
-    return config;
+    HiKariCPUtils.createDataSource(key, config);
+  }
+
+  @AfterAll
+  public static void afterAll() {
+    HiKariCPUtils.closeConnection(key);
+  }
+
+  @Order(4)
+  @Test
+  public void test_list() {
+    for (int i = 1; i <= 3; i++) {
+      log.info("===> The {} time query start", i);
+      list();
+      log.info("===> The {} time query end", i);
+    }
+  }
+
+  @Order(3)
+  @Test
+  public void test_get() {
+    get(1698195993469784064L);
+    get(1698202322368335872L);
+    get(1698202322552885248L);
+  }
+
+  @Order(1)
+  @Test
+  public void test_insert() {
+    insert(1698195993469784064L);
+    insert(1698202322368335872L);
+    insert(1698202322552885248L);
+  }
+
+  @Order(2)
+  @Test
+  public void test_update() {
+    update(1698195993469784064L);
+    update(1698202322368335872L);
+    update(1698202322552885248L);
+  }
+
+  @Order(5)
+  @Test
+  public void test_delete() {
+    delete(1698195993469784064L);
+    delete(1698202322368335872L);
+    delete(1698202322552885248L);
   }
 }

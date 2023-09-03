@@ -1,7 +1,6 @@
 package cn.maiaimei.example;
 
 import cn.maiaimei.example.model.User;
-import cn.maiaimei.example.util.SFID;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,7 +9,7 @@ import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class AbstractDBCPTest {
+public abstract class AbstractDBTest {
 
   protected abstract Connection getConnection();
 
@@ -60,7 +59,7 @@ public abstract class AbstractDBCPTest {
             final ResultSet resultSet = preparedStatement.executeQuery()) {
           // 4.处理查询结果集
           while (resultSet.next()) {
-            log.info("----------------------------------------");
+            log.info("===> Get record({}) start", id);
             log.info("{}", resultSet.getLong(1));
             log.info("{}", resultSet.getString(2));
             log.info("{}", resultSet.getString(3));
@@ -69,6 +68,7 @@ public abstract class AbstractDBCPTest {
             log.info("{}", resultSet.getString("is_deleted"));
             log.info("{}", resultSet.getString("gmt_create"));
             log.info("{}", resultSet.getString("gmt_modified"));
+            log.info("<=== Get record({}) end", id);
           }
         }
       }
@@ -77,8 +77,7 @@ public abstract class AbstractDBCPTest {
     }
   }
 
-  protected void insert() {
-    final long id = SFID.nextId();
+  protected void insert(long id) {
     final LocalDateTime now = LocalDateTime.now();
     final User user = User.builder()
         .id(id)
@@ -90,8 +89,9 @@ public abstract class AbstractDBCPTest {
         .gmtCreate(now)
         .gmtModified(now)
         .build();
-    String sql = "insert into sys_user (id, nickname, username, password, is_enabled, is_deleted,"
-        + " gmt_create, gmt_modified) values (?, ?, ?, ?, ?, ?, ?, ?)";
+    String sql = "insert into sys_user "
+        + "(id, nickname, username, password, is_enabled, is_deleted, gmt_create, gmt_modified) "
+        + "values (?, ?, ?, ?, ?, ?, ?, ?)";
     try {
       // 4.使用 try-with-resources 自动释放资源
       try (
@@ -109,7 +109,8 @@ public abstract class AbstractDBCPTest {
         preparedStatement.setDate(7, java.sql.Date.valueOf(user.getGmtCreate().toLocalDate()));
         preparedStatement.setDate(8, java.sql.Date.valueOf(user.getGmtModified().toLocalDate()));
         // 3.执行SQL语句
-        preparedStatement.executeUpdate();
+        final int affectedRows = preparedStatement.executeUpdate();
+        log.info("after insert, affected rows: {}", affectedRows);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -130,7 +131,8 @@ public abstract class AbstractDBCPTest {
         preparedStatement.setLong(1, 0);
         preparedStatement.setDate(2, java.sql.Date.valueOf(LocalDateTime.now().toLocalDate()));
         // 3.执行SQL语句
-        preparedStatement.executeUpdate();
+        final int affectedRows = preparedStatement.executeUpdate();
+        log.info("after update, affected rows: {}", affectedRows);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -149,7 +151,8 @@ public abstract class AbstractDBCPTest {
       ) {
         preparedStatement.setLong(1, id);
         // 3.执行SQL语句
-        preparedStatement.executeUpdate();
+        final int affectedRows = preparedStatement.executeUpdate();
+        log.info("after delete, affected rows: {}", affectedRows);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
