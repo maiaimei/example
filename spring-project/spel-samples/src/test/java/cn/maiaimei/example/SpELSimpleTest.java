@@ -40,6 +40,10 @@ public class SpELSimpleTest {
     ExpressionParser parser = new SpelExpressionParser();
     // 使用“T(Type)”来表示java.lang.Class类的实例，即如同java代码中直接写类名。
     // 同样，只有java.lang 下的类才可以省略包名。此方法一般用来引用常量或静态方法
+    // 类类型表达式：使用“T（Type）”来表示java.lang.Class实例，
+    // “Type”必须是类全限定名，
+    // “java.lang”包除外，即该包下的类可以不指定包名；
+    // 使用类类型表达式还可以进行访问类静态方法及类静态细分。
     Expression exp = parser.parseExpression("T(Integer).MAX_VALUE");// 等同于java代码中的：Integer.MAX_VALUE
     final Integer maxValue = exp.getValue(Integer.class);
     log.info("{}", maxValue);
@@ -236,7 +240,6 @@ public class SpELSimpleTest {
     list.add(4);
     list.add(5);
 
-    //EvaluationContext context = new StandardEvaluationContext();
     EvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
     context.setVariable("list", list);
     ExpressionParser parser = new SpelExpressionParser();
@@ -249,5 +252,27 @@ public class SpELSimpleTest {
     // retrieve only the last element
     log.info("{}",
         parser.parseExpression("#list.$[#this%2==1]").getValue(context, Collection.class));
+
+    log.info("--------------------------------------------------");
+    StandardEvaluationContext ctx = new StandardEvaluationContext();
+    ctx.setRootObject(list);
+    log.info("{}",
+        parser.parseExpression("#root").getValue());
+    // retrieve the elements that meet the conditions
+    log.info("{}",
+        parser.parseExpression("?[#this%2==1]").getValue(ctx, Collection.class));
+    // retrieve only the first element
+    log.info("{}",
+        parser.parseExpression("^[#this%2==1]").getValue(ctx, Collection.class));
+    // retrieve only the last element
+    log.info("{}",
+        parser.parseExpression("$[#this%2==1]").getValue(ctx, Collection.class));
+    // get elements based on indexes
+    log.info("{}",
+        parser.parseExpression("[0]+' -> One'").getValue(ctx, String.class));
+    log.info("{}",
+        parser.parseExpression("[1]+' -> Two'").getValue(ctx, String.class));
+    log.info("{}",
+        parser.parseExpression("[2]+' -> Three'").getValue(ctx, String.class));
   }
 }
