@@ -23,8 +23,8 @@ public class BaiduSearch {
     Thread.sleep(2000);
   }
 
-  @When("input key word {}")
-  public void inputKeyWord(String keyword) {
+  @When("input keyword {}")
+  public void inputKeyword(String keyword) {
     // 获取搜索框元素
     final WebElement webElement = chromeDriver.findElement(By.name("wd"));
     // 输入关键字
@@ -33,8 +33,8 @@ public class BaiduSearch {
     webElement.submit();
   }
 
-  @Then("show content")
-  public void showContent() throws InterruptedException {
+  @Then("get result")
+  public void getResult() throws InterruptedException {
     chromeDriver.quit();
     Thread.sleep(2000);
   }

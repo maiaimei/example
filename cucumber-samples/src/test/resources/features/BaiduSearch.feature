@@ -1,6 +1,6 @@
-Feature: Search
+Feature: Baidu Search
 
-  Scenario: Search
+  Scenario: Simple Search
     Given open baidu
-    When input key word <keyword>
-    Then show content
+    When input keyword <keyword>
+    Then get result

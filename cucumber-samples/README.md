@@ -1,52 +1,72 @@
-[黄瓜（Cucumber）](https://cucumber.io/)是一个基于行为驱动开发（BDD）的测试框架，它允许程序员使用自然语言编写测试用例，这样更容易理解测试意图和设计。
+# Get Started
+
+## Cucumber
+
+Cucumber 是 BDD（Behavior-Driven Development，行为驱动开发）的一个自动化测试工具，使用自然语言来描述测试用例，使得 非研发（QA、PM）也可以理解甚至编写 测试用例。
+
+官网文档：
+
+[https://cucumber.io/docs/guides/](https://cucumber.io/docs/guides/)
+
+[https://school.cucumber.io/courses/bdd-with-cucumber-java](https://school.cucumber.io/courses/bdd-with-cucumber-java)
+
+Github：
+
+[https://github.com/cucumber](https://github.com/cucumber)
 
 [https://github.com/cucumber/cucumber-jvm/tree/main/cucumber-junit-platform-engine](https://github.com/cucumber/cucumber-jvm/tree/main/cucumber-junit-platform-engine)
 
-# 环境准备
+## Gherkin
 
-IDEA安装插件：
+Gherkin 是 Cucumber 用来描述 测试用例 的语言，以下为关键字的用意与关联关系。
+
+![](./images/20240110223509.png)
+
+## 参数化
+
+Cucumber 支持在 Java 注解 中使用 {关键字} 作为占位符。
+
+在 Step 中直接写上参数，将在 Java 代码中，会把占位符对应的参数作为方法参数传递进去。
+
+注解中声明占位符的顺序为注入方法参数的顺序。
+
+字串类型的关键字，需要加上单引号或 双引号 作为声明。
+
+| 关键字     | 正则                  |
+| ---------- | --------------------- |
+| biginteger | "-?\d+" 或者 "\d+"    |
+| string     | "([^"\]*(\.[^"\]*)*)" |
+| bigdecimal | "-?\d*[.,]\d+"        |
+| byte       | "-?\d+" 或者 "\d+"    |
+| double     | "-?\d*[.,]\d+"        |
+| short      | "-?\d+" 或者 "\d+"    |
+| float      | "-?\d*[.,]\d+"        |
+| word       | "\w+"                 |
+| int        | "-?\d+" 或者 "\d+"    |
+| long       | "-?\d+" 或者 "\d+"    |
+
+参数化范例: features/Authorization.feature
+
+## Scenario Outline
+
+可以在多个 Step 上共用同一个 "简单" 参数，且每一个 Example 都视为一个 Scenario。
+
+Scenario Outline 范例：
+
+features/excel/ReadExcel.feature
+
+[https://juejin.cn/post/7101222168180031525](https://juejin.cn/post/7101222168180031525)
+
+# IDEA cucumber support
+
+IDEA插件：
 
 * Cucumber for Java
+
 * Cucumber +
 
 [https://www.jetbrains.com/help/idea/2023.3/cucumber-support.html](https://www.jetbrains.com/help/idea/2023.3/cucumber-support.html)
 
-在 pom.xml 文件中添加 Cucumber 依赖：
-
-```xml
-
-<dependencies>
-  <!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-core -->
-  <dependency>
-    <groupId>io.cucumber</groupId>
-    <artifactId>cucumber-core</artifactId>
-    <version>7.15.0</version>
-  </dependency>
-  <!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-java -->
-  <dependency>
-    <groupId>io.cucumber</groupId>
-    <artifactId>cucumber-java</artifactId>
-    <version>7.15.0</version>
-  </dependency>
-  <!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-junit-platform-engine -->
-  <dependency>
-    <groupId>io.cucumber</groupId>
-    <artifactId>cucumber-junit-platform-engine</artifactId>
-    <version>7.15.0</version>
-    <scope>test</scope>
-  </dependency>
-</dependencies>
-```
-
-# Cucumber + Junit5
-
-[https://blog.csdn.net/qq_16422103/article/details/132133552](https://blog.csdn.net/qq_16422103/article/details/132133552)
-
-[junit5数据驱动](https://www.cnblogs.com/Durant0420/p/14788027.html)
-
-[chromedriver驱动的下载、安装](https://zhuanlan.zhihu.com/p/664339667)
+# Related links
 
 [https://chromedriver.chromium.org/downloads](https://chromedriver.chromium.org/downloads)
-
-[https://www.bilibili.com/video/BV1Xr4y1p7J1?
-p=4&spm_id_from=pageDriver&vd_source=80612925dae54b29d86f65198f1081f4](https://www.bilibili.com/video/BV1Xr4y1p7J1?p=4&spm_id_from=pageDriver&vd_source=80612925dae54b29d86f65198f1081f4)
