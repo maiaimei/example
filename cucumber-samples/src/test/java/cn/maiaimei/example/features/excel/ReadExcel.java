@@ -1,4 +1,4 @@
-package cn.maiaimei.example.steps.excel;
+package cn.maiaimei.example.features.excel;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;

@@ -13,7 +13,10 @@ import org.junit.platform.suite.api.Suite;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")
-@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "cn.maiaimei.example")
+@ConfigurationParameter(
+    key = GLUE_PROPERTY_NAME,
+    value = "cn.maiaimei.example.features"
+)
 public class RunCucumberTest {
 
 }

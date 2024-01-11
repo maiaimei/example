@@ -22,7 +22,7 @@ Gherkin 是 Cucumber 用来描述 测试用例 的语言，以下为关键字的
 
 ![](./images/20240110223509.png)
 
-## 参数化
+## 关键字
 
 Cucumber 支持在 Java 注解 中使用 {关键字} 作为占位符。
 
@@ -45,17 +45,18 @@ Cucumber 支持在 Java 注解 中使用 {关键字} 作为占位符。
 | int        | "-?\d+" 或者 "\d+"    |
 | long       | "-?\d+" 或者 "\d+"    |
 
-参数化范例: features/Authorization.feature
+参数化、表格化、列表化 混合使用时，DataTable 与 List 必须作为 Java 方法的最后一个参数。
 
-## Scenario Outline
+## 钩子方法（Hook）
 
-可以在多个 Step 上共用同一个 "简单" 参数，且每一个 Example 都视为一个 Scenario。
-
-Scenario Outline 范例：
-
-features/excel/ReadExcel.feature
-
-[https://juejin.cn/post/7101222168180031525](https://juejin.cn/post/7101222168180031525)
+| 注解        | 执行时机                     |
+| ----------- | ---------------------------- |
+| @BeforeAll  | 在启动 Cucumber 时执行       |
+| @Before     | 在所有 Scenario 执行之前执行 |
+| @BeforeStep | 在所有 Step 执行之前执行     |
+| @AfterAll   | 在结束 Cucumber 时执行       |
+| @After      | 在所有 Scenario 执行之后执行 |
+| @AfterStep  | 在所有 Step 执行之后执行     |
 
 # IDEA cucumber support
 
@@ -70,3 +71,5 @@ IDEA插件：
 # Related links
 
 [https://chromedriver.chromium.org/downloads](https://chromedriver.chromium.org/downloads)
+
+[Cucumber 黄瓜测试 BDD 从入门到精通](https://juejin.cn/post/7101222168180031525)
