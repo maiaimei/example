@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.maiaimei.example</groupId>
-    <artifactId>junit5-demo</artifactId>
+    <artifactId>junit5-samples</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
