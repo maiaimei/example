@@ -25,4 +25,6 @@
 
 # 相关资料
 
+[Python 标准库](https://docs.python.org/zh-cn/3/library/index.html)
+
 [Python 基础教程 | 菜鸟教程](https://m.runoob.com/python/)
