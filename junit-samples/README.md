@@ -16,6 +16,39 @@ JUnit4中测试用例无需继承TestCase类，只需标记@Test注解即可。
 | 每个测试用例后执行       | tearDown() | @After       | @AfterEach  |
 | 所有测试用例后仅执行一次 | N/A        | @AfterClass  | @AfterAll   |
 
+## Junit 5 
+
+### 参数化测试（数据驱动测试）
+
+```xml
+<!-- Junit 5的执行引擎 -->
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-engine</artifactId>
+    <version>5.8.2</version>
+    <scope>runtime</scope>
+</dependency>
+<!-- 用于提供Junit 5参数化测试的能力 -->
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-params</artifactId>
+    <version>5.8.2</version>
+    <scope>compile</scope>
+</dependency> 
+```
+
+参数化测试必须将 @Test 注解替换为 @ParameterizedTest 注解。
+
+- @ValueSource 注解可提供单个数组作为测试数据。
+- @NullSource 注解用于传递null值。
+- @EmptySource 注解用于传递空值。
+- @NullAndEmptySource 注解是 @NullSource 和 @EmptySource 的组合注解，可同时提供null值和空值。
+- @EnumSource 注解可提供单个枚举作为测试数据。
+- @MethodSource 注解读取指定方法的返回值作为参数化测试的入参（注意方法返回类型必须是一个流）。
+- @CsvSource 注解可提供单组或多组参数。
+- @CsvFileSource 注解通过读取CSV文件作为参数化测试的入参。
+- 实现 ArgumentsProvider 接口，并配合 @ArgumentsSource 注解来给测试方法提供测试数据。
+
 # Mockito
 
 [https://site.mockito.org/](https://site.mockito.org/)
