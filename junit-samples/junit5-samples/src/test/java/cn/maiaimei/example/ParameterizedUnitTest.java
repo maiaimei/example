@@ -122,7 +122,7 @@ public class ParameterizedUnitTest {
     log.info("username: {}, password: {}", username, password);
   }
 
-  @CsvFileSource(resources = "/testCsvFileSource.csv")
+  @CsvFileSource(resources = "/test.csv")
   @ParameterizedTest
   public void testCsvFileSource(String username, String password) {
     log.info("username: {}, password: {}", username, password);
