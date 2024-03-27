@@ -1,0 +1,8 @@
+# https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#appendix.application-properties
+spring:
+  servlet:
+    multipart:
+      # Max file size. Default value is 1MB
+      max-file-size: 26214400
+      # Max request size. Default value is 10MB
+      max-request-size: 262144000
