@@ -1,6 +1,7 @@
 package cn.maiaimei.example.aspect;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,16 +13,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Aspect
-@Component
 public class LoggingAspect {
-
-  public LoggingAspect() {
-    log.info("LoggingAspect 初始化");
-  }
 
   @Pointcut("@annotation(org.springframework.web.bind.annotation.RequestMapping)")
   public void pointcutRequestMapping() {
@@ -59,29 +54,26 @@ public class LoggingAspect {
   }
 
   @Around("@annotation(org.springframework.web.bind.annotation.RequestMapping)")
-  public Object aroundRequestMapping(ProceedingJoinPoint joinPoint) throws Throwable {
+  public Object aroundRequestMapping(ProceedingJoinPoint joinPoint) {
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-    Method method = signature.getMethod();
-    // 在方法执行前执行的逻辑
-    log.info("===> Before executing the method {}", method.getName());
-    // 执行方法
-    Object result = joinPoint.proceed();
-    // 在方法执行后执行的逻辑
-    log.info("<=== After executing the method {}", method.getName());
-    return result;
-  }
-
-  @Around("execution(* cn.maiaimei.example.*.*(..))")
-  public Object doAroundAdviceForControllerMethod(ProceedingJoinPoint joinPoint) throws Throwable {
-    MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-    Method method = signature.getMethod();
-    // 在方法执行前执行的逻辑
-    log.info("===> Before executing the method {}", method.getName());
-    // 执行方法
-    Object result = joinPoint.proceed();
-    // 在方法执行后执行的逻辑
-    log.info("<=== After executing the method {}", method.getName());
-    return result;
+    String clazzName = signature.getDeclaringTypeName();
+    String methodName = signature.getName();
+    Object[] args = joinPoint.getArgs();
+    try {
+      // 在方法执行前执行的逻辑
+      log.info("【前置通知】{}.{}，参数：{}", clazzName, methodName, Arrays.asList(args));
+      // 执行方法
+      Object result = joinPoint.proceed();
+      // 在方法执行后执行的逻辑
+      log.info("【返回通知】{}.{}，结果：{}", clazzName, methodName, result);
+      return result;
+    } catch (Throwable ex) {
+      log.error(String.format("【异常通知】%s.%s，异常：%s", clazzName, methodName, ex.getMessage()),
+          ex);
+      return null;
+    } finally {
+      log.info("【后置通知】{}.{}", clazzName, methodName);
+    }
   }
 
 }
