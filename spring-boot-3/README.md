@@ -4,6 +4,8 @@
 
 [https://docs.spring.io/spring-framework/reference/core/aop.html](https://docs.spring.io/spring-framework/reference/core/aop.html)
 
+[https://docs.spring.io/spring-framework/reference/core/aop/introduction-defn.html](https://docs.spring.io/spring-framework/reference/core/aop/introduction-defn.html)
+
 [https://docs.spring.io/spring-framework/reference/core/aop/ataspectj.html](https://docs.spring.io/spring-framework/reference/core/aop/ataspectj.html)
 
 AOP（Aspect Oriented Programming）意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。
@@ -17,6 +19,14 @@ AOP（Aspect Oriented Programming）意为：面向切面编程，通过预编�
     * 异常通知（@AfterThrowing）：在方法抛出异常后执行。
     * 环绕通知（@Around）：内部执行方法，可自定义在方法执行的前后操作。
 * 连接点（JoinPoint）：被切入点选中的方法。这些方法会被增强处理。
+
+[https://blog.csdn.net/qq_43331014/article/details/132867178](https://blog.csdn.net/qq_43331014/article/details/132867178)
+
+## 拦截器和过滤器
+
+HandlerInterceptor
+
+Filter
 
 ## Logging
 
