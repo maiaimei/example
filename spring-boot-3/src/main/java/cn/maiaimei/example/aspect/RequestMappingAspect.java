@@ -20,6 +20,11 @@ public class RequestMappingAspect {
 
   private static final ThreadLocal<Long> START_TIME = new ThreadLocal<>();
 
+  @Pointcut("execution(public * cn.maiaimei.example.controller.HealthCheckController.healthCheck"
+      + "())")
+  public void ignoreHealthCheck() {
+  }
+
   /**
    * 控制器方法必须是标记 @RequestMapping 注解才会被增强，例如：
    *
@@ -27,7 +32,7 @@ public class RequestMappingAspect {
    * <p>
    * 如此类推。。。
    */
-  @Pointcut("execution(public * cn.maiaimei.example.controller..*(..))")
+  @Pointcut("execution(public * cn.maiaimei.example.controller..*(..)) && !ignoreHealthCheck()")
   public void requestMappingPointcut() {
 
   }

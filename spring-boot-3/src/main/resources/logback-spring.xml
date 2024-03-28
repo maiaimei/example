@@ -3,6 +3,7 @@
 
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
   <property name="LOG_FILE" value="logs/application.log"/>
+  <property name="HEALTH_CHECK_LOG_FILE" value="logs/healthcheck.log"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -22,7 +23,19 @@
     </encoder>
   </appender>
 
-  <appender name="ROLLING-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <appender name="HEALTH_CHECK_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>${HEALTH_CHECK_LOG_FILE}</file>
+    <append>true</append>
+    <!-- set immediateFlush to false for much higher logging throughput -->
+    <immediateFlush>true</immediateFlush>
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>${FILE_LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${LOG_FILE}</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
@@ -40,10 +53,16 @@
     <appender-ref ref="STDOUT"/>
   </root>
 
-  <logger name="cn.maiaimei.example.controller.HealthCheckController" level="INFO"
+  <logger name="cn.maiaimei.example.aspect.RequestMappingAspect" level="INFO"
     additivity="false">
     <appender-ref ref="STDOUT"/>
     <appender-ref ref="FILE"/>
+  </logger>
+
+  <logger name="cn.maiaimei.example.aspect.HealthCheckAspect" level="INFO"
+    additivity="false">
+    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="HEALTH_CHECK_LOG_FILE"/>
   </logger>
 
 </configuration>
