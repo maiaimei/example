@@ -1,4 +1,4 @@
-package cn.maiaimei.example.aspect;
+package cn.maiaimei.example.aop;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;

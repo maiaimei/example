@@ -53,13 +53,13 @@
     <appender-ref ref="STDOUT"/>
   </root>
 
-  <logger name="cn.maiaimei.example.aspect.RequestMappingAspect" level="INFO"
+  <logger name="cn.maiaimei.example.aop.aspect.RequestMappingAspect" level="INFO"
     additivity="false">
     <appender-ref ref="STDOUT"/>
     <appender-ref ref="FILE"/>
   </logger>
 
-  <logger name="cn.maiaimei.example.aspect.HealthCheckAspect" level="INFO"
+  <logger name="cn.maiaimei.example.aop.aspect.HealthCheckAspect" level="INFO"
     additivity="false">
     <appender-ref ref="STDOUT"/>
     <appender-ref ref="HEALTH_CHECK_LOG_FILE"/>

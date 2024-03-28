@@ -1,4 +1,4 @@
-package cn.maiaimei.example.aspect;
+package cn.maiaimei.example.aop.aspect;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

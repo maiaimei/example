@@ -1,4 +1,4 @@
-package cn.maiaimei.example.aspect;
+package cn.maiaimei.example.aop.aspect;
 
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
@@ -9,10 +9,10 @@ import org.aspectj.lang.annotation.Aspect;
 @Slf4j
 @Aspect
 //@Component
-public class CustomAnnotationAspect {
+public class DemoServiceAspect {
 
-  @Around("@annotation(cn.maiaimei.example.annotation.CustomAnnotation)")
-  public Object customAnnotationAroundAdvice(ProceedingJoinPoint joinPoint) {
+  @Around("execution(* cn.maiaimei.example.service.DemoService.*(..))")
+  public Object demoServiceMethodAroundAdvice(ProceedingJoinPoint joinPoint) {
     // 记录开始时间
     long start = System.currentTimeMillis();
     try {

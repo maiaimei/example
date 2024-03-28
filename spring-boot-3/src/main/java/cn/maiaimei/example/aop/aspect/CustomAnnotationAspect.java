@@ -1,19 +1,18 @@
-package cn.maiaimei.example.aspect;
+package cn.maiaimei.example.aop.aspect;
 
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Aspect
-@Component
-public class HealthCheckAspect {
+//@Component
+public class CustomAnnotationAspect {
 
-  @Around("execution(public * cn.maiaimei.example.controller.HealthCheckController.healthCheck())")
-  public Object healthCheckAroundAdvice(ProceedingJoinPoint joinPoint) {
+  @Around("@annotation(cn.maiaimei.example.annotation.CustomAnnotation)")
+  public Object customAnnotationAroundAdvice(ProceedingJoinPoint joinPoint) {
     // 记录开始时间
     long start = System.currentTimeMillis();
     try {

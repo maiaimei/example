@@ -1,18 +1,21 @@
-package cn.maiaimei.example.aspect;
+package cn.maiaimei.example.aop;
 
 import org.aspectj.lang.annotation.Pointcut;
 
-public class Pointcuts {
+/**
+ * https://docs.spring.io/spring-framework/reference/core/aop/ataspectj/pointcuts.html
+ */
+public class PointcutExamples {
 
   /**
-   * 匹配所有方法
+   * 匹配所有方法，范围太广，不建议用
    */
   @Pointcut("execution(* *..*(..))")
   public void allMethod() {
   }
 
   /**
-   * 匹配公共方法
+   * 匹配公共方法，范围太广，不建议用
    */
   @Pointcut("execution(public * *(..))")
   public void publicMethod() {
@@ -35,7 +38,7 @@ public class Pointcuts {
   /**
    * 指定方法后缀
    */
-  @Pointcut("execution(* *..*.*suffix(..))")
+  @Pointcut("execution(* *..*.*Suffix(..))")
   public void suffixMethod() {
   }
 
@@ -49,20 +52,6 @@ public class Pointcuts {
    */
   @Pointcut("@annotation(cn.maiaimei.example.annotation.CustomAnnotation)")
   public void customAnnotationMethod() {
-  }
-
-  /**
-   * 增强指定前缀的注解修饰的方法
-   */
-  @Pointcut("@annotation(cn.maiaimei.example.annotation.Prefix*))")
-  public void prefixAnnotationMethod() {
-  }
-
-  /**
-   * 增强指定后缀的注解修饰的方法
-   */
-  @Pointcut("@annotation(cn.maiaimei.example.annotation.*Suffix))")
-  public void suffixAnnotationMethod() {
   }
 
   /**
