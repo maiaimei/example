@@ -14,6 +14,7 @@ public class HealthCheckController {
 
   @GetMapping("/health-check")
   public String healthCheck() {
+    log.info("执行目标方法");
     log.info("health check success -- @Slf4j");
     logger.info("health check success -- LoggerFactory.getLogger");
     return "success";

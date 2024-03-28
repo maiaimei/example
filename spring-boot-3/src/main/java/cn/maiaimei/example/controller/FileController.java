@@ -7,16 +7,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 public class FileController {
 
   @PostMapping("/upload/file")
   public String uploadFile(MultipartFile file, BusinessData businessData) {
+    log.info("执行目标方法");
     final Map<String, Object> map = new HashMap<>();
     map.put("file", getFileInfo(file));
     map.put("businessData", businessData);
@@ -25,6 +28,7 @@ public class FileController {
 
   @PostMapping("/upload/files")
   public String uploadFiles(@RequestPart List<MultipartFile> files, BusinessData businessData) {
+    log.info("执行目标方法");
     List<Map<String, String>> infos = new ArrayList<>();
     for (MultipartFile file : files) {
       infos.add(getFileInfo(file));
