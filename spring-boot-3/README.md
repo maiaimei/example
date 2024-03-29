@@ -20,17 +20,82 @@ AOP（Aspect Oriented Programming）意为：面向切面编程，通过预编�
     * 环绕通知（@Around）：相当于try-catch-finally，可以实现以上四种通知。
 * 连接点（JoinPoint）：被切入点选中的方法。这些方法会被增强处理。
 
-| 表达式类型    | 功能                                                         |
-| ------------- | ------------------------------------------------------------ |
-| execution()   | 匹配方法<br/>execution(修饰符 返回值类型 方法名（参数）异常)<br/>修饰符：可选。如public，protected，`*`代表任意修饰符<br/>返回值类型：必选。`*`代表任意返回值类型<br/>方法名：必选。方法名的全路径。单点表示单层路径，双点表示多层路径。`*`代表任意方法<br/>参数：必选。()代表是没有参数；(…)代表是匹配任意数量，任意类型的参数；(java.lang.String)代表接收一个String类型的参数；(java.lang.String…)代表接收任意数量的String类型参数<br/>异常：可选。语法：`throws 异常`，异常是完整的全包名，可以是多个，用逗号分隔 |
-| args()        | 匹配入参类型                                                 |
-| @args()       | 匹配入参类型上的注解                                         |
-| @annotation() | 匹配方法上的注解，括号内写注解定义的全路径，所有加了此注解的方法都会被增强。 |
-| within()      | 匹配类路径                                                   |
-| @within()     | 匹配类上的注解                                               |
-| this()        | 匹配类路径，代理类                                           |
-| target()      | 匹配类路径，目标类                                           |
-| @target()     | 匹配类上的注解                                               |
+### Pointcut
+
+#### execution
+
+匹配方法切入点。
+
+表达式模式：
+
+```
+execution(modifier? ret-type declaring-type?name-pattern(param-pattern) tdrows-pattern?)
+```
+
+表达式解释：
+
+- modifier：匹配修饰符，public, private 等，省略时匹配任意修饰符
+- ret-type：匹配返回类型，使用 * 匹配任意类型
+- declaring-type：匹配目标类，省略时匹配任意类型
+  - 使用`.*`匹配包，但不匹配子包
+  - 使用`..*`匹配包及子包
+- name-pattern：匹配方法名称，使用 * 表示通配符
+  - \* 匹配任意方法
+  - set* 匹配名称以 set 开头的方法
+- param-pattern：匹配参数类型和数量
+  - () 匹配没有参数的方法
+  - (..) 匹配有任意数量、任意类型参数的方法
+  - (*) 匹配有一个任意类型参数的方法
+  - (*,String) 匹配有两个参数的方法，并且第一个为任意类型，第二个为 String 类型
+- tdrows-pattern：匹配抛出异常类型，多个异常以逗号分隔，省略时匹配任意类型
+
+使用示例：
+
+```java
+// 匹配public方法
+execution(public * *(..))
+// 匹配名称以set开头的方法
+execution(* set*(..))
+// 匹配AccountService接口或类的方法
+execution(* com.xyz.service.AccountService.*(..))
+// 匹配service包及其子包的类或接口
+execution(* com.xyz.service..*(..))
+```
+
+#### within
+
+匹配的是类或包。不能匹配接口。
+
+表达式模式：
+
+```
+witdin(declaring-type)
+```
+
+使用示例：
+
+```java
+// 匹配service包的类
+witdin(com.xyz.service.*)
+// 匹配service包及其子包的类
+witdin(com.xyz.service..*)
+// 匹配AccountServiceImpl类
+witdin(com.xyz.service.AccountServiceImpl)
+```
+
+#### @within
+
+匹配的是类上的注解。当类上使用了注解，类中的方法都会被增强。
+
+#### @annotation
+
+匹配的是方法上的注解。当方法上使用了注解，该方法就会被增强。
+
+使用示例：
+
+```
+@annotation(com.xyz.annotation.MyAnnotation)
+```
 
 ## 拦截器和过滤器
 

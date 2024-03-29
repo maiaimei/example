@@ -2,7 +2,8 @@
 <configuration>
 
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-  <property name="LOG_FILE" value="logs/application.log"/>
+  <property name="FULL_LOG_FILE" value="logs/application.log"/>
+  <property name="BUSINESS_LOG_FILE" value="logs/business.log"/>
   <property name="HEALTH_CHECK_LOG_FILE" value="logs/healthcheck.log"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -11,8 +12,20 @@
     </encoder>
   </appender>
 
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${LOG_FILE}</file>
+  <appender name="FULL_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>${FULL_LOG_FILE}</file>
+    <append>true</append>
+    <!-- set immediateFlush to false for much higher logging throughput -->
+    <immediateFlush>true</immediateFlush>
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>${FILE_LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="BUSINESS_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>${BUSINESS_LOG_FILE}</file>
     <append>true</append>
     <!-- set immediateFlush to false for much higher logging throughput -->
     <immediateFlush>true</immediateFlush>
@@ -35,31 +48,18 @@
     </encoder>
   </appender>
 
-  <appender name="ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${LOG_FILE}</file>
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <!-- daily rollover -->
-      <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
-      <!-- keep 30 days' worth of history capped at 3GB total size -->
-      <maxHistory>30</maxHistory>
-      <totalSizeCap>3GB</totalSizeCap>
-    </rollingPolicy>
-    <encoder>
-      <pattern>${FILE_LOG_PATTERN}</pattern>
-    </encoder>
-  </appender>
-
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
+    <appender-ref ref="FULL_LOG_FILE"/>
   </root>
 
-  <logger name="cn.maiaimei.example.aop.aspect.RequestMappingAspect" level="INFO"
+  <logger name="cn.maiaimei.example.aop.advise.CommonRequestLogAdvise" level="INFO"
     additivity="false">
     <appender-ref ref="STDOUT"/>
-    <appender-ref ref="FILE"/>
+    <appender-ref ref="BUSINESS_LOG_FILE"/>
   </logger>
 
-  <logger name="cn.maiaimei.example.aop.aspect.HealthCheckAspect" level="INFO"
+  <logger name="cn.maiaimei.example.aop.advise.HealthCheckRequestLogAdvise" level="INFO"
     additivity="false">
     <appender-ref ref="STDOUT"/>
     <appender-ref ref="HEALTH_CHECK_LOG_FILE"/>
