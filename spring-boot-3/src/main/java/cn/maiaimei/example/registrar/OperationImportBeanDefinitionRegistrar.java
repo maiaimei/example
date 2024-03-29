@@ -52,9 +52,7 @@ public class OperationImportBeanDefinitionRegistrar implements ImportBeanDefinit
     for (String basePackage : basePackages) {
       final Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
       for (BeanDefinition candidateComponent : candidateComponents) {
-        if (candidateComponent instanceof AnnotatedBeanDefinition) {
-          final AnnotatedBeanDefinition beanDefinition =
-              (AnnotatedBeanDefinition) candidateComponent;
+        if (candidateComponent instanceof AnnotatedBeanDefinition beanDefinition) {
           // 生成代理并注册
           registerOperationComponent(beanDefinition.getMetadata(), registry);
         }

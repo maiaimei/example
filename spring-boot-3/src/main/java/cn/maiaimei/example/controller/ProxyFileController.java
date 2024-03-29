@@ -1,7 +1,7 @@
 package cn.maiaimei.example.controller;
 
-import cn.maiaimei.example.JsonUtils;
 import cn.maiaimei.example.model.BusinessData;
+import cn.maiaimei.example.utils.JsonUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @RestController
 @RequestMapping("/proxy")
-public class ProxyController {
+public class ProxyFileController {
 
   private static final String BASE_PATH = "http://localhost:8080";
 
@@ -30,7 +30,7 @@ public class ProxyController {
 
   @PostMapping("/upload/file")
   public String uploadFile(MultipartFile file, BusinessData businessData) {
-    log.info("执行目标方法");
+    log.info("上传单个文件2");
     // 设置请求的头部
     HttpHeaders headers = new HttpHeaders();
     //headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -46,7 +46,7 @@ public class ProxyController {
 
   @PostMapping("/upload/files")
   public String uploadFiles(@RequestPart List<MultipartFile> files, BusinessData businessData) {
-    log.info("执行目标方法");
+    log.info("上传多个文件2");
     // 设置请求的头部
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.MULTIPART_FORM_DATA);

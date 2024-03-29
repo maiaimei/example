@@ -1,7 +1,7 @@
 package cn.maiaimei.example.controller;
 
-import cn.maiaimei.example.JsonUtils;
 import cn.maiaimei.example.model.BusinessData;
+import cn.maiaimei.example.utils.JsonUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +19,7 @@ public class FileController {
 
   @PostMapping("/upload/file")
   public String uploadFile(MultipartFile file, BusinessData businessData) {
-    log.info("执行目标方法");
+    log.info("上传单个文件1");
     final Map<String, Object> map = new HashMap<>();
     map.put("file", getFileInfo(file));
     map.put("businessData", businessData);
@@ -28,7 +28,7 @@ public class FileController {
 
   @PostMapping("/upload/files")
   public String uploadFiles(@RequestPart List<MultipartFile> files, BusinessData businessData) {
-    log.info("执行目标方法");
+    log.info("上传多个文件1");
     List<Map<String, String>> infos = new ArrayList<>();
     for (MultipartFile file : files) {
       infos.add(getFileInfo(file));

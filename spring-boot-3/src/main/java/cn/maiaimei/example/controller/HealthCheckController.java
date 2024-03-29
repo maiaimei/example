@@ -10,7 +10,7 @@ public class HealthCheckController {
 
   @GetMapping("/health-check")
   public String healthCheck() {
-    log.info("执行目标方法");
+    log.info("执行健康检查");
     return "success";
   }
 }

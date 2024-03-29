@@ -1,4 +1,4 @@
-package cn.maiaimei.example;
+package cn.maiaimei.example.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

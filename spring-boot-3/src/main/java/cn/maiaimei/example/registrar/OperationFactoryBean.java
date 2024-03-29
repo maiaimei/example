@@ -24,10 +24,12 @@ public class OperationFactoryBean implements FactoryBean<Object>, InitializingBe
           @Override
           public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             final StandardEvaluationContext context = new StandardEvaluationContext();
+            // 第一个参数：a，第二个参数：b，与cn.maiaimei.example.registrar.Operation.value参数占位符一一对应
             char argName = 'a';
             for (Object arg : args) {
               context.setVariable(String.valueOf(argName++), arg);
             }
+            // 通过SpEL表达式计算结果
             return spelExpression.getValue(context);
           }
         });
