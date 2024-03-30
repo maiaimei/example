@@ -97,11 +97,17 @@ witdin(com.xyz.service.AccountServiceImpl)
 @annotation(com.xyz.annotation.MyAnnotation)
 ```
 
-## 拦截器和过滤器
+## 过滤器和拦截器
 
-HandlerInterceptor
+### Filter
 
-Filter
+过滤器实现方式及执行优先级如下：
+
+1. 实现Filter接口，并添加@Component注解
+2. 实现Filter接口，将过滤器添加到FilterRegistrationBean，并交给spring容器
+3. 实现Filter接口，并添加@WebFilter注解，启动类加@ServletComponentScan注解，@ServletComponentScan注解可以扫描@WebFilter、@WebServlet和@WebListener注解
+
+### HandlerInterceptor
 
 ## Logging
 
