@@ -19,7 +19,6 @@
   <property name="FILE_LOG_THRESHOLD" value="${FILE_LOG_THRESHOLD:-TRACE}"/>
 
   <property name="LOG_FILE" value="logs/application.log"/>
-  <property name="BUSINESS_LOG_FILE" value="logs/application-business.log"/>
   <property name="HEALTH_CHECK_LOG_FILE" value="logs/application-healthcheck.log"/>
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -53,10 +52,38 @@
     </rollingPolicy>
   </appender>
 
-  <root level="INFO">
+  <appender name="HEALTH_CHECK_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>${FILE_LOG_THRESHOLD}</level>
+    </filter>
+    <encoder>
+      <pattern>${FILE_LOG_PATTERN}</pattern>
+      <charset>${FILE_LOG_CHARSET}</charset>
+    </encoder>
+    <file>${HEALTH_CHECK_LOG_FILE}</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>
+        ${LOGBACK_ROLLINGPOLICY_FILE_NAME_PATTERN:-${HEALTH_CHECK_LOG_FILE}.%d{yyyy-MM-dd}.%i.gz}
+      </fileNamePattern>
+      <cleanHistoryOnStart>${LOGBACK_ROLLINGPOLICY_CLEAN_HISTORY_ON_START:-false}
+      </cleanHistoryOnStart>
+      <maxFileSize>${LOGBACK_ROLLINGPOLICY_MAX_FILE_SIZE:-10MB}</maxFileSize>
+      <totalSizeCap>${LOGBACK_ROLLINGPOLICY_TOTAL_SIZE_CAP:-0}</totalSizeCap>
+      <maxHistory>${LOGBACK_ROLLINGPOLICY_MAX_HISTORY:-7}</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <!-- 健康检查日志 -->
+  <logger name="cn.maiaimei.example.controller.HealthCheckController" level="INFO"
+    additivity="false">
     <appender-ref ref="CONSOLE"/>
-    <appender-ref ref="FILE"/>
-  </root>
+    <appender-ref ref="HEALTH_CHECK_FILE"/>
+  </logger>
+  <logger name="cn.maiaimei.example.aop.advise.HealthCheckRequestLogAdvise" level="INFO"
+    additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="HEALTH_CHECK_FILE"/>
+  </logger>
 
   <logger name="org.apache.catalina.startup.DigesterFactory" level="ERROR"/>
   <logger name="org.apache.catalina.util.LifecycleBase" level="ERROR"/>
@@ -66,5 +93,10 @@
   <logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="ERROR"/>
   <logger name="org.hibernate.validator.internal.util.Version" level="WARN"/>
   <logger name="org.springframework.boot.actuate.endpoint.jmx" level="WARN"/>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
 
 </configuration>

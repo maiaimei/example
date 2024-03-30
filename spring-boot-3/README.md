@@ -118,3 +118,55 @@ witdin(com.xyz.service.AccountServiceImpl)
 [https://logback.qos.ch/](https://logback.qos.ch/)
 
 ![](./images/20240326233255.png)
+
+```xml
+<configuration>
+ 
+  <!-- 为特定类指定日志级别 -->
+  <logger name="com.example.Class1" level="DEBUG"/>
+  <logger name="com.example.Class2" level="INFO"/>
+  <logger name="com.example.Class3" level="WARN"/>
+    
+  <logger name="com.example.Class4" level="INFO"
+    additivity="false">
+    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="FILE"/>
+  </logger>
+  
+  <!-- 为com.example包下的所有类设置DEBUG级别 -->
+  <logger name="com.example.*" level="DEBUG"/>
+ 
+  <!-- 全局的日志级别控制，为所有其他类设置默认日志级别，若logger指定了日志级别则使用logger的日志级别，没有就跟随root的日志级别 -->
+  <root level="ERROR">
+    <appender-ref ref="STDOUT" />
+  </root>
+ 
+  <!-- 配置appender -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+    
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>application.log</file>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+ 
+</configuration>
+```
+
+**Logback的配置是从上到下进行匹配的，因此当多个`<logger>`定义重叠时，具体的类或包会应用最具体（即最后定义）的配置。**
+
+appender-ref 表示日志输出到哪些目标处。
+
+logger中additivity的作用在于childrenLogger是否使用 rootLogger配置的appender进行输出。默认是true。
+
+- true： 表示当前logger的appender-ref和rootLogger的appender-ref都有效。也就是说日志会打印至少两遍。
+- false：表示只用当前logger的appender-ref。不会向上一层级传递日志。
+
+
+
+
