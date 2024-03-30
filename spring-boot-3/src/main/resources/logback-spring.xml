@@ -21,7 +21,7 @@
     value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd'T'HH:mm:ss.SSSXXX}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } %X{traceId:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
   <property name="FILE_LOG_CHARSET" value="${FILE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
   <property name="FILE_LOG_THRESHOLD" value="${FILE_LOG_THRESHOLD:-TRACE}"/>
-  
+
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>${CONSOLE_LOG_THRESHOLD}</level>
@@ -33,6 +33,7 @@
   </appender>
 
   <appender name="SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
+    <!-- 鉴别器discriminator没指定class时，默认为MDCBasedDiscriminator -->
     <discriminator class="ch.qos.logback.classic.sift.MDCBasedDiscriminator">
       <key>logFile</key>
       <defaultValue>${LOG_FILE}</defaultValue>
