@@ -6,19 +6,18 @@ import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Slf4j
 @Aspect
-@Component
+//@Component
 public class HeartBeatRequestLogAdivse extends AbstractRequestLogAdvise {
 
   private static final ThreadLocal<Long> START_TIME = new ThreadLocal<>();
 
-  @Pointcut("requestMappingMethods() && !healthCheck() && serviceCenterMethods() && heartbeat()")
+  @Pointcut("requestMappingMethods() && heartbeat()")
   public void heartbeatRequestMethod() {
   }
 

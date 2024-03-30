@@ -18,7 +18,7 @@ public class ServiceCenterRequestLogAdvise extends AbstractRequestLogAdvise {
 
   private static final ThreadLocal<Long> START_TIME = new ThreadLocal<>();
 
-  @Pointcut("requestMappingMethods() && !healthCheck() && serviceCenterMethods() && !heartbeat()")
+  @Pointcut("requestMappingMethods() && serviceCenterMethods() && !heartbeat()")
   public void serviceCenterRequestMethods() {
   }
 

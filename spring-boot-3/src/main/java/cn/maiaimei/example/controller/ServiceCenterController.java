@@ -29,8 +29,8 @@ public class ServiceCenterController {
     return serviceCenterRepository.stop();
   }
 
-  @GetMapping("/heartbeat")
-  public String heartbeat() {
+  @GetMapping("/heart-beat")
+  public String heartBeat() {
     return heartBeatService.heartbeat();
   }
 }

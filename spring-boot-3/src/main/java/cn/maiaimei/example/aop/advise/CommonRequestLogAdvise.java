@@ -7,7 +7,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
@@ -23,7 +22,7 @@ public class CommonRequestLogAdvise extends AbstractRequestLogAdvise {
 
   private static final ThreadLocal<Long> START_TIME = new ThreadLocal<>();
 
-  @Pointcut("requestMappingMethods() && !healthCheck() && !serviceCenterMethods()")
+  @Pointcut("requestMappingMethods() && !serviceCenterMethods() && !healthCheck()")
   public void commonRequestMethod() {
   }
 
@@ -60,7 +59,7 @@ public class CommonRequestLogAdvise extends AbstractRequestLogAdvise {
     log.error(String.format("【异常通知1】异常：%s", ex.getMessage()), ex);
   }
 
-  @Around(value = "commonRequestMethod()")
+  //@Around(value = "commonRequestMethod()")
   public Object logRequest(ProceedingJoinPoint joinPoint) {
     // 记录开始时间
     long start = System.currentTimeMillis();

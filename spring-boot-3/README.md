@@ -153,6 +153,7 @@ witdin(com.xyz.service.AccountServiceImpl)
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
+    <immediateFlush>true</immediateFlush>  
   </appender>
  
 </configuration>
@@ -167,6 +168,5 @@ logger中additivity的作用在于childrenLogger是否使用 rootLogger配置的
 - true： 表示当前logger的appender-ref和rootLogger的appender-ref都有效。也就是说日志会打印至少两遍。
 - false：表示只用当前logger的appender-ref。不会向上一层级传递日志。
 
-
-
+通过配置`<appender>`的`immediateFlush`属性为`true`来立即刷新日志。这意味着每次日志事件被记录时，相关的appender都会立即写入其输出目标。
 
