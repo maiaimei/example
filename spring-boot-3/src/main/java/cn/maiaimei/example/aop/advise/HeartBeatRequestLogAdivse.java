@@ -14,7 +14,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Slf4j
 @Aspect
 @Component
-public class HeartbeatRequestLogAdivse extends AbstractRequestLogAdvise {
+public class HeartBeatRequestLogAdivse extends AbstractRequestLogAdvise {
 
   private static final ThreadLocal<Long> START_TIME = new ThreadLocal<>();
 

@@ -1,7 +1,7 @@
 package cn.maiaimei.example.controller;
 
 import cn.maiaimei.example.repository.ServiceCenterRepository;
-import cn.maiaimei.example.service.HeartbeatService;
+import cn.maiaimei.example.service.HeartBeatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +17,7 @@ public class ServiceCenterController {
   private ServiceCenterRepository serviceCenterRepository;
 
   @Autowired
-  private HeartbeatService heartbeatService;
+  private HeartBeatService heartBeatService;
 
   @GetMapping("/register")
   public String register() {
@@ -31,6 +31,6 @@ public class ServiceCenterController {
 
   @GetMapping("/heartbeat")
   public String heartbeat() {
-    return heartbeatService.heartbeat();
+    return heartBeatService.heartbeat();
   }
 }

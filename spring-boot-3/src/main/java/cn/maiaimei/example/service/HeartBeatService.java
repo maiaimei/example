@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class HeartbeatService {
+public class HeartBeatService {
 
   public String heartbeat() {
     log.info("heartbeat");
