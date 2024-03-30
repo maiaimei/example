@@ -6,6 +6,14 @@ import org.aspectj.lang.annotation.Pointcut;
 @Slf4j
 public class AbstractRequestLogAdvise {
 
+  @Pointcut("execution(public * *..*.ServiceCenterController.*())")
+  public void serviceCenterMethods() {
+  }
+
+  @Pointcut("execution(public * *..*.ServiceCenterController.heartbeat())")
+  public void heartbeat() {
+  }
+
   @Pointcut("execution(public * *..*.HealthCheckController.healthCheck"
       + "())")
   public void healthCheck() {

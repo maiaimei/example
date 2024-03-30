@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -22,7 +23,11 @@ public class CommonRequestLogAdvise extends AbstractRequestLogAdvise {
 
   private static final ThreadLocal<Long> START_TIME = new ThreadLocal<>();
 
-  @Before("requestMappingMethods() && !healthCheck()")
+  @Pointcut("requestMappingMethods() && !healthCheck() && !serviceCenterMethods()")
+  public void commonRequestMethod() {
+  }
+
+  @Before("commonRequestMethod()")
   public void logBeforeRequest() {
     // 记录开始时间
     START_TIME.set(System.currentTimeMillis());
@@ -35,7 +40,7 @@ public class CommonRequestLogAdvise extends AbstractRequestLogAdvise {
     log.info("【前置通知1】URI: {}, Method: {}", uri, method);
   }
 
-  @After("requestMappingMethods() && !healthCheck()")
+  @After("commonRequestMethod()")
   public void logAfterRequest() {
     // 记录结束时间
     long end = System.currentTimeMillis();
@@ -45,17 +50,17 @@ public class CommonRequestLogAdvise extends AbstractRequestLogAdvise {
     START_TIME.remove();
   }
 
-  @AfterReturning(value = "requestMappingMethods() && !healthCheck()", returning = "result")
+  @AfterReturning(value = "commonRequestMethod()", returning = "result")
   public void logAfterReturning(Object result) {
     log.info("【返回通知1】结果：{}", result);
   }
 
-  @AfterThrowing(value = "requestMappingMethods() && !healthCheck()", throwing = "ex")
+  @AfterThrowing(value = "commonRequestMethod()", throwing = "ex")
   public void logAfterThrowing(Exception ex) {
     log.error(String.format("【异常通知1】异常：%s", ex.getMessage()), ex);
   }
 
-  @Around(value = "requestMappingMethods() && !healthCheck()")
+  @Around(value = "commonRequestMethod()")
   public Object logRequest(ProceedingJoinPoint joinPoint) {
     // 记录开始时间
     long start = System.currentTimeMillis();
