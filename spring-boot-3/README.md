@@ -121,41 +121,61 @@ witdin(com.xyz.service.AccountServiceImpl)
 
 ```xml
 <configuration>
- 
-  <!-- 为特定类指定日志级别 -->
-  <logger name="com.example.Class1" level="DEBUG"/>
-  <logger name="com.example.Class2" level="INFO"/>
-  <logger name="com.example.Class3" level="WARN"/>
-    
-  <logger name="com.example.Class4" level="INFO"
-    additivity="false">
-    <appender-ref ref="STDOUT"/>
-    <appender-ref ref="FILE"/>
-  </logger>
-  
-  <!-- 为com.example包下的所有类设置DEBUG级别 -->
-  <logger name="com.example.*" level="DEBUG"/>
- 
-  <!-- 全局的日志级别控制，为所有其他类设置默认日志级别，若logger指定了日志级别则使用logger的日志级别，没有就跟随root的日志级别 -->
-  <root level="ERROR">
-    <appender-ref ref="STDOUT" />
-  </root>
- 
-  <!-- 配置appender -->
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
-    
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>application.log</file>
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-    <immediateFlush>true</immediateFlush>  
-  </appender>
- 
+
+    <!-- 为特定类指定日志级别 -->
+    <logger name="com.example.Class1" level="DEBUG"/>
+    <logger name="com.example.Class2" level="INFO"/>
+    <logger name="com.example.Class3" level="WARN"/>
+
+    <logger name="com.example.Class4" level="INFO"
+            additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- 为com.example包下的所有类设置DEBUG级别 -->
+    <logger name="com.example.*" level="DEBUG"/>
+
+    <!-- 全局的日志级别控制，为所有其他类设置默认日志级别，若logger指定了日志级别则使用logger的日志级别，没有就跟随root的日志级别 -->
+    <root level="ERROR">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="MY_SIFTING"/>
+    </root>
+
+    <!-- 配置appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>application.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <immediateFlush>true</immediateFlush>  
+    </appender>
+
+    <!--    自定义筛选器类-->
+    <appender name="MY_SIFTING" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator class="cn.histo.common.config.LoggerNameBasedDiscriminator">
+            <defaultValue>my_general</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="FILE-${loggerName}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                    <fileNamePattern>target/log/${loggerName}.%d{yyyyMMddHHmm}-%i.log</fileNamePattern>
+                    <maxHistory>60</maxHistory>
+                    <maxFileSize>300KB</maxFileSize>
+                </rollingPolicy>
+                <encoder>
+                    <pattern>%msg%n</pattern>
+                </encoder>
+            </appender>
+        </sift>
+    </appender>  
+
 </configuration>
 ```
 
@@ -169,4 +189,6 @@ logger中additivity的作用在于childrenLogger是否使用 rootLogger配置的
 - false：表示只用当前logger的appender-ref。不会向上一层级传递日志。
 
 通过配置`<appender>`的`immediateFlush`属性为`true`来立即刷新日志。这意味着每次日志事件被记录时，相关的appender都会立即写入其输出目标。
+
+使用SiftingAppender可以实现日志分流，当鉴别器discriminator没指定class时，默认为MDCBasedDiscriminator，可以继承AbstractDiscriminator自定义鉴别器。
 

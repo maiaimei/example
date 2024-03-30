@@ -5,8 +5,6 @@
   <springProperty scope="context" name="applicationName" source="spring.application.name"
     defaultValue="application"/>
 
-  <contextName>${applicationName}</contextName>
-
   <conversionRule conversionWord="clr"
     converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
   <conversionRule conversionWord="wex"
@@ -37,10 +35,9 @@
 
   <appender name="SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
     <!-- 鉴别器discriminator没指定class时，默认为MDCBasedDiscriminator -->
-    <discriminator class="cn.maiaimei.example.logback.JNDIAndMDCBasedContextDiscriminator">
+    <discriminator class="ch.qos.logback.classic.sift.MDCBasedDiscriminator">
       <key>logFile</key>
-      <mdcKey>logFile</mdcKey>
-      <contextDefaultValue>${applicationName}</contextDefaultValue>
+      <defaultValue>${applicationName}</defaultValue>
     </discriminator>
     <sift>
       <appender name="${logFile}-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
