@@ -16,7 +16,7 @@ public class AddTraceIdInterceptor implements HandlerInterceptor {
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
     log.info("preHandle traceId: {}", MDC.get(TRACE_ID));
-    //MDC.put(TRACE_ID, TraceIdUtils.getTraceId(request));
+    //TraceIdUtils.setTraceId(TraceIdUtils.getTraceId(request));
     return HandlerInterceptor.super.preHandle(request, response, handler);
   }
 
@@ -24,7 +24,7 @@ public class AddTraceIdInterceptor implements HandlerInterceptor {
   public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
       ModelAndView modelAndView) throws Exception {
     log.info("postHandle traceId: {}", MDC.get(TRACE_ID));
-    //MDC.remove(TRACE_ID);
+    //TraceIdUtils.removeTraceId();
     HandlerInterceptor.super.postHandle(request, response, handler, modelAndView);
   }
 }

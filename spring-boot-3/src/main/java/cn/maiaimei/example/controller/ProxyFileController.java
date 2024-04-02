@@ -1,5 +1,6 @@
 package cn.maiaimei.example.controller;
 
+import cn.maiaimei.example.client.HttpClient;
 import cn.maiaimei.example.model.BusinessData;
 import cn.maiaimei.example.utils.JsonUtils;
 import java.util.List;
@@ -28,20 +29,30 @@ public class ProxyFileController {
   @Autowired
   private RestTemplate restTemplate;
 
+  @Autowired
+  private HttpClient httpClient;
+
   @PostMapping("/upload/file")
   public String uploadFile(MultipartFile file, BusinessData businessData) {
     log.info("上传单个文件2");
-    // 设置请求的头部
-    HttpHeaders headers = new HttpHeaders();
-    //headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+    
+//    // 设置请求的头部
+//    HttpHeaders headers = new HttpHeaders();
+//    //headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+//    // 设置请求体
+//    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+//    body.add("file", file.getResource());
+//    body.addAll(JsonUtils.toMultiValueMap(businessData));
+//    // 创建HttpEntity
+//    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+//    return restTemplate.postForObject(BASE_PATH.concat("/upload/file"), requestEntity,
+//        String.class);
+
     // 设置请求体
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
     body.add("file", file.getResource());
     body.addAll(JsonUtils.toMultiValueMap(businessData));
-    // 创建HttpEntity
-    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-    return restTemplate.postForObject(BASE_PATH.concat("/upload/file"), requestEntity,
-        String.class);
+    return httpClient.post(BASE_PATH.concat("/upload/file"), body, String.class);
   }
 
   @PostMapping("/upload/files")
