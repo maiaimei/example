@@ -1,8 +1,9 @@
 package cn.maiaimei.example.utils;
 
 import cn.maiaimei.example.constants.NumericConstants;
+import cn.maiaimei.example.constants.StringConstants;
 import cn.maiaimei.example.itextpdf.CommonPdfPageEvent;
-import cn.maiaimei.example.itextpdf.CommonPdfPageEvent.Property;
+import cn.maiaimei.example.itextpdf.CommonPdfPageEvent.Config;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
@@ -52,24 +53,27 @@ public class ITextPdfUtils {
     // document.setMargins(30, 30, 30, 30);
     PdfWriter writer = PdfWriter.getInstance(document, out);
 
-    final Property property = Property.builder()
-        .hasHeaderFooter(Boolean.TRUE)
+    final Config config = Config.builder()
+        .hasHeaderFooter(StringConstants.YES)
         .headerAlignment(Element.ALIGN_LEFT)
         .headerText(header)
-        .footerAlignment(Element.ALIGN_LEFT)
-        .footerText(footer)
-        .footerOffsetBottom(25F)
-        .hasPageNumber(Boolean.TRUE)
+        //.footerAlignment(Element.ALIGN_LEFT)
+        //.footerText(footer)
+        //.footerOffsetBottom(30)
+        .hasPageNumber(StringConstants.YES)
+        .pageNumberAlignment(Element.ALIGN_RIGHT)
+        .pageNumberOffsetBottom(30)
+        .pageNumberReservedOffset(28)
         .currentPageFormat("第 %s 页 / 共 ")
         .totalPageFormat("%s 页")
-        .totalPageWidth(50F)
-        .totalPageHeight(50F)
+        .totalPageBoxWidth(50)
+        .totalPageBoxHeight(50)
         .baseFont(BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", false))
         .fontSize(NumericConstants.TEN)
         .fontColor(BaseColor.GRAY)
         .build();
 
-    writer.setPageEvent(CommonPdfPageEvent.getInstance(property));
+    writer.setPageEvent(CommonPdfPageEvent.getInstance(config));
 
     document.open();
 

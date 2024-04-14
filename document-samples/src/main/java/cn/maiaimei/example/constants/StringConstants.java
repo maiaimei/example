@@ -2,6 +2,8 @@ package cn.maiaimei.example.constants;
 
 public class StringConstants {
 
+  public static final String YES = "Y";
+  public static final String NO = "N";
   public static final String EMPTY = "";
   public static final String SPACE = " ";
   public static final String LF = "\n";

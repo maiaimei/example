@@ -23,8 +23,7 @@ public class FlyingSaucerPdfTest extends BaseTest {
   /**
    * 指定纸张大小为a4横向排版、并且边距为0的样式
    */
-  private static final String CSS_PAGE_SIZE_A4 = "@page{size:297mm 210mm;margin:0;padding:0;"
-      + "margin:0}";
+  private static final String CSS_PAGE_SIZE_A4 = "@page{size:297mm 210mm;margin:0;padding:0;}";
   /**
    * 换页样式
    * <p>
