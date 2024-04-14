@@ -1,5 +1,7 @@
-package cn.maiaimei.example;
+package cn.maiaimei.example.utils;
 
+import cn.maiaimei.example.constants.NumericConstants;
+import cn.maiaimei.example.constants.StringConstants;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

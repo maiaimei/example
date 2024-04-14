@@ -1,7 +1,7 @@
 package cn.maiaimei.example.excel;
 
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.ExcelUtils;
+import cn.maiaimei.example.utils.ExcelUtils;
 import org.junit.jupiter.api.Test;
 
 public class ExcelUtilsTest extends BaseTest {

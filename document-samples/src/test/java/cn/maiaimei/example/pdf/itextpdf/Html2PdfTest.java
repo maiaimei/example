@@ -1,7 +1,7 @@
 package cn.maiaimei.example.pdf.itextpdf;
 
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.FileUtils;
+import cn.maiaimei.example.utils.FileUtils;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfWriter;

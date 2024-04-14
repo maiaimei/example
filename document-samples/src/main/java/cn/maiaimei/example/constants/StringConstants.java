@@ -1,4 +1,4 @@
-package cn.maiaimei.example;
+package cn.maiaimei.example.constants;
 
 public class StringConstants {
 

@@ -1,7 +1,7 @@
 package cn.maiaimei.example.pdf.itextpdf;
 
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.FileUtils;
+import cn.maiaimei.example.utils.FileUtils;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;

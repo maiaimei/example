@@ -1,4 +1,4 @@
-package cn.maiaimei.example;
+package cn.maiaimei.example.utils;
 
 import com.google.common.collect.Maps;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package cn.maiaimei.example;
+package cn.maiaimei.example.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,8 +1,8 @@
 package cn.maiaimei.example.pdf;
 
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.FileUtils;
-import cn.maiaimei.example.MapUtils;
+import cn.maiaimei.example.utils.FileUtils;
+import cn.maiaimei.example.utils.MapUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;

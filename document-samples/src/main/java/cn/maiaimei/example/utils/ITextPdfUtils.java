@@ -1,15 +1,12 @@
-package cn.maiaimei.example.pdf;
+package cn.maiaimei.example.utils;
 
-import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.FileUtils;
-import cn.maiaimei.example.MapUtils;
-import cn.maiaimei.example.NumericConstants;
-import com.google.common.collect.Lists;
+import cn.maiaimei.example.constants.NumericConstants;
+import cn.maiaimei.example.itextpdf.CommonPdfPageEvent;
+import cn.maiaimei.example.itextpdf.CommonPdfPageEvent.Property;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -37,39 +34,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
-import org.beetl.core.BeetlKit;
-import org.junit.jupiter.api.Test;
 import org.springframework.util.StringUtils;
 
-/**
- * @描述：html/pdf生成器
- * @作者：zhongjy
- * @时间：2019年7月15日 下午12:31:25
- */
-@Slf4j
-public class Generator extends BaseTest {
+public class ITextPdfUtils {
 
-  @Test
-  public void testPdfGeneratePlus() throws Exception {
-    String headerHtml = "This is header";
-    String footerHtml = "This is footer";
-
-    String htmlFormat = "<html><head></head><body>${body}</body></html>";
-
-    List<String> list = Lists.newArrayList();
-    for (int i = 0; i < 1000; i++) {
-      list.add("<h1>Your content here...</h1>");
-    }
-    String content = BeetlKit.render(htmlFormat,
-        MapUtils.of("body", String.join("", list)));
-
-    pdfGeneratePlus(content, FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF),
-        PageSize.A4, headerHtml, footerHtml);
-  }
-
-  public void pdfGeneratePlus(String content,
+  public static void html2Pdf(String content,
       String targetPdf, Rectangle pageSize, String header, String footer)
       throws Exception {
     final String charsetName = "UTF-8";
@@ -82,7 +51,7 @@ public class Generator extends BaseTest {
     // document.setMargins(30, 30, 30, 30);
     PdfWriter writer = PdfWriter.getInstance(document, out);
 
-    CommonPdfPageEvent.Property property = CommonPdfPageEvent.Property.builder()
+    final Property property = Property.builder()
         .hasHeaderFooter(Boolean.TRUE)
         .hasPageNumber(Boolean.TRUE)
         .headerString(header)
@@ -115,7 +84,6 @@ public class Generator extends BaseTest {
               font = new Font(BaseFont.createFont(fontname, encoding, BaseFont.NOT_EMBEDDED), size,
                   style);
             } catch (Exception e) {
-              log.error("", e);
             }
             return font;
           }
@@ -155,7 +123,6 @@ public class Generator extends BaseTest {
           store(src, image);
           return image;
         } catch (Exception e) {
-          log.error("", e);
         }
         return super.retrieve(src);
       }
@@ -190,7 +157,6 @@ public class Generator extends BaseTest {
             processor.process(i);
           }
         } catch (Exception e) {
-          log.error("", e);
         }
 
       }

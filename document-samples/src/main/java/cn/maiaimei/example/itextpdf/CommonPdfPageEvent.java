@@ -1,7 +1,7 @@
-package cn.maiaimei.example.pdf;
+package cn.maiaimei.example.itextpdf;
 
-import cn.maiaimei.example.FileUtils;
-import cn.maiaimei.example.NumericConstants;
+import cn.maiaimei.example.constants.NumericConstants;
+import cn.maiaimei.example.utils.FileUtils;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -19,9 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class CommonPdfPageEvent extends PdfPageEventHelper {
 
   /**
@@ -311,7 +309,7 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
   }
 
   @Builder
-  static class Property {
+  public static class Property {
 
     private BaseFont baseFont;
     private Font fontDetail;
