@@ -9,7 +9,9 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfContentByte;
@@ -250,6 +252,8 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
   @NoArgsConstructor
   public static class Config {
 
+    @Builder.Default
+    private Rectangle pageSize = PageSize.A4;
     /**
      * 基础字体
      */

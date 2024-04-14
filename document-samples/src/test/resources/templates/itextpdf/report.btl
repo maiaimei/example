@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+table {
+  border-collapse: collapse;
+}
+ 
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<body>
+<h4>XXX报告</h4>
+<table class="a">
+  <thead>
+    <tr>
+      <th>列标题1</th>
+      <th>列标题2</th>
+      <th>列标题3</th>
+      <th>列标题4</th>
+      <th>列标题5</th>
+      <th>列标题6</th>      
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>行1，列1</td>
+      <td>行1，列2</td>
+      <td>行1，列3</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>
