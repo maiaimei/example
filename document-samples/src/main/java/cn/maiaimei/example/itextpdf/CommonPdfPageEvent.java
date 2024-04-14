@@ -19,118 +19,19 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import lombok.Builder;
+import org.springframework.util.StringUtils;
 
 public class CommonPdfPageEvent extends PdfPageEventHelper {
 
-  /**
-   * 基础字体
-   */
-  private BaseFont baseFont;
-
-  /**
-   * 利用基础字体生成的字体对象，一般用于生成中文文字
-   */
-  private Font fontDetail;
-
-  /**
-   * 字体大小
-   */
-  private Integer fontSize;
-
-  /**
-   * 字体颜色
-   */
-  private BaseColor fontColor;
-
-  /**
-   * 是否设置页眉页脚
-   */
-  private boolean hasHeaderFooter;
-
-  /**
-   * 是否设置页码
-   */
-  private boolean hasPageNumber;
-
-  /**
-   * 页眉
-   */
-  private String headerString;
-
-  /**
-   * 页眉对齐方式
-   */
-  private Integer headerAlignment;
-
-  /**
-   * 页眉 X坐标
-   */
-  private Float headerX;
-
-  /**
-   * 页眉 Y坐标
-   */
-  private Float headerY;
-
-  /**
-   * 页脚
-   */
-  private String footerString;
-
-  /**
-   * 页脚对齐方式
-   */
-  private Integer footerAlignment;
-
-  /**
-   * 页脚 X坐标
-   */
-  private Float footerX;
-
-  /**
-   * 页脚 Y坐标
-   */
-  private Float footerY;
-
-  /**
-   * 页脚模板
-   */
-  private PdfTemplate footerTemplate;
-
-  /**
-   * 水印文件
-   */
-  private File watermark;
-
-  /**
-   * 水印文件 X坐标
-   */
-  private Float watermarkX;
-
-  /**
-   * 水印文件 Y坐标
-   */
-  private Float watermarkY;
+  private Property property;
+  private PdfTemplate pageNumberTemplate;
 
   private CommonPdfPageEvent() {
   }
 
   public static CommonPdfPageEvent getInstance(Property property) {
     final CommonPdfPageEvent event = new CommonPdfPageEvent();
-    event.baseFont = property.baseFont;
-    event.fontDetail = property.fontDetail;
-    event.fontSize = property.fontSize;
-    event.fontColor = property.fontColor;
-    event.hasHeaderFooter = property.hasHeaderFooter;
-    event.hasPageNumber = property.hasPageNumber;
-    event.headerString = property.headerString;
-    event.headerAlignment = property.headerAlignment;
-    event.headerX = property.headerX;
-    event.headerY = property.headerY;
-    event.footerString = property.footerString;
-    event.footerAlignment = property.footerAlignment;
-    event.footerX = property.footerX;
-    event.footerY = property.footerY;
+    event.property = property;
     return event;
   }
 
@@ -139,23 +40,22 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
    */
   @Override
   public void onOpenDocument(PdfWriter writer, Document document) {
-    if (hasHeaderFooter || hasPageNumber) {
-      if (baseFont == null) {
+    if (property.hasHeaderFooter) {
+      if (property.baseFont == null) {
         try {
-          baseFont = BaseFont.createFont();
+          property.baseFont = BaseFont.createFont();
         } catch (DocumentException | IOException e) {
           throw new RuntimeException(e);
         }
       }
-
-      if (fontDetail == null) {
-        fontDetail = new Font(baseFont, fontSize, Font.NORMAL);
-        fontDetail.setColor(fontColor);
+      if (property.fontDetail == null) {
+        property.fontDetail = new Font(property.baseFont, property.fontSize, property.fontStyle);
+        property.fontDetail.setColor(property.fontColor);
       }
-    }
-    if (hasPageNumber) {
-      // 共 页 的矩形的长宽高
-      footerTemplate = writer.getDirectContent().createTemplate(50, 50);
+      if (property.hasPageNumber) {
+        pageNumberTemplate = writer.getDirectContent()
+            .createTemplate(property.totalPageWidth, property.totalPageHeight);
+      }
     }
   }
 
@@ -175,17 +75,16 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
    */
   @Override
   public void onCloseDocument(PdfWriter writer, Document document) {
-    if (hasPageNumber) {
+    if (property.hasPageNumber) {
       // 将模板替换成实际的 Y 值，兼容各种文档size
-      footerTemplate.beginText();
+      pageNumberTemplate.beginText();
       // 设置模版的字体、颜色
-      footerTemplate.setFontAndSize(baseFont, fontSize);
-      footerTemplate.setColorFill(fontColor);
-      String foot2 = " " + (writer.getPageNumber()) + " 页";
+      pageNumberTemplate.setFontAndSize(property.baseFont, property.fontSize);
+      pageNumberTemplate.setColorFill(property.fontColor);
       // 渲染模版
-      footerTemplate.showText(foot2);
-      footerTemplate.endText();
-      footerTemplate.closePath();
+      pageNumberTemplate.showText(String.format(property.totalPageFormat, writer.getPageNumber()));
+      pageNumberTemplate.endText();
+      pageNumberTemplate.closePath();
     }
   }
 
@@ -196,15 +95,19 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
    * @param document document
    */
   private void addHeaderFooter(PdfWriter writer, Document document) {
-    if (hasHeaderFooter) {
+    if (property.hasHeaderFooter) {
       // 写入页眉
-      addHeader(writer, document);
+      if (StringUtils.hasText(property.headerText)) {
+        addHeader(writer, document);
+      }
       // 写入页脚
-      addFooter(writer, document);
-    }
-    if (hasPageNumber) {
-      // 添加页码
-      addPageNumber(writer, document);
+      if (StringUtils.hasText(property.footerText)) {
+        addFooter(writer, document);
+      }
+      if (property.hasPageNumber) {
+        // 添加页码
+        addPageNumber(writer, document);
+      }
     }
   }
 
@@ -215,17 +118,18 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
    * @param document document
    */
   private void addHeader(PdfWriter writer, Document document) {
-    if (Objects.isNull(headerAlignment)) {
-      headerAlignment = Element.ALIGN_LEFT;
+    float x = 0F, y = 0F;
+    if (Element.ALIGN_CENTER == property.headerAlignment) {
+      x = calculateXIfAlignCenter(document,
+          property.baseFont.getWidthPoint(property.headerText, property.fontSize));
+    } else if (property.headerX == 0) {
+      x = document.left() + property.headerOffsetLeft;
     }
-    if (Objects.isNull(headerX)) {
-      headerX = document.left();
+    if (property.headerY == 0) {
+      y = document.top() + property.headerOffsetTop;
     }
-    if (Objects.isNull(headerY)) {
-      headerY = document.top() + NumericConstants.TWENTY;
-    }
-    ColumnText.showTextAligned(writer.getDirectContent(), headerAlignment,
-        new Phrase(headerString, fontDetail), headerX, headerY, NumericConstants.ZERO);
+    ColumnText.showTextAligned(writer.getDirectContent(), property.headerAlignment,
+        new Phrase(property.headerText, property.fontDetail), x, y, NumericConstants.ZERO);
   }
 
   /**
@@ -235,17 +139,18 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
    * @param document document
    */
   private void addFooter(PdfWriter writer, Document document) {
-    if (Objects.isNull(footerAlignment)) {
-      footerAlignment = Element.ALIGN_LEFT;
+    float x = 0F, y = 0F;
+    if (Element.ALIGN_CENTER == property.footerAlignment) {
+      x = calculateXIfAlignCenter(document,
+          property.baseFont.getWidthPoint(property.footerText, property.fontSize));
+    } else if (property.footerX == 0) {
+      x = document.left() + property.footerOffsetLeft;
     }
-    if (Objects.isNull(footerX)) {
-      footerX = document.left();
+    if (property.footerY == 0) {
+      y = document.bottom() - property.footerOffsetBottom;
     }
-    if (Objects.isNull(footerY)) {
-      footerY = document.bottom() - NumericConstants.TWENTY;
-    }
-    ColumnText.showTextAligned(writer.getDirectContent(), footerAlignment,
-        new Phrase(footerString, fontDetail), footerX, footerY, NumericConstants.ZERO);
+    ColumnText.showTextAligned(writer.getDirectContent(), property.footerAlignment,
+        new Phrase(property.footerText, property.fontDetail), x, y, NumericConstants.ZERO);
   }
 
   /**
@@ -255,37 +160,26 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
    * @param document document
    */
   private void addPageNumber(PdfWriter writer, Document document) {
-    String foot1 = "第 " + writer.getPageNumber() + " 页 / 共";
-    Phrase footer = new Phrase(foot1, fontDetail);
-
-    /**
-     * 计算前半部分的foot1的长度，后面好定位最后一部分的'Y页'这俩字的x轴坐标，字体长度也要计算进去 = len
-     */
-    float len = baseFont.getWidthPoint(foot1, fontSize);
-
-    /**
-     * 拿到当前的PdfContentByte
-     */
+    String currentPageText = String.format(property.currentPageFormat, writer.getPageNumber());
     PdfContentByte cb = writer.getDirectContent();
-
-    /**
-     * 写入页脚1，x轴就是(右margin+左margin + right() -left()- len)/2.0F 再给偏移20F适合人类视觉感受，否则肉眼看上去就太偏左了
-     * y轴就是底边界-20,否则就贴边重叠到数据体里了就不是页脚了；注意Y轴是从下往上累加的，最上方的Top值是大于Bottom好几百开外的
-     */
-    ColumnText.showTextAligned(cb, Element.ALIGN_CENTER, footer,
-        (document.rightMargin() + document.right() + document.leftMargin() - document.left()
-            - len)
-            / 2.0F + 20F,
-        document.bottom() - 25, 0);
-
-    /**
-     * 写入页脚2的模板（就是页脚的Y页这俩字）添加到文档中，计算模板的和Y轴,X=(右边界-左边界 - 前半部分的len值)/2.0F + len ， y 轴和之前的保持一致，底边界-20
-     */
-    cb.addTemplate(footerTemplate,
-        (document.rightMargin() + document.right() + document.leftMargin() - document.left())
-            / 2.0F
-            + 20F,
-        document.bottom() - 25);
+    float x1 = 0;
+    float x2 = 0;
+    float y = document.bottom() - property.footerOffsetBottom;
+    if (Element.ALIGN_CENTER == property.pageNumberAlignment) {
+      x1 = calculateXIfAlignCenter(document,
+          property.baseFont.getWidthPoint(currentPageText, property.fontSize));
+      x2 = calculateXIfAlignCenter(document, 0);
+    } else if (Element.ALIGN_LEFT == property.pageNumberAlignment) {
+      x1 = document.left() + property.footerOffsetLeft + property.baseFont.getWidthPoint(
+          currentPageText, property.fontSize);
+      x2 = x1;
+    } else {
+      // TBD
+    }
+    ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+        new Phrase(currentPageText, property.fontDetail),
+        x1, y, NumericConstants.ZERO);
+    cb.addTemplate(pageNumberTemplate, x2, y);
   }
 
   /**
@@ -294,12 +188,12 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
    * @param writer writer
    */
   private void addWatermark(PdfWriter writer) {
-    if (Objects.nonNull(watermark)) {
+    if (Objects.nonNull(property.watermark)) {
       try {
-        Image image = Image.getInstance(FileUtils.getBytes(watermark));
+        Image image = Image.getInstance(FileUtils.getBytes(property.watermark));
         PdfContentByte content = writer.getDirectContentUnder();
         content.beginText();
-        image.setAbsolutePosition(watermarkX, watermarkY);
+        image.setAbsolutePosition(property.watermarkX, property.watermarkY);
         content.addImage(image);
         content.endText();
       } catch (DocumentException | IOException e) {
@@ -308,23 +202,132 @@ public class CommonPdfPageEvent extends PdfPageEventHelper {
     }
   }
 
+  /**
+   * 如果居中对齐动态计算X坐标
+   *
+   * @param document document
+   * @param length   length
+   * @return float
+   */
+  private float calculateXIfAlignCenter(Document document, float length) {
+    float tmp = document.rightMargin() + document.right() + document.leftMargin() - document.left();
+    if (length > 0) {
+      tmp = tmp - length;
+    }
+    return tmp / 2.0F + 20F;
+  }
+
   @Builder
   public static class Property {
 
+    /**
+     * 基础字体
+     */
     private BaseFont baseFont;
+    /**
+     * 利用基础字体生成的字体对象，一般用于生成中文文字
+     */
     private Font fontDetail;
-    private Integer fontSize;
-    private BaseColor fontColor;
-    private boolean hasHeaderFooter;
-    private boolean hasPageNumber;
-    private String headerString;
-    private Integer headerAlignment;
-    private Float headerX;
-    private Float headerY;
-    private String footerString;
-    private Integer footerAlignment;
-    private Float footerX;
-    private Float footerY;
+    /**
+     * 字体大小
+     */
+    private int fontSize = NumericConstants.TEN;
+    /**
+     * 字体颜色
+     */
+    private BaseColor fontColor = BaseColor.GRAY;
+    /**
+     * 字体样式
+     */
+    private int fontStyle = Font.NORMAL;
+    /**
+     * 是否设置页眉页脚
+     */
+    private boolean hasHeaderFooter = false;
+    /**
+     * 页眉文本
+     */
+    private String headerText;
+    /**
+     * 页眉对齐方式
+     */
+    private int headerAlignment = Element.ALIGN_LEFT;
+    /**
+     * 页眉横坐标位置
+     */
+    private float headerX = 0F;
+    /**
+     * 页眉纵坐标位置
+     */
+    private float headerY = 0F;
+    /**
+     * 页眉相对文档顶部的距离
+     */
+    private float headerOffsetTop = 0F;
+    /**
+     * 页眉相对文档左边的距离
+     */
+    private float headerOffsetLeft = 0F;
+    /**
+     * 页脚文本
+     */
+    private String footerText;
+    /**
+     * 页脚对齐方式
+     */
+    private int footerAlignment = Element.ALIGN_LEFT;
+    /**
+     * 页脚横坐标位置
+     */
+    private float footerX = 0F;
+    /**
+     * 页脚纵坐标位置
+     */
+    private float footerY = 0F;
+    /**
+     * 页脚相对文档底部的距离
+     */
+    private float footerOffsetBottom = 25F;
+    /**
+     * 页脚相对文档左边的距离
+     */
+    private float footerOffsetLeft = 0F;
+    /**
+     * 是否设置页码
+     */
+    private boolean hasPageNumber = false;
+    /**
+     * 页码对齐方式
+     */
+    private int pageNumberAlignment = Element.ALIGN_LEFT;
+    /**
+     * 当前页码格式
+     */
+    private String currentPageFormat = "第 %s 页 / 共 ";
+    /**
+     * 总页码格式
+     */
+    private String totalPageFormat = "%s 页";
+    /**
+     * 总页码方框宽度
+     */
+    private float totalPageWidth = 50F;
+    /**
+     * 总页码方框高度
+     */
+    private float totalPageHeight = 50F;
+    /**
+     * 水印文件
+     */
+    private File watermark;
+    /**
+     * 水印横坐标位置
+     */
+    private Float watermarkX;
+    /**
+     * 水印纵坐标位置
+     */
+    private Float watermarkY;
   }
 
 }

@@ -5,6 +5,7 @@ import cn.maiaimei.example.itextpdf.CommonPdfPageEvent;
 import cn.maiaimei.example.itextpdf.CommonPdfPageEvent.Property;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
@@ -53,9 +54,16 @@ public class ITextPdfUtils {
 
     final Property property = Property.builder()
         .hasHeaderFooter(Boolean.TRUE)
+        .headerAlignment(Element.ALIGN_LEFT)
+        .headerText(header)
+        .footerAlignment(Element.ALIGN_LEFT)
+        .footerText(footer)
+        .footerOffsetBottom(25F)
         .hasPageNumber(Boolean.TRUE)
-        .headerString(header)
-        //.footerString(footer)
+        .currentPageFormat("第 %s 页 / 共 ")
+        .totalPageFormat("%s 页")
+        .totalPageWidth(50F)
+        .totalPageHeight(50F)
         .baseFont(BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", false))
         .fontSize(NumericConstants.TEN)
         .fontColor(BaseColor.GRAY)
