@@ -1,6 +1,7 @@
 package cn.maiaimei.example;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -78,6 +79,24 @@ public class FileUtils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static byte[] getBytes(File file) throws IOException {
+    byte[] bytes;
+    try (FileInputStream fis = new FileInputStream(file)) {
+      bytes = new byte[fis.available()];
+      fis.read(bytes);
+    }
+    return bytes;
+  }
+
+  public static byte[] getBytes(String pathname) throws IOException {
+    byte[] bytes;
+    try (FileInputStream fis = new FileInputStream(pathname)) {
+      bytes = new byte[fis.available()];
+      fis.read(bytes);
+    }
+    return bytes;
   }
 
 }
