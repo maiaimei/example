@@ -4,10 +4,13 @@
 <style type="text/css">
 table {
   border-collapse: collapse;
+  width: 100%; /* 让表格宽度为100% */
+  table-layout: auto; /* 让列宽度能够自适应 */
 }
  
 table, th, td {
-  border: 1px solid black;
+  border: 1px solid black; /* 为单元格添加边框 */
+  padding: 8px; /* 单元格内边距 */
 }
 </style>
 </head>
@@ -25,11 +28,27 @@ table, th, td {
     </tr>
   </thead>
   <tbody>
+  <% for(var i=1;i<1001;i++){ %>
+  <% if(i == 5){ %>
     <tr>
-      <td>行1，列1</td>
-      <td>行1，列2</td>
-      <td>行1，列3</td>
+      <td>行${i}，列1 The world's most downloaded and developer-friendly PDF library</td>
+      <td>行${i}，列2</td>
+      <td>行${i}，列3</td>
+      <td>行${i}，列4</td>
+      <td>行${i}，列5</td>
+      <td>行${i}，列6</td>      
     </tr>
+  <% } else { %>
+    <tr>
+      <td>行${i}，列1 Try out the entire iText 8 PDF library suite to discover how they fit your needs with our 30-day free trial, while keeping your IP safe under iText’s commercial license.</td>
+      <td>行${i}，列2</td>
+      <td>行${i}，列3</td>
+      <td>行${i}，列4</td>
+      <td>行${i}，列5</td>
+      <td>行${i}，列6</td>      
+    </tr>
+    <% } %>
+    <% } %>
   </tbody>
 </table>
 </body>

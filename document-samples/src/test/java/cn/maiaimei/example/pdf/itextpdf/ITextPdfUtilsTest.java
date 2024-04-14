@@ -2,20 +2,16 @@ package cn.maiaimei.example.pdf.itextpdf;
 
 import cn.maiaimei.example.BaseTest;
 import cn.maiaimei.example.constants.NumericConstants;
-import cn.maiaimei.example.constants.StringConstants;
-import cn.maiaimei.example.itextpdf.CommonPdfPageEvent.Config;
+import cn.maiaimei.example.itextpdf.CommonPdfConfig;
 import cn.maiaimei.example.utils.FileUtils;
 import cn.maiaimei.example.utils.ITextPdfUtils;
 import com.google.common.collect.Maps;
-import com.itextpdf.html2pdf.ConverterProperties;
-import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Element;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.pdf.BaseFont;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.beetl.core.BeetlKit;
@@ -26,23 +22,26 @@ public class ITextPdfUtilsTest extends BaseTest {
 
   @Test
   public void test1() throws Exception {
-    String headerText = "iText PDF";
+    String headerText = "iText - The world's most downloaded and developer-friendly PDF library";
     String footerText = "https://itextpdf.com";
 
-    final File file = FileUtils.getClassPathFile("templates/itextpdf/report.btl");
-    final String template = org.apache.commons.io.FileUtils.readFileToString(file,
-        StandardCharsets.UTF_8);
+    final String template = FileUtils.readClassPathFileToString("templates/itextpdf/report.btl");
     Map<String, Object> paras = Maps.newHashMap();
     String content = BeetlKit.render(template, paras);
 
-    final Config config = Config.builder()
-        .hasHeaderFooter(StringConstants.YES)
+    final CommonPdfConfig config = CommonPdfConfig.builder()
+        .pageSize(PageSize.A4)
+        .charsetName(StandardCharsets.UTF_8.name())
+        .fontName("STSong-Light")
+        .fontEncoding("UniGB-UCS2-H")
+        .hasHeaderFooter(true)
         .headerAlignment(Element.ALIGN_LEFT)
         .headerText(headerText)
+        .headerOffsetTop(30)
         .footerAlignment(Element.ALIGN_LEFT)
         .footerText(footerText)
         .footerOffsetBottom(30)
-        .hasPageNumber(StringConstants.YES)
+        .hasPageNumber(true)
         .pageNumberAlignment(Element.ALIGN_RIGHT)
         .pageNumberOffsetBottom(30)
         .pageNumberReservedOffset(28)
@@ -61,18 +60,11 @@ public class ITextPdfUtilsTest extends BaseTest {
 
   @Test
   public void test2() throws IOException {
-    File pdfDest = FileUtils.createRandomFile(OUTPUT_FOLDER, FileUtils.PDF);
-    final File file = FileUtils.getClassPathFile("templates/itextpdf/report.btl");
-    final String template = org.apache.commons.io.FileUtils.readFileToString(file,
-        StandardCharsets.UTF_8);
+    final String template = FileUtils.readClassPathFileToString("templates/itextpdf/report.btl");
     Map<String, Object> paras = Maps.newHashMap();
     String content = BeetlKit.render(template, paras);
-    ConverterProperties converterProperties = new ConverterProperties();
-    HtmlConverter.convertToPdf(
-        content,
-        Files.newOutputStream(pdfDest.toPath()),
-        converterProperties
-    );
+    String pathname = FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF);
+    ITextPdfUtils.html2Pdf(pathname, content);
   }
 
 }

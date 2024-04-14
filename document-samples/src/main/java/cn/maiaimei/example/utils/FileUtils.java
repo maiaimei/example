@@ -30,6 +30,15 @@ public class FileUtils {
     throw new UnsupportedOperationException();
   }
 
+  public static String readClassPathFileToString(String pathname) {
+    final File file = getClassPathFile(pathname);
+    try {
+      return org.apache.commons.io.FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static File getClassPathFile(String pathname) {
     URL url = FileUtils.class.getClassLoader().getResource(pathname);
     Assert.notNull(url, "classpath file does not exist");

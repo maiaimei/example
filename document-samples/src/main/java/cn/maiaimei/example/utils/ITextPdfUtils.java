@@ -1,7 +1,9 @@
 package cn.maiaimei.example.utils;
 
+import cn.maiaimei.example.itextpdf.CommonPdfConfig;
 import cn.maiaimei.example.itextpdf.CommonPdfPageEvent;
-import cn.maiaimei.example.itextpdf.CommonPdfPageEvent.Config;
+import com.itextpdf.html2pdf.ConverterProperties;
+import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Font;
@@ -27,17 +29,26 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class ITextPdfUtils {
 
+  public static void html2Pdf(String pathname, String content) throws IOException {
+    ConverterProperties converterProperties = new ConverterProperties();
+    HtmlConverter.convertToPdf(
+        content,
+        Files.newOutputStream(Paths.get(pathname)),
+        converterProperties
+    );
+  }
+
+
   /**
    * https://blog.csdn.net/zhong_jianyu/article/details/96147949
    */
-  public static void html2Pdf(String pathname, String content, Config config) throws Exception {
-    final String charsetName = StandardCharsets.UTF_8.name();
+  public static void html2Pdf(String pathname, String content, CommonPdfConfig config)
+      throws Exception {
     Document document = new Document(config.getPageSize());
     // 设置文档边距
     // document.setMargins(30, 30, 30, 30);
@@ -45,30 +56,33 @@ public class ITextPdfUtils {
     PdfWriter pdfWriter = PdfWriter.getInstance(document, outputStream);
     pdfWriter.setPageEvent(CommonPdfPageEvent.getInstance(config));
     document.open();
-    HtmlPipelineContext htmlContext = getHtmlContext("STSong-Light", "UniGB-UCS2-H");
+    HtmlPipelineContext htmlContext = getHtmlContext(config.getFontName(),
+        config.getFontEncoding());
     PdfWriterPipeline pdfWriterPipeline = new PdfWriterPipeline(document, pdfWriter);
     HtmlPipeline htmlPipeline = new HtmlPipeline(htmlContext, pdfWriterPipeline);
-    Pipeline<?> pipeline = new CssResolverPipeline(getCssResolver(charsetName), htmlPipeline);
+    Pipeline<?> pipeline = new CssResolverPipeline(getCssResolver(config.getCharsetName()),
+        htmlPipeline);
     XMLWorker worker = new XMLWorker(pipeline, Boolean.TRUE);
-    XMLParser parser = new XMLParser(Boolean.TRUE, worker, Charset.forName(charsetName));
+    XMLParser parser = new XMLParser(Boolean.TRUE, worker,
+        Charset.forName(config.getCharsetName()));
     try (InputStream inputStream = new ByteArrayInputStream(content.getBytes())) {
-      parser.parse(inputStream, Charset.forName(charsetName));
+      parser.parse(inputStream, Charset.forName(config.getCharsetName()));
     }
     document.close();
   }
 
-  private static HtmlPipelineContext getHtmlContext(String font, String encode) {
+  public static HtmlPipelineContext getHtmlContext(String fontName, String fontEncoding) {
     HtmlPipelineContext htmlContext =
         new HtmlPipelineContext(new CssAppliersImpl(new XMLWorkerFontProvider() {
           @Override
-          public Font getFont(String fontname, String encoding, float size, final int style) {
-            if (fontname == null) {
-              fontname = font;
-              encoding = encode;
+          public Font getFont(String name, String encoding, float size, final int style) {
+            if (name == null) {
+              name = fontName;
+              encoding = fontEncoding;
             }
             Font font;
             try {
-              font = new Font(BaseFont.createFont(fontname, encoding, BaseFont.NOT_EMBEDDED), size,
+              font = new Font(BaseFont.createFont(name, encoding, BaseFont.NOT_EMBEDDED), size,
                   style);
             } catch (DocumentException | IOException e) {
               throw new RuntimeException(e);
@@ -81,7 +95,7 @@ public class ITextPdfUtils {
     return htmlContext;
   }
 
-  private static CSSResolver getCssResolver(String charsetName) {
+  public static CSSResolver getCssResolver(String charsetName) {
     CSSResolver cssResolver = XMLWorkerHelper.getInstance().getDefaultCssResolver(Boolean.TRUE);
     cssResolver.setFileRetrieve(new FileRetrieve() {
       @Override
