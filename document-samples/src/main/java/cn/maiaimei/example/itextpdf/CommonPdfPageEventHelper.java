@@ -19,16 +19,16 @@ import java.io.IOException;
 import java.util.Objects;
 import org.springframework.util.StringUtils;
 
-public class CommonPdfPageEvent extends PdfPageEventHelper {
+public class CommonPdfPageEventHelper extends PdfPageEventHelper {
 
-  private CommonPdfConfig config;
+  private CommonPdfPageConfig config;
   private PdfTemplate pageNumberTemplate;
 
-  private CommonPdfPageEvent() {
+  private CommonPdfPageEventHelper() {
   }
 
-  public static CommonPdfPageEvent getInstance(CommonPdfConfig config) {
-    final CommonPdfPageEvent event = new CommonPdfPageEvent();
+  public static CommonPdfPageEventHelper getInstance(CommonPdfPageConfig config) {
+    final CommonPdfPageEventHelper event = new CommonPdfPageEventHelper();
     event.config = config;
     return event;
   }

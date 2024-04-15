@@ -1,7 +1,7 @@
 package cn.maiaimei.example.utils;
 
-import cn.maiaimei.example.itextpdf.CommonPdfConfig;
-import cn.maiaimei.example.itextpdf.CommonPdfPageEvent;
+import cn.maiaimei.example.itextpdf.CommonPdfPageConfig;
+import cn.maiaimei.example.itextpdf.CommonPdfPageEventHelper;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.text.Document;
@@ -47,14 +47,14 @@ public class ITextPdfUtils {
   /**
    * https://blog.csdn.net/zhong_jianyu/article/details/96147949
    */
-  public static void html2Pdf(String pathname, String content, CommonPdfConfig config)
+  public static void html2Pdf(String pathname, String content, CommonPdfPageConfig config)
       throws Exception {
     Document document = new Document(config.getPageSize());
     // 设置文档边距
     // document.setMargins(30, 30, 30, 30);
     OutputStream outputStream = Files.newOutputStream(Paths.get(pathname));
     PdfWriter pdfWriter = PdfWriter.getInstance(document, outputStream);
-    pdfWriter.setPageEvent(CommonPdfPageEvent.getInstance(config));
+    pdfWriter.setPageEvent(CommonPdfPageEventHelper.getInstance(config));
     document.open();
     HtmlPipelineContext htmlContext = getHtmlContext(config.getFontName(),
         config.getFontEncoding());

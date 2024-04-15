@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommonPdfConfig {
+public class CommonPdfPageConfig {
 
   private String charsetName;
   private Rectangle pageSize;

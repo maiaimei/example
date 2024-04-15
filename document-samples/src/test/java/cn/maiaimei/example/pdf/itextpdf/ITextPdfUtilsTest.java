@@ -2,7 +2,7 @@ package cn.maiaimei.example.pdf.itextpdf;
 
 import cn.maiaimei.example.BaseTest;
 import cn.maiaimei.example.constants.NumericConstants;
-import cn.maiaimei.example.itextpdf.CommonPdfConfig;
+import cn.maiaimei.example.itextpdf.CommonPdfPageConfig;
 import cn.maiaimei.example.utils.FileUtils;
 import cn.maiaimei.example.utils.ITextPdfUtils;
 import com.google.common.collect.Maps;
@@ -29,7 +29,7 @@ public class ITextPdfUtilsTest extends BaseTest {
     Map<String, Object> paras = Maps.newHashMap();
     String content = BeetlKit.render(template, paras);
 
-    final CommonPdfConfig config = CommonPdfConfig.builder()
+    final CommonPdfPageConfig config = CommonPdfPageConfig.builder()
         .pageSize(PageSize.A4)
         .charsetName(StandardCharsets.UTF_8.name())
         .fontName("STSong-Light")

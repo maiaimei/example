@@ -110,4 +110,12 @@ public class FileUtils {
     return bytes;
   }
 
+  public static String readFileToString(File file) {
+    try {
+      return org.apache.commons.io.FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }
