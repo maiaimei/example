@@ -104,6 +104,18 @@
       <version>9.7.2</version>
     </dependency>
 
+    <!-- https://github.com/bazaarvoice/jolt/blob/master/gettingStarted.md -->
+    <dependency>
+      <groupId>com.bazaarvoice.jolt</groupId>
+      <artifactId>jolt-core</artifactId>
+      <version>0.1.8</version>
+    </dependency>
+    <dependency>
+      <groupId>com.bazaarvoice.jolt</groupId>
+      <artifactId>json-utils</artifactId>
+      <version>0.1.8</version>
+    </dependency>
+
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>

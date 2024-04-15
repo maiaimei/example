@@ -1,5 +1,9 @@
 package cn.maiaimei.example;
 
+import cn.maiaimei.example.model.Document;
+import cn.maiaimei.example.model.Fee;
+import cn.maiaimei.example.model.Tax;
+import cn.maiaimei.example.model.Transaction;
 import cn.maiaimei.example.utils.FileUtils;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -8,16 +12,14 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
@@ -29,18 +31,24 @@ public class JacksonTest extends BaseTest {
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
-  private static final String inputJsonPathname = OUTPUT_FOLDER + "input.json";
+  private static final String pathname = OUTPUT_FOLDER + "transaction.json";
 
   @Test
   public void generateJsonFile() throws JsonProcessingException {
-    new File(inputJsonPathname).delete();
-    int size = 100000;
+    new File(pathname).delete();
+    int size = 1;
     List<Transaction> transactions = Lists.newArrayList();
     for (int i = 0; i < size; i++) {
       transactions.add(buildTransaction());
     }
-    final String value = mapper.writeValueAsString(transactions);
-    FileUtils.writeStringToFile(inputJsonPathname, value);
+    Map<String, Object> map = Maps.newHashMap();
+    Map<String, String> header = Maps.newHashMap();
+    header.put("country", "CN");
+    header.put("date", "20240415");
+    map.put("headers", Lists.newArrayList(header));
+    map.put("transactions", transactions);
+    final String value = mapper.writeValueAsString(map);
+    FileUtils.writeStringToFile(pathname, value);
   }
 
   /**
@@ -52,7 +60,7 @@ public class JacksonTest extends BaseTest {
    */
   @Test
   public void parseJsonFile1() throws JsonProcessingException {
-    final File file = new File(inputJsonPathname);
+    final File file = new File(pathname);
     DecimalFormat decimalFormat = new DecimalFormat("#.##");
     double fileSize = org.apache.commons.io.FileUtils.sizeOf(file) / 1024.0 / 1024.0;
     log.info("fileSize: {}MB", decimalFormat.format(fileSize));
@@ -85,7 +93,7 @@ public class JacksonTest extends BaseTest {
    */
   @Test
   public void parseJsonFile2() {
-    final File file = new File(inputJsonPathname);
+    final File file = new File(pathname);
     DecimalFormat decimalFormat = new DecimalFormat("#.##");
     double fileSize = org.apache.commons.io.FileUtils.sizeOf(file) / 1024.0 / 1024.0;
     log.info("fileSize: {}MB", decimalFormat.format(fileSize));
@@ -144,13 +152,58 @@ public class JacksonTest extends BaseTest {
         .column29(RandomStringUtils.randomAlphanumeric(50))
         .column30(RandomStringUtils.randomAlphanumeric(50))
         .build();
-    final int documentSize = random.nextInt(1, 10);
+
+    final int feeSize = random.nextInt(1, 5);
+    List<Fee> fees = Lists.newArrayList();
+    for (int i = 0; i < feeSize; i++) {
+      fees.add(buildFee());
+    }
+    transaction.setFees(fees);
+
+    final int documentSize = random.nextInt(1, 5);
     List<Document> documents = Lists.newArrayList();
     for (int i = 0; i < documentSize; i++) {
       documents.add(buildDocument());
     }
     transaction.setDocuments(documents);
     return transaction;
+  }
+
+  private Fee buildFee() {
+    final Fee fee = Fee.builder()
+        .column01(RandomStringUtils.randomAlphanumeric(50))
+        .column02(RandomStringUtils.randomAlphanumeric(50))
+        .column03(RandomStringUtils.randomAlphanumeric(50))
+        .column04(RandomStringUtils.randomAlphanumeric(50))
+        .column05(RandomStringUtils.randomAlphanumeric(50))
+        .column06(RandomStringUtils.randomAlphanumeric(50))
+        .column07(RandomStringUtils.randomAlphanumeric(50))
+        .column08(RandomStringUtils.randomAlphanumeric(50))
+        .column09(RandomStringUtils.randomAlphanumeric(50))
+        .column10(RandomStringUtils.randomAlphanumeric(50))
+        .build();
+    final int taxSize = random.nextInt(1, 5);
+    List<Tax> taxes = Lists.newArrayList();
+    for (int i = 0; i < taxSize; i++) {
+      taxes.add(buildTax());
+    }
+    fee.setTaxes(taxes);
+    return fee;
+  }
+
+  private Tax buildTax() {
+    return Tax.builder()
+        .column01(RandomStringUtils.randomAlphanumeric(50))
+        .column02(RandomStringUtils.randomAlphanumeric(50))
+        .column03(RandomStringUtils.randomAlphanumeric(50))
+        .column04(RandomStringUtils.randomAlphanumeric(50))
+        .column05(RandomStringUtils.randomAlphanumeric(50))
+        .column06(RandomStringUtils.randomAlphanumeric(50))
+        .column07(RandomStringUtils.randomAlphanumeric(50))
+        .column08(RandomStringUtils.randomAlphanumeric(50))
+        .column09(RandomStringUtils.randomAlphanumeric(50))
+        .column10(RandomStringUtils.randomAlphanumeric(50))
+        .build();
   }
 
   private Document buildDocument() {
@@ -166,64 +219,6 @@ public class JacksonTest extends BaseTest {
         .column09(RandomStringUtils.randomAlphanumeric(50))
         .column10(RandomStringUtils.randomAlphanumeric(50))
         .build();
-  }
-
-  @Data
-  @Builder
-  @AllArgsConstructor
-  @NoArgsConstructor
-  private static class Transaction {
-
-    private String column01;
-    private String column02;
-    private String column03;
-    private String column04;
-    private String column05;
-    private String column06;
-    private String column07;
-    private String column08;
-    private String column09;
-    private String column10;
-    private String column11;
-    private String column12;
-    private String column13;
-    private String column14;
-    private String column15;
-    private String column16;
-    private String column17;
-    private String column18;
-    private String column19;
-    private String column20;
-    private String column21;
-    private String column22;
-    private String column23;
-    private String column24;
-    private String column25;
-    private String column26;
-    private String column27;
-    private String column28;
-    private String column29;
-    private String column30;
-
-    private List<Document> documents;
-  }
-
-  @Data
-  @Builder
-  @AllArgsConstructor
-  @NoArgsConstructor
-  private static class Document {
-
-    private String column01;
-    private String column02;
-    private String column03;
-    private String column04;
-    private String column05;
-    private String column06;
-    private String column07;
-    private String column08;
-    private String column09;
-    private String column10;
   }
 
 }
