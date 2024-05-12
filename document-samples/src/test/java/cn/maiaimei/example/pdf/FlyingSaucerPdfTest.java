@@ -1,8 +1,9 @@
 package cn.maiaimei.example.pdf;
 
+import cn.maiaimei.commons.lang.constants.FileConstants;
+import cn.maiaimei.commons.lang.utils.FileUtils;
+import cn.maiaimei.commons.lang.utils.MapUtils;
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.utils.FileUtils;
-import cn.maiaimei.example.utils.MapUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,7 +60,7 @@ public class FlyingSaucerPdfTest extends BaseTest {
     // 输出PDF
     renderer.createPDF(
         Files.newOutputStream(
-            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF))));
+            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))));
   }
 
   @Test
@@ -72,7 +73,7 @@ public class FlyingSaucerPdfTest extends BaseTest {
     renderer.layout();
     renderer.createPDF(
         Files.newOutputStream(
-            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF))));
+            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))));
   }
 
   @Test
@@ -89,7 +90,8 @@ public class FlyingSaucerPdfTest extends BaseTest {
     renderer.setDocument(document);
     renderer.layout();
     renderer.createPDF(
-        Files.newOutputStream(Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF))),
+        Files.newOutputStream(
+            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))),
         Boolean.FALSE);
 
     for (String item : list) {
@@ -143,7 +145,8 @@ public class FlyingSaucerPdfTest extends BaseTest {
     renderer.setDocumentFromString(firstPageHtml);
     renderer.layout();
     renderer.createPDF(
-        Files.newOutputStream(Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF))),
+        Files.newOutputStream(
+            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))),
         Boolean.FALSE);
 
     // 添加页眉和页脚

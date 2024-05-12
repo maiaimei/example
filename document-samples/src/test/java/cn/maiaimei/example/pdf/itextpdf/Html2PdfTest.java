@@ -1,7 +1,8 @@
 package cn.maiaimei.example.pdf.itextpdf;
 
+import cn.maiaimei.commons.lang.constants.FileConstants;
+import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.utils.FileUtils;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -19,7 +20,7 @@ public class Html2PdfTest extends BaseTest {
   public void html2Pdf() throws IOException {
     // IO
     File htmlSource = FileUtils.getClassPathFile(ORIG);
-    File pdfDest = FileUtils.createRandomFile(OUTPUT_FOLDER, FileUtils.PDF);
+    File pdfDest = FileUtils.createRandomFile(OUTPUT_FOLDER, FileConstants.PDF);
     // pdfHTML specific code
     ConverterProperties converterProperties = new ConverterProperties();
     HtmlConverter.convertToPdf(
@@ -41,7 +42,7 @@ public class Html2PdfTest extends BaseTest {
         + "<p>";
     ConverterProperties converterProperties = new ConverterProperties();
     HtmlConverter.convertToPdf(html,
-        new PdfWriter(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF)),
+        new PdfWriter(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF)),
         converterProperties);
   }
 

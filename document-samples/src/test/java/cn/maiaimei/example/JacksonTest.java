@@ -1,10 +1,10 @@
 package cn.maiaimei.example;
 
+import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.example.model.Document;
 import cn.maiaimei.example.model.Fee;
 import cn.maiaimei.example.model.Tax;
 import cn.maiaimei.example.model.Transaction;
-import cn.maiaimei.example.utils.FileUtils;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;

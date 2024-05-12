@@ -1,7 +1,7 @@
 package cn.maiaimei.example.itextpdf;
 
-import cn.maiaimei.example.constants.NumericConstants;
-import cn.maiaimei.example.constants.StringConstants;
+import cn.maiaimei.commons.lang.constants.NumericConstants;
+import cn.maiaimei.commons.lang.constants.StringConstants;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;

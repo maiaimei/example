@@ -1,8 +1,8 @@
 package cn.maiaimei.example.itextpdf;
 
-import cn.maiaimei.example.constants.NumericConstants;
-import cn.maiaimei.example.constants.StringConstants;
-import cn.maiaimei.example.utils.FileUtils;
+import cn.maiaimei.commons.lang.constants.NumericConstants;
+import cn.maiaimei.commons.lang.constants.StringConstants;
+import cn.maiaimei.commons.lang.utils.FileUtils;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;

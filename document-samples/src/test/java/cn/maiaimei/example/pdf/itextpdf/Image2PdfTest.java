@@ -1,7 +1,8 @@
 package cn.maiaimei.example.pdf.itextpdf;
 
+import cn.maiaimei.commons.lang.constants.FileConstants;
+import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.utils.FileUtils;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -21,7 +22,7 @@ public class Image2PdfTest extends BaseTest {
     ImageData imageData = ImageDataFactory.create(FileUtils.getClassPathFilename(ORIG));
 
     PdfDocument pdfDocument = new PdfDocument(
-        new PdfWriter(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileUtils.PDF)));
+        new PdfWriter(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF)));
     Document document = new Document(pdfDocument);
 
     Image image = new Image(imageData);

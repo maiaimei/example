@@ -1,7 +1,7 @@
 package cn.maiaimei.example.pdf;
 
+import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.example.BaseTest;
-import cn.maiaimei.example.utils.FileUtils;
 import java.io.IOException;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;

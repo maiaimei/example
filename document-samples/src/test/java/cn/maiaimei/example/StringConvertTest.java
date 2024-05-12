@@ -1,8 +1,8 @@
 package cn.maiaimei.example;
 
-import static cn.maiaimei.example.constants.StringConstants.ARROW;
-import static cn.maiaimei.example.constants.StringConstants.COMMA;
-import static cn.maiaimei.example.constants.StringConstants.SEMICOLON;
+import static cn.maiaimei.commons.lang.constants.StringConstants.ARROW;
+import static cn.maiaimei.commons.lang.constants.StringConstants.COMMA;
+import static cn.maiaimei.commons.lang.constants.StringConstants.SEMICOLON;
 
 import java.util.Arrays;
 import java.util.List;
