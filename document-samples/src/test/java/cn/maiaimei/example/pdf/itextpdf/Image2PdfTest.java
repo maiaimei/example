@@ -1,6 +1,5 @@
 package cn.maiaimei.example.pdf.itextpdf;
 
-import cn.maiaimei.commons.lang.constants.FileConstants;
 import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.example.BaseTest;
 import com.itextpdf.io.image.ImageData;
@@ -19,10 +18,11 @@ public class Image2PdfTest extends BaseTest {
 
   @Test
   public void image2Pdf() throws FileNotFoundException, MalformedURLException {
-    ImageData imageData = ImageDataFactory.create(FileUtils.getClassPathFilename(ORIG));
+    ImageData imageData = ImageDataFactory.create(
+        FileUtils.getClassPathFile(ORIG).getAbsolutePath());
 
     PdfDocument pdfDocument = new PdfDocument(
-        new PdfWriter(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF)));
+        new PdfWriter(getRandomPdfName()));
     Document document = new Document(pdfDocument);
 
     Image image = new Image(imageData);

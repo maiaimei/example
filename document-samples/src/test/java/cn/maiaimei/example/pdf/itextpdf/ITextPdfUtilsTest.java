@@ -1,7 +1,6 @@
 package cn.maiaimei.example.pdf.itextpdf;
 
-import cn.maiaimei.commons.lang.constants.FileConstants;
-import cn.maiaimei.commons.lang.constants.NumericConstants;
+import cn.maiaimei.commons.lang.constants.NumberConstants;
 import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.example.BaseTest;
 import cn.maiaimei.example.itextpdf.CommonPdfPageConfig;
@@ -51,12 +50,11 @@ public class ITextPdfUtilsTest extends BaseTest {
         .totalPageBoxWidth(50)
         .totalPageBoxHeight(50)
         .baseFont(BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", false))
-        .fontSize(NumericConstants.TEN)
+        .fontSize(NumberConstants.TEN)
         .fontColor(BaseColor.GRAY)
         .build();
 
-    String pathname = FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF);
-    ITextPdfUtils.html2Pdf(pathname, content, config);
+    ITextPdfUtils.html2Pdf(getRandomPdfName(), content, config);
   }
 
   @Test
@@ -64,8 +62,7 @@ public class ITextPdfUtilsTest extends BaseTest {
     final String template = FileUtils.readClassPathFileToString("templates/itextpdf/report.btl");
     Map<String, Object> paras = Maps.newHashMap();
     String content = BeetlKit.render(template, paras);
-    String pathname = FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF);
-    ITextPdfUtils.html2Pdf(pathname, content);
+    ITextPdfUtils.html2Pdf(getRandomPdfName(), content);
   }
 
 }

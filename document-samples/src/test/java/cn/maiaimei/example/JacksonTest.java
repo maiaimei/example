@@ -15,6 +15,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ public class JacksonTest extends BaseTest {
     map.put("headers", Lists.newArrayList(header));
     map.put("transactions", transactions);
     final String value = mapper.writeValueAsString(map);
-    FileUtils.writeStringToFile(pathname, value);
+    FileUtils.writeStringToFile(pathname, value, StandardCharsets.UTF_8);
   }
 
   /**

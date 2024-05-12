@@ -1,7 +1,5 @@
 package cn.maiaimei.example.pdf;
 
-import cn.maiaimei.commons.lang.constants.FileConstants;
-import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.commons.lang.utils.MapUtils;
 import cn.maiaimei.example.BaseTest;
 import java.io.ByteArrayInputStream;
@@ -60,7 +58,7 @@ public class FlyingSaucerPdfTest extends BaseTest {
     // 输出PDF
     renderer.createPDF(
         Files.newOutputStream(
-            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))));
+            Paths.get(getRandomPdfName())));
   }
 
   @Test
@@ -73,7 +71,7 @@ public class FlyingSaucerPdfTest extends BaseTest {
     renderer.layout();
     renderer.createPDF(
         Files.newOutputStream(
-            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))));
+            Paths.get(getRandomPdfName())));
   }
 
   @Test
@@ -91,7 +89,7 @@ public class FlyingSaucerPdfTest extends BaseTest {
     renderer.layout();
     renderer.createPDF(
         Files.newOutputStream(
-            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))),
+            Paths.get(getRandomPdfName())),
         Boolean.FALSE);
 
     for (String item : list) {
@@ -146,7 +144,7 @@ public class FlyingSaucerPdfTest extends BaseTest {
     renderer.layout();
     renderer.createPDF(
         Files.newOutputStream(
-            Paths.get(FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF))),
+            Paths.get(getRandomPdfName())),
         Boolean.FALSE);
 
     // 添加页眉和页脚

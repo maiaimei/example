@@ -1,7 +1,5 @@
 package cn.maiaimei.example.pdf.itextpdf;
 
-import cn.maiaimei.commons.lang.constants.FileConstants;
-import cn.maiaimei.commons.lang.utils.FileUtils;
 import cn.maiaimei.example.BaseTest;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.AcroFields;
@@ -23,7 +21,7 @@ public class Template2PdfTest extends BaseTest {
     // PDF模板路径
     String inputFileName = "templates/itextpdf/input.pdf";
     // PDF输出路径
-    String outputFileName = FileUtils.getRandomFilename(OUTPUT_FOLDER, FileConstants.PDF);
+    String outputFileName = getRandomPdfName();
 
     try (OutputStream os = Files.newOutputStream(new File(outputFileName).toPath())) {
       // 读取PDF表单

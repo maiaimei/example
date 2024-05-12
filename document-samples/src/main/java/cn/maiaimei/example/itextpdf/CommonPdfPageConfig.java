@@ -1,6 +1,6 @@
 package cn.maiaimei.example.itextpdf;
 
-import cn.maiaimei.commons.lang.constants.NumericConstants;
+import cn.maiaimei.commons.lang.constants.NumberConstants;
 import cn.maiaimei.commons.lang.constants.StringConstants;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Element;
@@ -36,7 +36,7 @@ public class CommonPdfPageConfig {
    * 字体大小
    */
   @Builder.Default
-  private int fontSize = NumericConstants.TEN;
+  private int fontSize = NumberConstants.TEN;
   /**
    * 字体颜色
    */

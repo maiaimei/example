@@ -1,6 +1,6 @@
 package cn.maiaimei.example.itextpdf;
 
-import cn.maiaimei.commons.lang.constants.NumericConstants;
+import cn.maiaimei.commons.lang.constants.NumberConstants;
 import cn.maiaimei.commons.lang.constants.StringConstants;
 import cn.maiaimei.commons.lang.utils.FileUtils;
 import com.itextpdf.text.Document;
@@ -136,7 +136,7 @@ public class CommonPdfPageEventHelper extends PdfPageEventHelper {
     }
     y = document.top() + config.getHeaderOffsetTop();
     ColumnText.showTextAligned(writer.getDirectContent(), config.getHeaderAlignment(),
-        new Phrase(config.getHeaderText(), config.getFontDetail()), x, y, NumericConstants.ZERO);
+        new Phrase(config.getHeaderText(), config.getFontDetail()), x, y, NumberConstants.ZERO);
   }
 
   /**
@@ -164,7 +164,7 @@ public class CommonPdfPageEventHelper extends PdfPageEventHelper {
     }
     y = document.bottom() - config.getFooterOffsetBottom();
     ColumnText.showTextAligned(writer.getDirectContent(), config.getFooterAlignment(),
-        new Phrase(config.getFooterText(), config.getFontDetail()), x, y, NumericConstants.ZERO);
+        new Phrase(config.getFooterText(), config.getFontDetail()), x, y, NumberConstants.ZERO);
   }
 
   /**
@@ -203,7 +203,7 @@ public class CommonPdfPageEventHelper extends PdfPageEventHelper {
     }
     ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
         new Phrase(currentPageText, config.getFontDetail()),
-        x1, y, NumericConstants.ZERO);
+        x1, y, NumberConstants.ZERO);
     cb.addTemplate(pageNumberTemplate, x2, y);
   }
 
