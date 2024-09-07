@@ -23,8 +23,8 @@ log_to_file(){
     esac
 }
 
-log_to_file INFO "===> hostname"
-log_to_file ${CURRENT_SERVER_NAME}
-log_to_file INFO "<=== hostname"
+log_to_file ERROR "===> disk usage"
+df -h 2>&1 | tee -a ${LOG_FILE_FULL_PATH}
+log_to_file ERROR "<=== disk usage"
 
 exit 0

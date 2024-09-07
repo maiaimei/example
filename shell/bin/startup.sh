@@ -96,11 +96,12 @@ execute_script(){
             if [[ "$script_file" == *.sh ]]; then
                 # 执行文件
                 log_to_file "Start executing the script $script_file"
-                sh "$script_file" # 2>&1 | tee -a ${LOG_FILE_FULL_PATH}
-                if [[ $a -ne 0 ]]; then
+                sh "$script_file"
+                result=$?
+                if [[ $result -ne 0 ]]; then
                     failure=$((failure + 1))
                     if [[ ${returnValue} -eq 0 ]]; then
-                        returnValue=$a
+                        returnValue=$result
                     fi
                 else
                     success=$((success + 1))
