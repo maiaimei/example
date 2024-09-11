@@ -5,15 +5,13 @@ if [[ $# -ne 1 ]]; then
     exit 1
 fi
 
-# Get the absolute path where the current script is located 
-CURRENT_SCRIPT_PATH=$(cd "$(dirname "$0")"; pwd)
-# Get the workspace where the current script is located 
-CURRENT_WORKSPACE=$(dirname "${CURRENT_SCRIPT_PATH}")
-DEFAULTS_PATH=${CURRENT_WORKSPACE}/script/defaults
-RELEASE_SOURCE_PATH=${CURRENT_WORKSPACE}/script/$1
-RELEASE_TARGET_PATH=${CURRENT_WORKSPACE}/release
-BIN_SOURCE_PATH=${CURRENT_WORKSPACE}/bin
-BIN_TARGET_PATH=${CURRENT_WORKSPACE}/release/bin
+CURRENT_SCRIPT_PATH=$(cd $(dirname $0); pwd)
+PROJECT_PATH=$(dirname "${CURRENT_SCRIPT_PATH}")
+DEFAULTS_PATH=${PROJECT_PATH}/script/defaults
+RELEASE_SOURCE_PATH=${PROJECT_PATH}/script/$1
+RELEASE_TARGET_PATH=${PROJECT_PATH}/release
+BIN_SOURCE_PATH=${PROJECT_PATH}/bin
+BIN_TARGET_PATH=${PROJECT_PATH}/release/bin
 
 echo "Build package begin"
 

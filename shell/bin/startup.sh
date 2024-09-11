@@ -7,25 +7,23 @@ fi
 
 CURRENT_SERVER_NAME=$(hostname)
 CURRENT_USER=$(whoami)
-# Get the current script name
 CURRENT_SCRIPT_NAME=$(basename $0)
-# Get the absolute path where the current script is located 
 CURRENT_SCRIPT_PATH=$(cd $(dirname $0); pwd)
-# Get deploy path
-DEPLOY_PATH=$(dirname "${CURRENT_SCRIPT_PATH}")
+PROJECT_PATH=${CURRENT_SCRIPT_PATH%%/release*}
+DEPLOY_PATH=${PROJECT_PATH}/release
 SERVER_FOLDER=$1
 
-LOG_BASE_PATH="/opt/app/log"
-LOG_FILE_NAME="nohup"
-LOG_FILE_PATH="${LOG_BASE_PATH}/${LOG_FILE_NAME}.log"
+LOG_BASE_PATH="${PROJECT_PATH}/log"
 LOG_ARCHIVE_PATH="${LOG_BASE_PATH}/archive"
+LOG_FILE_NAME="test"
+LOG_FILE_PATH="${LOG_BASE_PATH}/${LOG_FILE_NAME}.log"
 
 returnValue=0
 total=0
 success=0
 failure=0
 
-log_to_file(){
+log(){
     local log_level=$1
     local log_message=$2
 
@@ -48,6 +46,15 @@ create_log_file(){
         echo "create ${log_file} start"
         touch ${log_file}
         echo "create ${log_file} end"
+    fi
+}
+
+create_log_file_path(){ 
+    if [[ ! -e ${LOG_BASE_PATH} ]]; then
+        mkdir -p ${LOG_BASE_PATH}
+    fi 
+    if [[ ! -e ${LOG_ARCHIVE_PATH} ]]; then
+        mkdir -p ${LOG_ARCHIVE_PATH}
     fi
 }
 
@@ -84,7 +91,7 @@ remove_archive_log_file(){
 }
 
 execute_script(){
-    log_to_file "Start executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory"
+    log "Start executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory"
     script_file_name_list=($(ls ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER}))
     # 遍历指定目录下的所有文件和文件夹
     for script_file_name in ${script_file_name_list[@]}
@@ -95,7 +102,7 @@ execute_script(){
             # 检查文件扩展名是否为.sh
             if [[ "$script_file" == *.sh ]]; then
                 # 执行文件
-                log_to_file "Start executing the script $script_file"
+                log "Start executing the script $script_file"
                 sh "$script_file"
                 result=$?
                 if [[ $result -ne 0 ]]; then
@@ -106,21 +113,15 @@ execute_script(){
                 else
                     success=$((success + 1))
                 fi
-                log_to_file "End executing the script $script_file"
+                log "End executing the script $script_file"
             fi
         fi
     done
     total=$((success + failure))
-    log_to_file "End executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory, total: ${total}, success: ${success}, failure: ${failure}"
+    log "End executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory, total: ${total}, success: ${success}, failure: ${failure}"
 }
 
-if [[ ! -e ${LOG_BASE_PATH} ]]; then
-    mkdir -p ${LOG_BASE_PATH}
-fi 
-if [[ ! -e ${LOG_ARCHIVE_PATH} ]]; then
-    mkdir -p ${LOG_ARCHIVE_PATH}
-fi
-
+create_log_file_path
 remove_archive_log_file
 create_archive_log_file
 create_log_file
