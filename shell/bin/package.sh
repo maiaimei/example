@@ -1,10 +1,12 @@
 #!/bin/bash
 
+# check script parameter
 if [[ $# -ne 1 ]]; then
-    echo "Missing parameter. Usage: package.sh [release_folder_name]"
+    echo "Error: Missing parameter. Usage: package.sh [release_folder_name]"
     exit 1
 fi
 
+# Initialize directories and files
 CURRENT_SCRIPT_PATH=$(cd $(dirname $0); pwd)
 PROJECT_PATH=$(dirname "${CURRENT_SCRIPT_PATH}")
 DEFAULTS_PATH=${PROJECT_PATH}/script/defaults
@@ -29,6 +31,10 @@ fi
 echo "Copy startup.sh begin"
 cp ${BIN_SOURCE_PATH}/startup.sh ${BIN_TARGET_PATH}/
 echo "Copy startup.sh end"
+
+echo "Copy log.sh begin"
+cp ${BIN_SOURCE_PATH}/log.sh ${BIN_TARGET_PATH}/
+echo "Copy log.sh end"
 
 echo "Copy files from ${RELEASE_SOURCE_PATH} begin"
 server_name_list=($(ls ${RELEASE_SOURCE_PATH}))

@@ -1,81 +1,111 @@
 #!/bin/bash
 
+# check script parameter
 if [[ $# -ne 1 ]]; then
-    echo "Missing parameter. Usage: startup.sh [server_folder_name]"
+    echo "Error: Missing parameter. Usage: startup.sh [server_folder_name]"
     exit 1
 fi
 
-CURRENT_SERVER_NAME=$(hostname)
+# Initialize current user and server information
 CURRENT_USER=$(whoami)
+CURRENT_SERVER_NAME=$(hostname)
+
+# Initialize current script information
 CURRENT_SCRIPT_NAME=$(basename $0)
 CURRENT_SCRIPT_PATH=$(cd $(dirname $0); pwd)
+
+# Initialize directories and files
 PROJECT_PATH=${CURRENT_SCRIPT_PATH%%/release*}
 DEPLOY_PATH=${PROJECT_PATH}/release
-SERVER_FOLDER=$1
-
 LOG_BASE_PATH="${PROJECT_PATH}/log"
 LOG_ARCHIVE_PATH="${LOG_BASE_PATH}/archive"
-LOG_FILE_NAME="test"
+LOG_FILE_NAME="application"
 LOG_FILE_PATH="${LOG_BASE_PATH}/${LOG_FILE_NAME}.log"
+SERVER_FOLDER=$1
 
-returnValue=0
+# Initialize counter
 total=0
 success=0
 failure=0
 
-log(){
-    local log_level=$1
-    local log_message=$2
+# Initialize script return value
+return_value=0
 
-    case ${log_level} in
-    "INFO")
-        echo -e "$(date "+%Y-%m-%d %T.%N") ${CURRENT_SERVER_NAME} ${CURRENT_USER} \033[32m[INFO]\033[0m ${CURRENT_SCRIPT_NAME} - ${log_message}" 2>&1 | tee -a ${LOG_FILE_PATH};;
-    "WARN")
-        echo -e "$(date "+%Y-%m-%d %T.%N") ${CURRENT_SERVER_NAME} ${CURRENT_USER} \033[33m[WARN]\033[0m ${CURRENT_SCRIPT_NAME} - ${log_message}" 2>&1 | tee -a ${LOG_FILE_PATH};;
-    "ERROR")
-        echo -e "$(date "+%Y-%m-%d %T.%N") ${CURRENT_SERVER_NAME} ${CURRENT_USER} \033[31m[ERROR]\033[0m ${CURRENT_SCRIPT_NAME} - ${log_message}" 2>&1 | tee -a ${LOG_FILE_PATH};;
-    *)
-        echo -e "$(date "+%Y-%m-%d %T.%N") ${CURRENT_SERVER_NAME} ${CURRENT_USER} ${CURRENT_SCRIPT_NAME} - ${@}" 2>&1 | tee -a ${LOG_FILE_PATH};;
-    esac
+# Define the check_path function
+check_path(){
+    for dir in "${PROJECT_PATH}" "${DEPLOY_PATH}"
+    do
+        if [ ! -e "$dir" ]; then
+            echo "Error: No directory found, directory: $dir"
+            exit 1
+        fi
+    done    
 }
 
+# Define the create_log_file function
 create_log_file(){  
-    local log_file=${LOG_FILE_PATH}
-    if [[ ! -e ${log_file} ]]
+    if [[ ! -e ${LOG_FILE_PATH} ]]
     then
-        echo "create ${log_file} start"
-        touch ${log_file}
-        echo "create ${log_file} end"
+        echo "Start create file ${LOG_FILE_PATH}"
+        touch ${LOG_FILE_PATH}
+        echo "End create file ${LOG_FILE_PATH}"
+        echo "Before change mode for ${LOG_FILE_PATH}"
+        ls -l ${LOG_FILE_PATH}
+        chmod 664 ${LOG_FILE_PATH}
+        echo "After change mode for ${LOG_FILE_PATH}" 
+        ls -l ${LOG_FILE_PATH}
     fi
 }
 
+# Define the create_log_file_path function
 create_log_file_path(){ 
     if [[ ! -e ${LOG_BASE_PATH} ]]; then
+        echo "Start create directory ${LOG_BASE_PATH}"
         mkdir -p ${LOG_BASE_PATH}
+        echo "End create directory ${LOG_BASE_PATH}"
+        echo "Before change mode for ${LOG_BASE_PATH}"
+        ls -l ${LOG_BASE_PATH}
+        chmod 775 ${LOG_BASE_PATH}
+        echo "After change mode for ${LOG_BASE_PATH}" 
+        ls -l ${LOG_BASE_PATH}        
     fi 
     if [[ ! -e ${LOG_ARCHIVE_PATH} ]]; then
+        echo "Start create directory ${LOG_ARCHIVE_PATH}"
         mkdir -p ${LOG_ARCHIVE_PATH}
+        echo "End create directory ${LOG_ARCHIVE_PATH}"
+        echo "Before change mode for ${LOG_ARCHIVE_PATH}"
+        ls -l ${LOG_ARCHIVE_PATH}
+        chmod 775 ${LOG_ARCHIVE_PATH}
+        echo "After change mode for ${LOG_ARCHIVE_PATH}" 
+        ls -l ${LOG_ARCHIVE_PATH}        
     fi
 }
 
+# Define the create_archive_log_file function
 create_archive_log_file(){
-    local log_file=${LOG_FILE_PATH}
     # If the log file exists and the change date of the log file is less than the system current date, the log file needs to be archived
-    if [[ -e ${log_file} ]]
+    if [[ -e ${LOG_FILE_PATH} ]]
     then
-    	log_file_change_date_string=$(ls --full-time ${log_file} | cut -d ' ' -f 6)
+    	log_file_change_date_string=$(ls --full-time ${LOG_FILE_PATH} | cut -d ' ' -f 6)
         log_file_change_date=$(date -d "${log_file_change_date_string}" +%s)
         current_date_string=$(date +'%Y-%m-%d')
 		current_date=$(date -d "${current_date_string}" +%s)
         if [ "$log_file_change_date" -lt "$current_date" ]
         then
         	archive_file="${LOG_ARCHIVE_PATH}/${LOG_FILE_NAME}.${log_file_change_date_string}.log.gz"
-            gzip -c ${log_file} > ${archive_file} && rm -f ${log_file}
-            echo "Archive created at $(date +'%Y-%m-%d %T.%N') with file ${archive_file}"
+            echo "Start create archive file for ${archive_file}"
+            gzip -c ${LOG_FILE_PATH} > ${archive_file} && rm -f ${LOG_FILE_PATH}
+            echo "End create archive file for ${archive_file} at $(date +'%Y-%m-%d %T.%N')"
+            echo "Before change mode for ${archive_file}"
+            ls -l ${archive_file}
+            chmod 664 ${archive_file}
+            echo "After change mode for ${archive_file}" 
+            ls -l ${archive_file}            
         fi
     fi
 }
 
+# Define the remove_archive_log_file function
 remove_archive_log_file(){
     if [[ -e ${LOG_BASE_PATH} ]]
     then
@@ -90,8 +120,9 @@ remove_archive_log_file(){
     fi     
 }
 
+# Define the execute_script function
 execute_script(){
-    log "Start executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory"
+    log ${CURRENT_SCRIPT_NAME} "Start executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory"
     script_file_name_list=($(ls ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER}))
     # 遍历指定目录下的所有文件和文件夹
     for script_file_name in ${script_file_name_list[@]}
@@ -102,29 +133,42 @@ execute_script(){
             # 检查文件扩展名是否为.sh
             if [[ "$script_file" == *.sh ]]; then
                 # 执行文件
-                log "Start executing the script $script_file"
+                log ${CURRENT_SCRIPT_NAME} "Start executing the script $script_file"
                 sh "$script_file"
                 result=$?
                 if [[ $result -ne 0 ]]; then
                     failure=$((failure + 1))
-                    if [[ ${returnValue} -eq 0 ]]; then
-                        returnValue=$result
+                    if [[ ${return_value} -eq 0 ]]; then
+                        return_value=$result
                     fi
                 else
                     success=$((success + 1))
                 fi
-                log "End executing the script $script_file"
+                log ${CURRENT_SCRIPT_NAME} "End executing the script $script_file"
             fi
         fi
     done
     total=$((success + failure))
-    log "End executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory, total: ${total}, success: ${success}, failure: ${failure}"
+    log ${CURRENT_SCRIPT_NAME} "End executing the script in the ${DEPLOY_PATH}/${SERVER_FOLDER}/${CURRENT_USER} directory, total: ${total}, success: ${success}, failure: ${failure}"
 }
 
-create_log_file_path
-remove_archive_log_file
-create_archive_log_file
-create_log_file
-execute_script
+# Define the main function
+main(){
+    # Call the following functions in sequence
+    create_log_file_path
+    remove_archive_log_file
+    create_archive_log_file
+    create_log_file
+    execute_script  
+}
 
-exit ${returnValue}
+# Check path
+check_path
+
+# Call the script log.sh
+source ${CURRENT_SCRIPT_PATH}/log.sh ${LOG_FILE_PATH}
+
+# Call the function main
+main
+
+exit ${return_value}
