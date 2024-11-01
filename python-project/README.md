@@ -4,23 +4,23 @@
 
 [https://www.python.org/downloads/](https://www.python.org/downloads/)
 
-<img src="./images/20221010231334.png" />
+<img src="images/20221010231334.png" />
 
-<img src="./images/20221010231506.png" />
+<img src="images/20221010231506.png" />
 
-<img src="./images/20221010231614.png" />
+<img src="images/20221010231614.png" />
 
-<img src="./images/20221010232237.png" />
+<img src="images/20221010232237.png" />
 
 ## 在VSCode中搭建Python环境
 
-<img src="./images/20221010232752.png" />
+<img src="images/20221010232752.png" />
 
 ## 在IDEA中搭建Python环境
 
-<img src="./images/20221028121726.png" />
+<img src="images/20221028121726.png" />
 
-<img src="./images/20221028122122.png" />
+<img src="images/20221028122122.png" />
 
 
 # 相关资料

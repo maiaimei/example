@@ -70,30 +70,27 @@ public class CronExpressionTest {
   public void test_tolerace() throws ParseException {
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     Date now = format.parse("2023-11-05 07:45:00");
-    Date nextValidTime = format.parse("2023-11-05 08:05:00");
+    Date nextValidTime = format.parse("2023-11-05 08:15:00");
     long milliseconds = nextValidTime.getTime() - now.getTime();
     long seconds = milliseconds / 1000;
     log.info("max tolerace is: {}", seconds);
 
-    long tolerace = seconds - 300;
+    long tolerace = 100 * 1000;
     log.info("tolerace is: {}", tolerace);
 
     final Calendar calendar = Calendar.getInstance();
     while (true) {
-      if (calendar.getTime().getTime() - now.getTime() > tolerace) {
+      if (nextValidTime.getTime() - now.getTime() > tolerace) {
         log.info("{}\t{}\t{}\t{}",
             format.format(now),
-            format.format(calendar.getTime()),
-            calendar.getTime().getTime() - now.getTime(),
-            calendar.getTime().getTime() - now.getTime() > tolerace
+            format.format(nextValidTime.getTime()),
+            nextValidTime.getTime() - now.getTime(),
+            nextValidTime.getTime() - now.getTime() > tolerace
         );
       }
       calendar.setTime(now);
-      calendar.add(Calendar.SECOND, 1);
+      calendar.add(Calendar.MINUTE, 1);
       now = calendar.getTime();
-      if (format.format(now).equals(format.format(nextValidTime))) {
-        break;
-      }
     }
   }
 
