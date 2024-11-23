@@ -1,0 +1,11 @@
+[
+  {
+    "code": "CLINET_CODE",
+    "name": "JD_CLINET_CODE",
+    "content": {
+      "DEV": "T001",
+      "PROD": "P001"
+    },
+    "extension": "{\"DEV\":\"T001\",\"PROD\":\"P001\"}"
+  }
+]
