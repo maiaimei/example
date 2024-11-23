@@ -1,4 +1,4 @@
-# JsonPath
+# JsonPath Guide
 
 JsonPath，是一种JSON数据结构节点定位和导航表达式语言。可以使用JsonPath来提取特定的JSON字段、过滤数据、执行计算等操作。
 
@@ -9,10 +9,11 @@ JsonPath，是一种JSON数据结构节点定位和导航表达式语言。可�
 使用JsonPath，如果使用Maven，在pom.xml中添加依赖，如下所示：
 
 ```xml
+
 <dependency>
-    <groupId>com.jayway.jsonpath</groupId>
-    <artifactId>json-path</artifactId>
-    <version>${json-path.version}</version>
+  <groupId>com.jayway.jsonpath</groupId>
+  <artifactId>json-path</artifactId>
+  <version>${json-path.version}</version>
 </dependency>
 ```
 
@@ -32,63 +33,63 @@ JSONPath 的语法非常简洁和直观，它由一系列操作符和表达式�
 - **方括号表示法（**[]**）**：方括号表示法用于访问数组元素或使用条件进行过滤。例如，`$..book[2]` 表示访问所有 `book` 数组中的第三个元素。
 - **过滤器表达式（**[?]**）**：过滤器表达式允许根据特定条件对结果进行筛选。例如，`$.store.book[?(@.price < 10)]` 表示查找价格低于 10 的书籍。
 
-| Operator                | Description                                                  |
-| :---------------------- | :----------------------------------------------------------- |
-| `$`                     | The root element to query. This starts all path expressions.<br />根对象 |
-| `@`                     | The current node being processed by a filter predicate.<br />当前节点 |
-| `*`                     | Wildcard. Available anywhere a name or numeric are required.<br />通配符，表示所有对象，元素或属性 |
-| `.name`                 | Dot-notated child<br />子元素、直接孩子节点。用于访问对象的属性。例如，$.name 或 $[name] 都可以访问根对象中的 ‘name’ 属性。 |
-| `..name`                | Deep scan. Available anywhere a name is required.<br />深度扫描，用于查找所有级别的属性。 |
-| `['name1' (, 'name2')]` | Bracket-notated child or children<br />多个属性访问。<br />[]：在属性名或数组索引位置使用，表示选择所有元素。例如，$.students[*].name 将选择所有学生的名字。 |
-| `[number1 (, number2)]` | Array index or indexes<br />数组索引，指定索引               |
-| `[start:end]`           | Array slice operator<br />数组切片，范围访问<br />使用切片语法（如`[start:end:step]`）来选择数组中的特定元素范围。 |
+| Operator                | Description                                                                                                                                         |
+|:------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `$`                     | The root element to query. This starts all path expressions.<br />根对象                                                                               |
+| `@`                     | The current node being processed by a filter predicate.<br />当前节点                                                                                   |
+| `*`                     | Wildcard. Available anywhere a name or numeric are required.<br />通配符，表示所有对象，元素或属性                                                                  |
+| `.name`                 | Dot-notated child<br />子元素、直接孩子节点。用于访问对象的属性。例如，$.name 或 $[name] 都可以访问根对象中的 ‘name’ 属性。                                                               |
+| `..name`                | Deep scan. Available anywhere a name is required.<br />深度扫描，用于查找所有级别的属性。                                                                            |
+| `['name1' (, 'name2')]` | Bracket-notated child or children<br />多个属性访问。<br />[]：在属性名或数组索引位置使用，表示选择所有元素。例如，$.students[*].name 将选择所有学生的名字。                                     |
+| `[number1 (, number2)]` | Array index or indexes<br />数组索引，指定索引                                                                                                               |
+| `[start:end]`           | Array slice operator<br />数组切片，范围访问<br />使用切片语法（如`[start:end:step]`）来选择数组中的特定元素范围。                                                                  |
 | `[?(expression)]`       | Filter expression. Expression must evaluate to a boolean value.<br />条件过滤，必须为Boolean类型。<br />?()：应用一个过滤表达式来过滤数组中的元素。例如，$?(@.age>18) 将选择所有年龄大于18的对象。 |
 
 ### Filter Operators - 条件操作符
 
-Filters are logical expressions used to filter arrays. 
+Filters are logical expressions used to filter arrays.
 
-A typical filter would be `[?(@.age > 18)]` where `@` represents the current item being processed. 
+A typical filter would be `[?(@.age > 18)]` where `@` represents the current item being processed.
 
-More complex filters can be created with logical operators `&&` and `||`. 
+More complex filters can be created with logical operators `&&` and `||`.
 
-String literals must be enclosed by single or double quotes (`[?(@.color == 'blue')]` or `[?(@.color == "blue")]`).   
+String literals must be enclosed by single or double quotes (`[?(@.color == 'blue')]` or `[?(@.color == "blue")]`).
 
-| Operator                 | Description                                                           |
-| :----------------------- | :-------------------------------------------------------------------- |
-| ==                       | left is equal to right (note that 1 is not equal to '1')              |
-| !=                       | left is not equal to right                                            |
-| <                        | left is less than right                                               |
-| <=                       | left is less or equal to right                                        |
-| >                        | left is greater than right                                            |
-| >=                       | left is greater than or equal to right                                |
-| =~                       | left matches regular expression  [?(@.name =~ /foo.*?/i)]             |
-| in                       | left exists in right [?(@.size in ['S', 'M'])]                        |
-| nin                      | left does not exists in right                                         |
-| subsetof                 | left is a subset of right [?(@.sizes subsetof ['S', 'M', 'L'])]       |
-| anyof                    | left has an intersection with right [?(@.sizes anyof ['M', 'L'])]     |
-| noneof                   | left has no intersection with right [?(@.sizes noneof ['M', 'L'])]    |
-| size                     | size of left (array or string) should match right                     |
-| empty                    | left (array or string) should be empty                                |
+| Operator | Description                                                        |
+|:---------|:-------------------------------------------------------------------|
+| ==       | left is equal to right (note that 1 is not equal to '1')           |
+| !=       | left is not equal to right                                         |
+| <        | left is less than right                                            |
+| <=       | left is less or equal to right                                     |
+| >        | left is greater than right                                         |
+| >=       | left is greater than or equal to right                             |
+| =~       | left matches regular expression  [?(@.name =~ /foo.*?/i)]          |
+| in       | left exists in right [?(@.size in ['S', 'M'])]                     |
+| nin      | left does not exists in right                                      |
+| subsetof | left is a subset of right [?(@.sizes subsetof ['S', 'M', 'L'])]    |
+| anyof    | left has an intersection with right [?(@.sizes anyof ['M', 'L'])]  |
+| noneof   | left has no intersection with right [?(@.sizes noneof ['M', 'L'])] |
+| size     | size of left (array or string) should match right                  |
+| empty    | left (array or string) should be empty                             |
 
 ### Functions - 内置函数
 
 Functions can be invoked at the tail end of a path - the input to a function is the output of the path expression.
 The function output is dictated by the function itself.
 
-| Function  | Description                                                  | Output type          |
-| :-------- | :----------------------------------------------------------- | :------------------- |
-| min()     | Provides the min value of an array of numbers                | Double               |
-| max()     | Provides the max value of an array of numbers                | Double               |
-| avg()     | Provides the average value of an array of numbers            | Double               |
-| stddev()  | Provides the standard deviation value of an array of numbers | Double               |
-| length()  | Provides the length of an array<br />获取数组或字符串长度    | Integer              |
-| sum()     | Provides the sum value of an array of numbers                | Double               |
-| keys()    | Provides the property keys (An alternative for terminal tilde `~`)<br />获取对象所有键 | `Set<E>`             |
-| concat(X) | Provides a concatinated version of the path output with a new item | like input           |
-| append(X) | add an item to the json path output array                    | like input           |
-| first()   | Provides the first item of an array                          | Depends on the array |
-| last()    | Provides the last item of an array                           | Depends on the array |
+| Function  | Description                                                                          | Output type          |
+|:----------|:-------------------------------------------------------------------------------------|:---------------------|
+| min()     | Provides the min value of an array of numbers                                        | Double               |
+| max()     | Provides the max value of an array of numbers                                        | Double               |
+| avg()     | Provides the average value of an array of numbers                                    | Double               |
+| stddev()  | Provides the standard deviation value of an array of numbers                         | Double               |
+| length()  | Provides the length of an array<br />获取数组或字符串长度                                      | Integer              |
+| sum()     | Provides the sum value of an array of numbers                                        | Double               |
+| keys()    | Provides the property keys (An alternative for terminal tilde `~`)<br />获取对象所有键      | `Set<E>`             |
+| concat(X) | Provides a concatinated version of the path output with a new item                   | like input           |
+| append(X) | add an item to the json path output array                                            | like input           |
+| first()   | Provides the first item of an array                                                  | Depends on the array |
+| last()    | Provides the last item of an array                                                   | Depends on the array |
 | index(X)  | Provides the item of an array of index: X, if the X is negative, take from backwards | Depends on the array |
 
 ## 应用场景
