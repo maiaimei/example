@@ -1,4 +1,4 @@
-package org.example.websocketdemo.util;
+package org.example.websocketdemo3.util;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

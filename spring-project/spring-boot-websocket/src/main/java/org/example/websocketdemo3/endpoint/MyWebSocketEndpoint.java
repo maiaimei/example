@@ -1,4 +1,4 @@
-package org.example.websocketdemo.endpoint;
+package org.example.websocketdemo3.endpoint;
 
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.EndpointConfig;
@@ -9,30 +9,33 @@ import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@ServerEndpoint("/ws-test/{clientId}")
+@ServerEndpoint("/ws/{clientId}")
 @Component
-public class MyWebSocketEndpoint {
-
-  private static final String sessionPrefix = "ws-test-";
+public class MyWebSocketEndpoint extends AbstractWebSocketEndpoint {
 
   /**
    * Current number of online connections
    */
   private static final AtomicInteger onlineCount = new AtomicInteger(0);
 
+  private static final Map<String, ClientSession> clientMap = new ConcurrentHashMap<>();
+
   @OnOpen
   public void onOpen(Session session, EndpointConfig endpointConfig, @PathParam(value = "clientId") String clientId) {
+    addSession(clientMap, clientId, session);
     onlineCount.incrementAndGet();
     log.info("New connection opened: {}, clientId: {}, current number of online: {}", session.getId(), clientId, onlineCount.get());
   }
 
   @OnClose
-  public void onClose(Session session, CloseReason closeReason) {
+  public void onClose(Session session, CloseReason closeReason, @PathParam(value = "clientId") String clientId) {
     onlineCount.decrementAndGet();
     log.info("Connection closed: {}, closeReason: {}, current number of online: {}", session.getId(),
         closeReason.toString(), onlineCount.get());

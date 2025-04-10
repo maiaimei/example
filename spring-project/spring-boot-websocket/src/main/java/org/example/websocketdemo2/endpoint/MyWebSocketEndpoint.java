@@ -1,4 +1,4 @@
-package org.example.websocketdemo.endpoint;
+package org.example.websocketdemo2.endpoint;
 
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
@@ -12,12 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@ServerEndpoint("/ws-jakarta")
+@ServerEndpoint("/ws")
 @Component
-public class JakartaWebSocketEndpoint {
+public class MyWebSocketEndpoint {
 
   // Store all active WebSocket sessions
-  private static final CopyOnWriteArraySet<JakartaWebSocketEndpoint> webSocketSet = new CopyOnWriteArraySet<>();
+  private static final CopyOnWriteArraySet<MyWebSocketEndpoint> webSocketSet = new CopyOnWriteArraySet<>();
   private Session session;
 
   @OnOpen
@@ -33,7 +33,7 @@ public class JakartaWebSocketEndpoint {
     log.info("Received message from session {}: {}", session.getId(), message);
 
     // Broadcast the message to all connected clients
-    for (JakartaWebSocketEndpoint endpoint : webSocketSet) {
+    for (MyWebSocketEndpoint endpoint : webSocketSet) {
       endpoint.sendMessage("Broadcast from " + session.getId() + ": " + message);
     }
   }
