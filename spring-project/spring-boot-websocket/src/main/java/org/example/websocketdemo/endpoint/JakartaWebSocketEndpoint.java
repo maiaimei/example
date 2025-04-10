@@ -56,4 +56,5 @@ public class JakartaWebSocketEndpoint {
       log.error("Error sending message: {}", e.getMessage());
     }
   }
+
 }

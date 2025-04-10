@@ -2,6 +2,8 @@
 
 # WebSockets Tutorial
 
+WebSocket 是一种在浏览器和服务器之间建立双向通信通道的协议。它允许服务器在任意时刻发送消息给浏览器，而不需要浏览器先发起请求。
+
 ## Developing Your First WebSocket Application
 
 Here’s a simple Spring Boot project that demonstrates the use of both `spring-boot-starter-web` and `spring-boot-starter-websocket`. This project includes a REST API and a WebSocket endpoint.
@@ -177,12 +179,6 @@ This project demonstrates how to use both REST and WebSocket endpoints in a Spri
         <artifactId>jakarta.websocket-api</artifactId>
         <version>2.1.1</version>
     </dependency>
-
-    <!-- Tomcat WebSocket Implementation -->
-    <dependency>
-        <groupId>org.apache.tomcat</groupId>
-        <artifactId>tomcat-websocket</artifactId>
-    </dependency>
 </dependencies>
 ```
 
@@ -294,9 +290,128 @@ public class WebSocketConfig {
 - 使用 `CopyOnWriteArraySet` 管理所有 WebSocket 会话，方便实现广播功能。
 - 每个客户端连接都对应一个标注有`@ServerEndpoint` 注解的类的新对象
 
-## WebSocket client
+## jakarta.websocket-api
 
-[https://www.wetools.com/websocket](https://www.wetools.com/websocket)
+Jakarta WebSocket API is a platform-independent websocket protocol API to build bidirectional communications over the web. It is included in the Jakarta EE platform. Jakarta WebSocket defines an API for Server and Client Endpoints for the WebSocket protocol (RFC6455).
+
+[https://jakartaee.github.io/websocket/](https://jakartaee.github.io/websocket/)
+
+[https://jakarta.ee/specifications/websocket/](https://jakarta.ee/specifications/websocket/)
+
+[https://jakarta.ee/specifications/websocket/2.0/apidocs/](https://jakarta.ee/specifications/websocket/2.0/apidocs/)
+
+[https://jakarta.ee/specifications/websocket/2.1/jakarta-websocket-spec-2.1](https://jakarta.ee/specifications/websocket/2.1/jakarta-websocket-spec-2.1)
+
+### Annotations
+
+#### @OnOpen
+
+```java
+@Retention(value=RUNTIME)
+@Target(value=METHOD)
+public @interface OnOpen
+```
+
+This method level annotation can be used to decorate a Java method that wishes to be called when a new web socket session is open.
+
+The method may only take the following parameters:-
+
+- optional [`Session`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/session) parameter
+- optional [`EndpointConfig`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/endpointconfig) parameter
+- Zero to n String parameters annotated with the `jakarta.websocket.server.PathParam` annotation.
+
+The parameters may appear in any order.
+
+#### @OnClose
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface OnClose
+```
+
+This method level annotation can be used to decorate a Java method that wishes to be called when a web socket session is closing.
+
+The method may only take the following parameters:-
+
+- optional [`Session`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/session) parameter
+- optional [`CloseReason`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/closereason) parameter
+- Zero to n String parameters annotated with the `jakarta.websocket.server.PathParam` annotation.
+
+The parameters may appear in any order. See [`Endpoint.onClose(jakarta.websocket.Session, jakarta.websocket.CloseReason)`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/endpoint#onClose-jakarta.websocket.Session-jakarta.websocket.CloseReason-) for more details on how the session parameter may be used during method calls annotated with this annotation.
+
+#### @OnError
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface OnError
+```
+
+This method level annotation can be used to decorate a Java method that wishes to be called in order to handle errors. See [`Endpoint.onError(jakarta.websocket.Session, java.lang.Throwable)`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/endpoint#onError-jakarta.websocket.Session-java.lang.Throwable-) for a description of the different categories of error.
+
+The method may only take the following parameters:-
+
+- optional [`Session`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/session) parameter
+- a [`Throwable`](https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true) parameter
+- Zero to n String parameters annotated with the `jakarta.websocket.server.PathParam` annotation
+
+The parameters may appear in any order.
+
+#### @OnMessage
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface OnMessage
+```
+
+This method level annotation can be used to make a Java method receive incoming web socket messages. Each websocket endpoint may only have one message handling method for each of the native websocket message formats: text, binary and pong. Methods using this annotation are allowed to have parameters of types described below, otherwise the container will generate an error at deployment time.
+
+The allowed parameters are:
+
+1. Exactly one of any of the following choices
+   - if the method is handling text messages:
+     - [`String`](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true) to receive the whole message
+     - Java primitive or class equivalent to receive the whole message converted to that type
+     - String and boolean pair to receive the message in parts
+     - [`Reader`](https://docs.oracle.com/javase/8/docs/api/java/io/Reader.html?is-external=true) to receive the whole message as a blocking stream
+     - any object parameter for which the endpoint has a text decoder ([`Decoder.Text`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/decoder.text) or [`Decoder.TextStream`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/decoder.textstream)).
+   - if the method is handling binary messages:
+     - byte[] or [`ByteBuffer`](https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true) to receive the whole message
+     - byte[] and boolean pair, or [`ByteBuffer`](https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true) and boolean pair to receive the message in parts
+     - [`InputStream`](https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html?is-external=true) to receive the whole message as a blocking stream
+     - any object parameter for which the endpoint has a binary decoder ([`Decoder.Binary`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/decoder.binary) or [`Decoder.BinaryStream`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/decoder.binarystream)).
+   - if the method is handling pong messages:
+     - [`PongMessage`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/pongmessage) for handling pong messages
+2. and Zero to n String or Java primitive parameters annotated with the `jakarta.websocket.server.PathParam` annotation for server endpoints.
+3. and an optional [`Session`](https://jakarta.ee/specifications/websocket/2.0/apidocs/jakarta/websocket/session) parameter
+
+The parameters may be listed in any order.
+
+The method may have a non-void return type, in which case the web socket runtime must interpret this as a web socket message to return to the peer. The allowed data types for this return type, other than void, are String, ByteBuffer, byte[], any Java primitive or class equivalent, and anything for which there is an encoder. If the method uses a Java primitive as a return value, the implementation must construct the text message to send using the standard Java string representation of the Java primitive unless there developer provided encoder for the type configured for this endpoint, in which case that encoder must be used. If the method uses a class equivalent of a Java primitive as a return value, the implementation must construct the text message from the Java primitive equivalent as described above.
+
+Developers should note that if developer closes the session during the invocation of a method with a return type, the method will complete but the return value will not be delivered to the remote endpoint. The send failure will be passed back into the endpoint's error handling method.
+
+For example:
+
+```java
+@OnMessage
+public void processGreeting(String message, Session session) {
+	System.out.println("Greeting received:" + message);
+}
+```
+
+For example:
+
+```java
+@OnMessage
+public void processUpload(byte[] b, boolean last, Session session) {
+    // process partial data here, which check on last to see if these is more on the way
+}
+```
+
+Developers should not continue to reference message objects of type [`Reader`](https://docs.oracle.com/javase/8/docs/api/java/io/Reader.html?is-external=true), [`ByteBuffer`](https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true) or [`InputStream`](https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html?is-external=true) after the annotated method has completed, since they may be recycled by the implementation.
 
 ## Reference
 
@@ -309,3 +424,5 @@ public class WebSocketConfig {
 [https://spring.io/guides/gs/messaging-stomp-websocket](https://spring.io/guides/gs/messaging-stomp-websocket)
 
 [https://www.bilibili.com/video/BV1u1421t7uS?spm_id_from=333.788.videopod.sections&vd_source=80612925dae54b29d86f65198f1081f4](https://www.bilibili.com/video/BV1u1421t7uS?spm_id_from=333.788.videopod.sections&vd_source=80612925dae54b29d86f65198f1081f4)
+
+[https://developer.aliyun.com/article/1630812](https://developer.aliyun.com/article/1630812)
