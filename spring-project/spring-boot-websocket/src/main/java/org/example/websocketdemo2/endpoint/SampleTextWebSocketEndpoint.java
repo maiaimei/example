@@ -55,4 +55,22 @@ public class SampleTextWebSocketEndpoint {
     }
   }
 
+  /**
+   * Broadcast a message to all connected clients.
+   *
+   * @param message the message to broadcast
+   */
+  public void broadcastMessage(String message) {
+    activeSessions.values().forEach(session -> {
+      if (session.isOpen()) {
+        try {
+          sendMessage(session, message);
+          log.info("Broadcast message sent to {}: {}", session.getId(), message);
+        } catch (Exception e) {
+          log.error("Failed to send broadcast message to {}: {}", session.getId(), e.getMessage());
+        }
+      }
+    });
+  }
+
 }
