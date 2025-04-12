@@ -43,8 +43,8 @@
         }
 
         .login-container input,
+        .login-container select,
         .login-container button {
-            width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -60,6 +60,19 @@
 
         .login-container button:hover {
             background: #45a049;
+        }
+
+        .login-container label {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .login-container select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
         }
 
         .contact-list {
@@ -217,6 +230,11 @@
     <!-- 登录界面 -->
     <div class="login-container" id="loginContainer">
         <h2>Login</h2>
+        <label for="usingWebSocketAnnotationsSelect">Using WebSocket Annotations:</label>
+        <select id="usingWebSocketAnnotationsSelect">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
         <input type="text" id="usernameInput" placeholder="Enter your username" />
         <button onclick="login()">Login</button>
     </div>
@@ -269,7 +287,10 @@
 
             // 使用 userId 作为查询参数建立 WebSocket 连接
             const serverAddress = "ws://localhost:8080/ws/chat";
-            var url = `${serverAddress}/${loggedInUser.userId}?userId=${loggedInUser.userId}`;
+            var url = `${serverAddress}?userId=${loggedInUser.userId}`;
+            if (document.getElementById("usingWebSocketAnnotationsSelect").value == "Yes") {
+                url = `${serverAddress}/${loggedInUser.userId}`;
+            }
             console.log("Connecting to WebSocket server:", url);
             socket = new WebSocket(url);
 
