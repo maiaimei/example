@@ -1,5 +1,6 @@
 package org.example.websocketdemo1.handler;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
@@ -8,26 +9,50 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Slf4j
 public class TwoPersonChatTextWebSocketHandler extends TextWebSocketHandler {
+
+  // JSON parser
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   // Store active WebSocket sessions with userId as the key
   private static final ConcurrentHashMap<String, WebSocketSession> activeSessions = new ConcurrentHashMap<>();
 
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-    String clientMessage = message.getPayload();
-    log.info("Received message from session {}: {}", session.getId(), clientMessage);
+    // 解析收到的消息
+    String payload = message.getPayload();
+    log.info("Received message: {}", payload);
 
-    final String targetUserId = getTargetUserIdFromSession(session);
-    sendMessageToClient(targetUserId, clientMessage);
+    // 假设消息格式为 JSON，例如：{"toUserId":"2","message":"Hello"}
+    Map<String, String> messageData = objectMapper.readValue(payload, new TypeReference<Map<String, String>>() {
+    });
+    String toUserId = messageData.get("toUserId");
+    String chatMessage = messageData.get("message");
+
+    // 查找目标用户的 WebSocketSession
+    WebSocketSession toSession = activeSessions.get(toUserId);
+    if (toSession != null && toSession.isOpen()) {
+      // 封装收到的消息
+      Map<String, String> chatMessageData = Map.of(
+          "fromUserId", getUserIdFromSession(session),
+          "message", chatMessage);
+      // 转发消息给目标用户
+      toSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(chatMessageData)));
+      log.info("Message sent to toUserId {}: {}", toUserId, chatMessage);
+    } else {
+      log.warn("Target user is not connected: toUserId={}", toUserId);
+    }
   }
 
   @Override
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {
     // Assume userId is passed as a query parameter in the WebSocket URL
-    String userId = getCurrentLoginUserIdFromSession(session);
-    if (userId != null) {
+    String userId = getUserIdFromSession(session);
+    if (Objects.nonNull(userId)) {
       log.info("New connection opened: userId={}, sessionId={}", userId, session.getId());
       activeSessions.put(userId, session); // Add session to active sessions using userId
     } else {
@@ -38,8 +63,8 @@ public class TwoPersonChatTextWebSocketHandler extends TextWebSocketHandler {
 
   @Override
   public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-    String userId = getCurrentLoginUserIdFromSession(session);
-    if (userId != null) {
+    String userId = getUserIdFromSession(session);
+    if (Objects.nonNull(userId)) {
       log.info("Connection closed: userId={}, sessionId={}, status={}", userId, session.getId(), status);
       activeSessions.remove(userId); // Remove session from active sessions
     }
@@ -51,36 +76,12 @@ public class TwoPersonChatTextWebSocketHandler extends TextWebSocketHandler {
   }
 
   /**
-   * Send a message to a specific client by userId.
-   *
-   * @param userId  the ID of the client to send the message to
-   * @param message the message to send
-   */
-  public void sendMessageToClient(String userId, String message) {
-    if (Objects.isNull(userId)) {
-      log.error("Failed to send message: userId is missing");
-      return;
-    }
-    WebSocketSession session = activeSessions.get(userId);
-    if (session != null && session.isOpen()) {
-      try {
-        session.sendMessage(new TextMessage(message));
-        log.info("Message sent to userId {}: {}", userId, message);
-      } catch (Exception e) {
-        log.error("Failed to send message to userId {}: {}", userId, e.getMessage());
-      }
-    } else {
-      log.warn("userId {} is not connected or session is closed", userId);
-    }
-  }
-
-  /**
    * Extract userId from the WebSocket session.
    *
    * @param session the WebSocket session
    * @return the userId, or null if not found
    */
-  private String getCurrentLoginUserIdFromSession(WebSocketSession session) {
+  private String getUserIdFromSession(WebSocketSession session) {
     String userId = null;
     // Assume userId is passed as a query parameter in the WebSocket URL
     String query = session.getUri().getQuery();
@@ -96,30 +97,6 @@ public class TwoPersonChatTextWebSocketHandler extends TextWebSocketHandler {
       // Extract userId from the session headers
       if (session.getHandshakeHeaders().containsKey("userId")) {
         userId = session.getHandshakeHeaders().getFirst("userId");
-      }
-    }
-    if (Objects.isNull(userId)) {
-      userId = session.getId();
-    }
-    return userId;
-  }
-
-  /**
-   * Extract targetUserId from the WebSocket session.
-   *
-   * @param session the WebSocket session
-   * @return the userId, or null if not found
-   */
-  private String getTargetUserIdFromSession(WebSocketSession session) {
-    String userId = null;
-    // Assume userId is passed as a query parameter in the WebSocket URL
-    String query = session.getUri().getQuery();
-    if (query != null) {
-      for (String param : query.split("&")) {
-        String[] keyValue = param.split("=");
-        if (keyValue.length == 2 && "targetUserId".equals(keyValue[0])) {
-          userId = keyValue[1];
-        }
       }
     }
     return userId;

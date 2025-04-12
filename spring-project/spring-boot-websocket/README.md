@@ -357,26 +357,6 @@ public class WebSocketConfig {
 - 使用 `CopyOnWriteArraySet` 管理所有 WebSocket 会话，方便实现广播功能。
 - 每个客户端连接都对应一个标注有`@ServerEndpoint` 注解的类的新对象
 
-## WebSocket的事件
-
-我们知道HTTP协议使用http和https的统一资源标志符。WebSocket与HTTP类似，使用的是 ws 或 wss（类似于 HTTPS），其中 wss 表示在 TLS 之上的Websocket。例如：
-
-```
-ws://example.com/wsapi
-wss://secure.example.com/
-```
-
-WebSocket 使用和 HTTP 相同的 TCP 端口，可以绕过大多数防火墙的限制。默认情况下， WebSocket 协议使用80 端口；运行在 TLS 之上时，默认使用 443 端口。
-
-WebSocket 只是在 Socket 协议的基础上，非常轻的一层封装。在WebSocket API中定义了open、close、error、message等几个基本事件，这就使得WebSocket使用起来非常简单。 下面是在WebSocket API定义的事件：
-
-| 事件    | 事件处理程序      | 描述                       |
-| ------- | ----------------- | -------------------------- |
-| open    | Sokcket onopen    | 连接建立时触发             |
-| message | Sokcket onmessage | 客户端接收服务端数据时触发 |
-| error   | Sokcket onerror   | 通讯发生错误时触发         |
-| close   | Sokcket onclose   | 连接关闭时触发             |
-
 ## jakarta.websocket-api
 
 Jakarta WebSocket API is a platform-independent websocket protocol API to build bidirectional communications over the web. It is included in the Jakarta EE platform. Jakarta WebSocket defines an API for Server and Client Endpoints for the WebSocket protocol (RFC6455).
@@ -499,6 +479,36 @@ public void processUpload(byte[] b, boolean last, Session session) {
 ```
 
 Developers should not continue to reference message objects of type [`Reader`](https://docs.oracle.com/javase/8/docs/api/java/io/Reader.html?is-external=true), [`ByteBuffer`](https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true) or [`InputStream`](https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html?is-external=true) after the annotated method has completed, since they may be recycled by the implementation.
+
+## WebSocket的事件
+
+我们知道HTTP协议使用http和https的统一资源标志符。WebSocket与HTTP类似，使用的是 ws 或 wss（类似于 HTTPS），其中 wss 表示在 TLS 之上的Websocket。例如：
+
+```
+ws://example.com/wsapi
+wss://secure.example.com/
+```
+
+WebSocket 使用和 HTTP 相同的 TCP 端口，可以绕过大多数防火墙的限制。默认情况下， WebSocket 协议使用80 端口；运行在 TLS 之上时，默认使用 443 端口。
+
+WebSocket 只是在 Socket 协议的基础上，非常轻的一层封装。在WebSocket API中定义了open、close、error、message等几个基本事件，这就使得WebSocket使用起来非常简单。 下面是在WebSocket API定义的事件：
+
+| 事件    | 事件处理程序      | 描述                       |
+| ------- | ----------------- | -------------------------- |
+| open    | Sokcket onopen    | 连接建立时触发             |
+| message | Sokcket onmessage | 客户端接收服务端数据时触发 |
+| error   | Sokcket onerror   | 通讯发生错误时触发         |
+| close   | Sokcket onclose   | 连接关闭时触发             |
+
+## WebSocket的应用
+
+WebSocket的特点：服务器向客户端实时推送数据
+
+WebSocket的应用：
+
+- 在线聊天
+- 在线游戏
+- 协作编辑
 
 ## Reference
 
