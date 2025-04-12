@@ -7,7 +7,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
-public class MyWebSocketHandler extends TextWebSocketHandler {
+public class ExampleTextWebSocketHandler extends TextWebSocketHandler {
 
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -15,7 +15,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     log.info("Received message from session {}: {}", session.getId(), clientMessage);
 
     // Echo the message back to the client
-    session.sendMessage(new TextMessage("Server response: " + clientMessage));
+    session.sendMessage(new TextMessage("Response message from ExampleTextWebSocketHandler: " + clientMessage));
   }
 
   @Override
@@ -32,5 +32,4 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
   public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
     log.error("Error in session {}: {}", session.getId(), exception.getMessage());
   }
-
 }

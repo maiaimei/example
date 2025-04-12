@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Chat</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .chat-container {
+        width: 90%;
+        max-width: 800px;
+        background: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        background: #4CAF50;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-size: 18px;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-messages p {
+        margin: 5px 0;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 70%;
+    }
+
+    .chat-messages .sent {
+        background: #e0f7fa;
+        align-self: flex-end;
+        text-align: right;
+    }
+
+    .chat-messages .received {
+        background: #f1f8e9;
+        align-self: flex-start;
+        text-align: left;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: 10px;
+        background: #f9f9f9;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    .chat-input button {
+        margin-left: 10px;
+        padding: 10px 15px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .chat-input button:hover {
+        background: #45a049;
+    }
+
+    .server-input {
+        display: flex;
+        padding: 10px;
+        background: #f9f9f9;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .server-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    .server-input button {
+        margin-left: 10px;
+        padding: 10px 15px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .server-input button.disconnect {
+        background: #f44336;
+    }
+
+    .server-input button.disconnect:hover {
+        background: #d32f2f;
+    }
+
+    .server-input button:hover {
+        background: #45a049;
+    }
+  </style>
+</head>
+<body>
+<div class="chat-container">
+  <div class="chat-header">
+    WebSocket Chat
+  </div>
+  <div class="server-input">
+    <input type="text" id="serverAddress" placeholder="Enter WebSocket server address (e.g., ws://localhost:8080/ws-jakarta)">
+    <button onclick="connectToServer()">Connect</button>
+    <button class="disconnect" onclick="disconnectFromServer()" disabled>Disconnect</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <!-- Messages will appear here -->
+  </div>
+  <div class="chat-input">
+    <input type="text" id="messageInput" placeholder="Type your message..." disabled onkeydown="handleKeyDown(event)">
+    <button onclick="sendMessage()" disabled>Send</button>
+  </div>
+</div>
+
+<script>
+  let socket = null;
+
+  // Elements
+  const chatMessages = document.getElementById("chatMessages");
+  const messageInput = document.getElementById("messageInput");
+  const sendButton = document.querySelector(".chat-input button");
+  const disconnectButton = document.querySelector(".server-input .disconnect");
+
+  // Connect to WebSocket server
+  function connectToServer() {
+      const serverAddress = document.getElementById("serverAddress").value.trim();
+      if (!serverAddress) {
+          alert("Please enter a valid WebSocket server address.");
+          return;
+      }
+
+      // Close existing connection if any
+      if (socket) {
+          socket.close();
+      }
+
+      socket = new WebSocket(serverAddress);
+
+      socket.onopen = function () {
+          addMessage("Connected to WebSocket server!", "received");
+          messageInput.disabled = false;
+          sendButton.disabled = false;
+          disconnectButton.disabled = false;
+      };
+
+      socket.onmessage = function (event) {
+          const message = event.data;
+          addMessage(message, "received");
+      };
+
+      socket.onclose = function () {
+          addMessage("Disconnected from WebSocket server.", "received");
+          messageInput.disabled = true;
+          sendButton.disabled = true;
+          disconnectButton.disabled = true;
+      };
+
+      socket.onerror = function (error) {
+          addMessage("WebSocket error: " + error, "received");
+      };
+  }
+
+  // Disconnect from WebSocket server
+  function disconnectFromServer() {
+      if (socket) {
+          socket.close();
+          addMessage("You have disconnected from the server.", "received");
+      }
+  }
+
+  // Send message to server
+  function sendMessage() {
+      const message = messageInput.value.trim();
+      if (message && socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(message);
+          addMessage(message, "sent");
+          messageInput.value = ""; // Clear input field
+      }
+  }
+
+  // Handle Enter key for sending messages
+  function handleKeyDown(event) {
+      if (event.key === "Enter") {
+          sendMessage();
+      }
+  }
+
+  // Add message to chat
+  function addMessage(message, type) {
+      const messageElement = document.createElement("p");
+      messageElement.textContent = message;
+      messageElement.className = type;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+  }
+</script>
+</body>
+</html>
