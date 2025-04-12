@@ -42,25 +42,62 @@
         border-bottom: 1px solid #ddd;
         display: flex;
         flex-direction: column;
+        gap: 10px;
     }
 
-    .chat-messages p {
-        margin: 5px 0;
-        padding: 10px;
-        border-radius: 5px;
+    .chat-message {
+        display: flex;
+        align-items: flex-start;
         max-width: 70%;
     }
 
-    .chat-messages .sent {
-        background: #e0f7fa;
+    .chat-message.sent {
         align-self: flex-end;
-        text-align: right;
+        flex-direction: row-reverse;
     }
 
-    .chat-messages .received {
-        background: #f1f8e9;
+    .chat-message.received {
         align-self: flex-start;
-        text-align: left;
+    }
+
+    .chat-bubble {
+        padding: 10px 15px;
+        border-radius: 15px;
+        font-size: 14px;
+        line-height: 1.5;
+        position: relative;
+    }
+
+    .chat-bubble.sent {
+        background: #e0f7fa;
+        color: #000;
+    }
+
+    .chat-bubble.received {
+        background: #f1f8e9;
+        color: #000;
+    }
+
+    .chat-bubble.sent::after {
+        content: '';
+        position: absolute;
+        top: 10px;
+        right: -10px;
+        width: 0;
+        height: 0;
+        border: 5px solid transparent;
+        border-left-color: #e0f7fa;
+    }
+
+    .chat-bubble.received::after {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: -10px;
+        width: 0;
+        height: 0;
+        border: 5px solid transparent;
+        border-right-color: #f1f8e9;
     }
 
     .chat-input {
@@ -225,9 +262,14 @@
 
   // Add message to chat
   function addMessage(message, type) {
-      const messageElement = document.createElement("p");
-      messageElement.textContent = message;
-      messageElement.className = type;
+      const messageElement = document.createElement("div");
+      messageElement.className = `chat-message ${type}`;
+
+      const bubbleElement = document.createElement("div");
+      bubbleElement.className = `chat-bubble ${type}`;
+      bubbleElement.textContent = message;
+
+      messageElement.appendChild(bubbleElement);
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
   }
