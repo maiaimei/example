@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -168,13 +169,24 @@
     }
   </style>
 </head>
+
 <body>
+<h1>WebSocket User Switch</h1>
+
+<!-- 用户选择下拉菜单 -->
+<label for="userSelect">Select User:</label>
+<select id="userSelect">
+  <option value="1">Amy</option>
+  <option value="2">Mai</option>
+  <option value="3">Mei</option>
+</select>
 <div class="chat-container">
   <div class="chat-header">
     WebSocket Chat
   </div>
   <div class="server-input">
-    <input type="text" id="serverAddress" placeholder="Enter WebSocket server address (e.g., ws://localhost:8080/ws-jakarta)">
+    <input type="text" id="serverAddress"
+           placeholder="Enter WebSocket server address (e.g., ws://localhost:8080/ws-jakarta)">
     <button onclick="connectToServer()">Connect</button>
     <button class="disconnect" onclick="disconnectFromServer()" disabled>Disconnect</button>
   </div>
@@ -182,12 +194,16 @@
     <!-- Messages will appear here -->
   </div>
   <div class="chat-input">
-    <input type="text" id="messageInput" placeholder="Type your message..." disabled onkeydown="handleKeyDown(event)">
+    <input type="text" id="messageInput" placeholder="Type your message..." disabled
+           onkeydown="handleKeyDown(event)">
     <button onclick="sendMessage()" disabled>Send</button>
   </div>
 </div>
 
 <script>
+  // 获取用户选择的 clientId
+  const userSelect = document.getElementById("userSelect");
+
   let socket = null;
 
   // Elements
@@ -198,6 +214,12 @@
 
   // Connect to WebSocket server
   function connectToServer() {
+      const clientId = userSelect.value; // 获取选中的 clientId
+      if (!clientId) {
+          alert("Please select a user!");
+          return;
+      }
+
       const serverAddress = document.getElementById("serverAddress").value.trim();
       if (!serverAddress) {
           alert("Please enter a valid WebSocket server address.");
@@ -209,9 +231,26 @@
           socket.close();
       }
 
-      socket = new WebSocket(serverAddress);
+      //socket = new WebSocket(serverAddress);
+
+      // 使用 clientId 作为查询参数建立 WebSocket 连接
+      // const urlWithClientId = `${serverAddress}?clientId=${clientId}`;
+      // socket = new WebSocket(urlWithClientId);
+
+      // 使用 clientId 作为请求头建立 WebSocket 连接。如果使用浏览器原生 WebSocket API，无法直接设置自定义 headers，可以通过 URL 参数传递 clientId，然后在服务器端解析 URL 参数。
+      // socket = new WebSocket(serverAddress, [], {
+      //     headers: {
+      //         clientId: clientId // 这里设置 clientId 作为请求头
+      //     }
+      // });
+      socket = new WebSocket(`${serverAddress}?clientId=${clientId}`, [], {
+           headers: {
+               clientId: clientId
+           }
+       });
 
       socket.onopen = function () {
+          addMessage(`Connected as clientId: ${clientId}`);
           addMessage("Connected to WebSocket server!", "received");
           messageInput.disabled = false;
           sendButton.disabled = false;
@@ -275,4 +314,5 @@
   }
 </script>
 </body>
+
 </html>
