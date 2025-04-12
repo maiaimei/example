@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SampleTextWebSocketEndpoint {
 
-  // Store active WebSocket sessions with clientId as the key
+  // Store active sessions
   private static final ConcurrentHashMap<String, Session> activeSessions = new ConcurrentHashMap<>();
 
   @OnOpen

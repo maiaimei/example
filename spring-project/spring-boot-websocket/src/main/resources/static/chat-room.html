@@ -269,7 +269,7 @@
 
             // 使用 userId 作为查询参数建立 WebSocket 连接
             const serverAddress = "ws://localhost:8080/ws/chat";
-            var url = `${serverAddress}?userId=${loggedInUser.userId}`;
+            var url = `${serverAddress}/${loggedInUser.userId}?userId=${loggedInUser.userId}`;
             console.log("Connecting to WebSocket server:", url);
             socket = new WebSocket(url);
 
@@ -400,6 +400,7 @@
             if (message && socket && socket.readyState === WebSocket.OPEN) {
                 // 发送消息到 WebSocket 服务器
                 socket.send(JSON.stringify({
+                    fromUserId: loggedInUser.userId,
                     toUserId: selectedContact.userId,
                     message: message
                 }));
