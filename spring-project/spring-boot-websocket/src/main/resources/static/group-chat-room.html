@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group Chat Room</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container,
+    .chat-container {
+      width: 90%;
+      max-width: 800px;
+      background: #ffffff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .login-container h2 {
+      margin: 0;
+      text-align: center;
+      color: #333;
+    }
+
+    .login-container input,
+    .login-container button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .login-container button {
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .login-container button:hover {
+      background: #45a049;
+    }
+
+    .chat-container {
+      display: none;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 400px;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 5px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 5px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+    .chat-message {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .chat-message.sent {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-message.received {
+      align-self: flex-start;
+    }
+
+    .chat-bubble {
+      padding: 10px 15px;
+      border-radius: 15px;
+      font-size: 14px;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    .chat-bubble.sent {
+      background: #e0f7fa;
+      color: #000;
+    }
+
+    .chat-bubble.received {
+      background: #f1f8e9;
+      color: #000;
+    }
+
+    .chat-bubble.sent::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      right: -10px;
+      width: 0;
+      height: 0;
+      border: 5px solid transparent;
+      border-left-color: #e0f7fa;
+    }
+
+    .chat-bubble.received::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: -10px;
+      width: 0;
+      height: 0;
+      border: 5px solid transparent;
+      border-right-color: #f1f8e9;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-group input {
+      flex: 3;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .input-group button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .input-group button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 登录界面 -->
+  <div class="login-container" id="loginContainer">
+    <h2>Login</h2>
+    <input type="text" id="usernameInput" placeholder="Enter your username" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- 聊天界面 -->
+  <div class="chat-container" id="chatContainer">
+    <h2>Group Chat</h2>
+    <div class="chat-messages" id="chatMessages">
+      <!-- Messages will appear here -->
+    </div>
+    <div class="input-group">
+      <input type="text" id="messageInput" placeholder="Type your message..." disabled onkeydown="handleKeyDown(event)">
+      <button id="sendButton" onclick="sendMessage()" disabled>Send</button>
+    </div>
+  </div>
+
+  <script>
+    // 定义用户列表（JSON 对象数组）
+    const userList = [
+      { userId: "1", userName: "User 1" },
+      { userId: "2", userName: "User 2" },
+      { userId: "3", userName: "User 3" }
+    ];
+
+    let loggedInUser = null; // 当前登录用户
+    let socket = null;
+
+    function login() {
+      const usernameInput = document.getElementById("usernameInput").value.trim();
+
+      if (!usernameInput) {
+        console.error("Please enter a username!");
+        return;
+      }
+
+      // 校验用户是否在用户列表中
+      const user = userList.find(user => user.userName === usernameInput);
+      if (!user) {
+        console.error("Error: User does not exist!");
+        return;
+      }
+
+      // 设置登录用户
+      loggedInUser = user;
+
+      // 显示聊天界面，隐藏登录界面
+      document.getElementById("loginContainer").style.display = "none";
+      document.getElementById("chatContainer").style.display = "flex";
+
+      // 启用消息输入框和发送按钮
+      document.getElementById("messageInput").disabled = false;
+      document.getElementById("sendButton").disabled = false;
+
+      // 连接 WebSocket 服务器
+      connectToWebSocket();
+    }
+
+    function connectToWebSocket() {
+      socket = new WebSocket(`ws://localhost:8080/ws/group-chat?userId=${loggedInUser.userId}`);
+
+      socket.onopen = () => {
+        console.log("Connected to WebSocket server");
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const message = `${data.userName}: ${data.message}`;
+        addMessage(message, "received");
+      };
+
+      socket.onclose = () => {
+        console.log("Disconnected from WebSocket server");
+      };
+
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+    }
+
+    function sendMessage() {
+      const messageInput = document.getElementById("messageInput");
+      const message = messageInput.value.trim();
+
+      if (message && socket && socket.readyState === WebSocket.OPEN) {
+        // 发送消息到服务器
+        socket.send(JSON.stringify({
+          userId: loggedInUser.userId,
+          userName: loggedInUser.userName,
+          message: message
+        }));
+
+        // 在聊天窗口中显示消息
+        addMessage(`You: ${message}`, "sent");
+
+        // 清空输入框
+        messageInput.value = "";
+      }
+    }
+
+    function addMessage(message, type) {
+      const chatMessages = document.getElementById("chatMessages");
+      const messageElement = document.createElement("div");
+      messageElement.className = `chat-message ${type}`;
+
+      const bubbleElement = document.createElement("div");
+      bubbleElement.className = `chat-bubble ${type}`;
+      bubbleElement.textContent = message;
+
+      messageElement.appendChild(bubbleElement);
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -12,7 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
-public class OnlineChatTextWebSocketHandler extends TextWebSocketHandler {
+public class PointToPointChatTextWebSocketHandler extends TextWebSocketHandler {
 
   // JSON parser
   private static final ObjectMapper objectMapper = new ObjectMapper();

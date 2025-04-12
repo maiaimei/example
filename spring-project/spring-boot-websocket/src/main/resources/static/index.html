@@ -236,13 +236,13 @@
         function connectToServer() {
             const clientId = userSelect.value; // 获取选中的 clientId
             if (!clientId) {
-                alert("Please select a user!");
+                console.error("Please select a user!");
                 return;
             }
 
             const serverAddress = document.getElementById("serverAddress").value.trim();
             if (!serverAddress) {
-                alert("Please enter a valid WebSocket server address.");
+                console.error("Please enter a valid WebSocket server address.");
                 return;
             }
 
@@ -271,8 +271,8 @@
 
             socket.onopen = function () {
                 document.getElementById("chatMessages").style.display = "block"; // 显示聊天区域
-                addMessage(`Connected as clientId: ${clientId}`);
-                addMessage("Connected to WebSocket server!", "received");
+                console.log(`Connected as clientId: ${clientId}`);
+                console.log("Connected to WebSocket server!");
                 messageInput.disabled = false;
                 sendButton.disabled = false;
                 disconnectButton.disabled = false;
@@ -284,14 +284,14 @@
             };
 
             socket.onclose = function () {
-                addMessage("Disconnected from WebSocket server.", "received");
+                console.log("Disconnected from WebSocket server.");
                 messageInput.disabled = true;
                 sendButton.disabled = true;
                 disconnectButton.disabled = true;
             };
 
             socket.onerror = function (error) {
-                addMessage("WebSocket error: " + error, "received");
+                console.error("WebSocket error: " + error);
             };
         }
 
@@ -299,7 +299,7 @@
         function disconnectFromServer() {
             if (socket) {
                 socket.close();
-                addMessage("You have disconnected from the server.", "received");
+                console.log("You have disconnected from the server.");
             }
         }
 

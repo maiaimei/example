@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiple-Persons Chat</title>
+    <title>Multiple Chat Room</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -266,7 +266,7 @@
             }
 
             // 使用 userId 作为查询参数建立 WebSocket 连接
-            const serverAddress = "ws://localhost:8080/ws/online-chat";
+            const serverAddress = "ws://localhost:8080/ws/point-to-point-chat";
             var url = `${serverAddress}?userId=${loggedInUser.userId}`;
             console.log("Connecting to WebSocket server:", url);
             socket = new WebSocket(url);
