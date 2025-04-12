@@ -6,12 +6,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ScheduledWebSocketEvent {
+public class SampleTextWebSocketEvent {
 
   private final SampleTextWebSocketHandler webSocketHandler;
 
   @Autowired
-  public ScheduledWebSocketEvent(SampleTextWebSocketHandler webSocketHandler) {
+  public SampleTextWebSocketEvent(SampleTextWebSocketHandler webSocketHandler) {
     this.webSocketHandler = webSocketHandler;
   }
 
