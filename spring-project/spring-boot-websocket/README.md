@@ -1,8 +1,75 @@
 
 
+# 短轮询和长轮询
+
+我们知道HTTP 协议有一个缺陷：通信只能由客户端发起，服务器端无法向某个客户端推送数据。然而，在某些场景下，数据推送是非常必要的功能，为了实现推送技术，所用的技术都是轮询，即：客户端在特定的的时间间隔（如每 1 秒），由浏览器对服务器发出 HTTP 请求，然后由服务器返回最新的数据给客户端的浏览器。
+
+短轮询和长轮询是两种客户端与服务器进行数据交换的技术，主要用于实现如即时消息、实时更新等功能‌。
+
+定义和基本原理
+
+- ‌短轮询‌：客户端定期向服务器发送请求，询问是否有新的数据。服务器在接收到请求后，无论是否有新数据，都会立即响应。如果服务器没有新数据，客户端会在设定的时间间隔后再次发送请求‌12。
+- ‌长轮询‌：客户端发送请求到服务器后，服务器会保持这个连接，直到有新数据可以发送，然后才响应请求并关闭连接。客户端在接收到服务器的响应后，立即再次发起新的请求‌12。
+
+优缺点
+
+- ‌短轮询：
+  - ‌优点‌：实现简单，兼容性好，适用于任何类型的服务器。
+  - ‌缺点‌：效率低下，可能有大量无效请求，服务器负载较高，响应延迟较大‌12。
+- ‌长轮询：
+  - ‌优点‌：减少了无效请求，降低了服务器负载，响应更及时‌12。
+  - ‌缺点‌：实现相对复杂，服务器需要保持连接，可能会消耗更多资源，对服务器的并发连接数有较高要求‌12。
+
+应用场景
+
+- ‌短轮询‌：适用于实时性要求不高的场景，如小型应用或传统Web通信模式‌23。
+- ‌长轮询‌：适用于需要提高实时性的应用场景，如即时消息、实时更新等‌
+
+# SSE（Server-Sent Events）
+
+SSE（Server-Sent Events）是一种用于实现服务器主动向客户端推送数据的技术，也被称为“事件流”（Event Stream）。它基于 HTTP 协议，利用了其长连接特性，在客户端与服务器之间建立一条持久化连接，并通过这条连接实现服务器向客户端的实时数据推送。
+
+SSE 的优点和适用场景
+
+- 简单易用: SSE 协议相对于 WebSocket 更简单，实现起来更加轻量级，不需要复杂的握手过程。
+- 实时性: SSE 适合需要实时推送数据的场景，如即时通讯、股票市场报价、实时数据监控等。
+- 基于标准: SSE 是基于 HTTP 的标准协议，与现有的 Web 技术兼容性良好。
+
+SSE 的实现步骤
+
+- 服务端实现: 使用支持 SSE 的服务器端技术（如Node.js的express框架），在 HTTP 头部添加特定的 Content-Type（text/event-stream）和其他 SSE 相关字段，定期向客户端发送数据。
+
+  ```java
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+  
+  res.write('data: Hello\n\n'); // 发送数据给客户端
+  ```
+
+- 客户端实现: 使用 JavaScript 创建一个 EventSource 对象，监听从服务器发送的事件。
+
+  ```javascript
+  var eventSource = new EventSource('/sse-endpoint');
+  
+  eventSource.onmessage = function(event) {
+    console.log('Received event: ', event.data);
+    // 处理接收到的数据
+  };
+  ```
+
+SSE 的局限性
+
+- 单向通信: SSE 是服务器向客户端的单向通信，客户端无法向服务器端发送数据，因此不适合需要双向通信的应用。
+- 兼容性: 虽然现代浏览器普遍支持 SSE，但是在一些旧版本浏览器和移动设备上的支持可能有限。
+
 # WebSockets Tutorial
 
 WebSocket 是一种在浏览器和服务器之间建立双向通信通道的协议。它允许服务器在任意时刻发送消息给浏览器，而不需要浏览器先发起请求。
+
+WebSocket协议是基于TCP的一种网络协议，它实现了浏览器与服务器全双工（Full-duplex）通信。它允许服务端主动向客户端推送数据，这使得客户端和服务器之间的数据交换变得更加简单高效。在WebSocket API中，浏览器和服务器只需要完成一次握手，两者之间就可以创建持久性的连接，并进行双向数据传输。
 
 ## Developing Your First WebSocket Application
 
@@ -289,6 +356,26 @@ public class WebSocketConfig {
 - `ServerEndpointExporter` 是 Spring Boot 提供的工具，用于自动探测并将标注有 `@ServerEndpoint` 注解的Bean注册到 WebSocket 容器中。
 - 使用 `CopyOnWriteArraySet` 管理所有 WebSocket 会话，方便实现广播功能。
 - 每个客户端连接都对应一个标注有`@ServerEndpoint` 注解的类的新对象
+
+## WebSocket的事件
+
+我们知道HTTP协议使用http和https的统一资源标志符。WebSocket与HTTP类似，使用的是 ws 或 wss（类似于 HTTPS），其中 wss 表示在 TLS 之上的Websocket。例如：
+
+```
+ws://example.com/wsapi
+wss://secure.example.com/
+```
+
+WebSocket 使用和 HTTP 相同的 TCP 端口，可以绕过大多数防火墙的限制。默认情况下， WebSocket 协议使用80 端口；运行在 TLS 之上时，默认使用 443 端口。
+
+WebSocket 只是在 Socket 协议的基础上，非常轻的一层封装。在WebSocket API中定义了open、close、error、message等几个基本事件，这就使得WebSocket使用起来非常简单。 下面是在WebSocket API定义的事件：
+
+| 事件    | 事件处理程序      | 描述                       |
+| ------- | ----------------- | -------------------------- |
+| open    | Sokcket onopen    | 连接建立时触发             |
+| message | Sokcket onmessage | 客户端接收服务端数据时触发 |
+| error   | Sokcket onerror   | 通讯发生错误时触发         |
+| close   | Sokcket onclose   | 连接关闭时触发             |
 
 ## jakarta.websocket-api
 
