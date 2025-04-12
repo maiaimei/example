@@ -1,5 +1,7 @@
 package org.example.websocketdemo1.handler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,11 +11,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @Slf4j
-public class TwoPersonChatTextWebSocketHandler extends TextWebSocketHandler {
+public class OnlineChatTextWebSocketHandler extends TextWebSocketHandler {
 
   // JSON parser
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -42,9 +41,9 @@ public class TwoPersonChatTextWebSocketHandler extends TextWebSocketHandler {
           "message", chatMessage);
       // 转发消息给目标用户
       toSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(chatMessageData)));
-      log.info("Message sent to toUserId {}: {}", toUserId, chatMessage);
+      log.info("Message sent to userId {}: {}", toUserId, chatMessage);
     } else {
-      log.warn("Target user is not connected: toUserId={}", toUserId);
+      log.warn("To user is not connected: userId={}", toUserId);
     }
   }
 

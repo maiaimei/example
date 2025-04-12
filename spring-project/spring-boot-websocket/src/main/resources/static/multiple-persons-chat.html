@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Two-Person Chat</title>
+    <title>Multiple-Persons Chat</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -250,6 +250,9 @@
             { userId: "3", userName: "User 3" }
         ];
 
+        // 定义聊天记录列表，以 userId 为键，存储每个用户的聊天记录
+        const chatHistory = {};
+
         let loggedInUser = null; // 当前登录用户
         let selectedContact = null; // 当前选中的联系人
 
@@ -288,15 +291,20 @@
                 const fromUser = userList.find(user => user.userId === fromUserId);
 
                 if (fromUser) {
-                    // 更新 selectedContact 为发送消息的用户
-                    selectedContact = fromUser;
+                    // 如果该用户的聊天记录不存在，则初始化
+                    if (!chatHistory[fromUserId]) {
+                        chatHistory[fromUserId] = [];
+                    }
 
-                    // 更新 contactSelect 下拉框的选中项
-                    const contactSelect = document.getElementById("contactSelect");
-                    contactSelect.value = fromUser.userId;
+                    // 将消息添加到聊天记录中
+                    chatHistory[fromUserId].push({ type: "received", message });
+
+                    // 如果当前选中的联系人是消息发送者，则更新聊天窗口
+                    if (selectedContact && selectedContact.userId === fromUserId) {
+                        addMessage(message, "received");
+                    }
 
                     console.log(`Message received from ${fromUser.userName}: ${message}`);
-                    addMessage(message, "received");
                 } else {
                     console.error("Unknown source user:", fromUserId);
                 }
@@ -365,6 +373,16 @@
                 document.getElementById("messageInput").disabled = false;
                 document.getElementById("sendButton").disabled = false;
                 console.log(`Selected contact: ${selectedContact.userName}`);
+
+                // 清空聊天窗口
+                const chatMessages = document.getElementById("chatMessages");
+                chatMessages.innerHTML = "";
+
+                // 加载选中联系人的聊天记录
+                const history = chatHistory[selectedUserId] || [];
+                history.forEach(record => {
+                    addMessage(record.message, record.type);
+                });
             }
         }
 
@@ -379,13 +397,22 @@
 
             if (message && socket && socket.readyState === WebSocket.OPEN) {
                 // 发送消息到 WebSocket 服务器
-                // 假设消息格式为 JSON，例如：{"toUserId":"2","message":"Hello"}
                 socket.send(JSON.stringify({
                     toUserId: selectedContact.userId,
                     message: message
                 }));
+
+                // 将消息添加到聊天记录中
+                if (!chatHistory[selectedContact.userId]) {
+                    chatHistory[selectedContact.userId] = [];
+                }
+                chatHistory[selectedContact.userId].push({ type: "sent", message });
+
+                // 在聊天窗口中显示消息
                 addMessage(message, "sent");
-                messageInput.value = ""; // Clear input field
+
+                // 清空输入框
+                messageInput.value = "";
             }
         }
 
