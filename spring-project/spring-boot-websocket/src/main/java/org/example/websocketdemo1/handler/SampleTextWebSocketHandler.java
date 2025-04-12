@@ -9,12 +9,29 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+/**
+ * Sample WebSocket handler for handling text messages.
+ * <p>
+ * This handler manages WebSocket sessions and provides methods to send messages
+ * to specific clients
+ * or broadcast messages to all connected clients.
+ * </p>
+ * <p>
+ * 在 Spring 中，@Component 默认会将类的实例注册为单例（Singleton）作用域的 Bean。
+ * 这意味着通过 @Autowired 注入的 SampleTextWebSocketHandler 是一个全局共享的实例，
+ * 而 WebSocket 连接是由 Spring WebSocket 框架单独管理的，
+ * 每个客户端连接都会创建一个新的 WebSocketSession。
+ * 如果你发现注入的 SampleTextWebSocketHandler 实例与客户端连接的 WebSocket 不一致，
+ * 可能是因为你误解了 SampleTextWebSocketHandler 的作用。
+ * SampleTextWebSocketHandler 是一个处理 WebSocket 消息的类，而不是直接代表某个客户端连接。
+ * </p>
+ */
 @Slf4j
 @Component
 public class SampleTextWebSocketHandler extends TextWebSocketHandler {
 
   // Store active WebSocket sessions with clientId as the key
-  private final ConcurrentHashMap<String, WebSocketSession> activeSessions = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, WebSocketSession> activeSessions = new ConcurrentHashMap<>();
 
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
