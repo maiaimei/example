@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiple Chat Room</title>
+    <title>Chat Room</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -104,8 +104,9 @@
             overflow-y: auto;
             /* 启用垂直滚动条 */
             max-height: calc(100vh - 400px);
-            height: 300px;
             /* 限制最大高度，减去其他内容的高度 */
+            height: 400px;
+            min-height: 400px;
         }
 
         .chat-messages::-webkit-scrollbar {
@@ -129,6 +130,7 @@
         .chat-message {
             display: flex;
             align-items: flex-start;
+            margin-bottom: 10px;
         }
 
         .chat-message.sent {

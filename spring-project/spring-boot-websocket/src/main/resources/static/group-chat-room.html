@@ -76,7 +76,11 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 400px;
+      /* 启用垂直滚动条 */
+      max-height: calc(100vh - 400px);
+      /* 限制最大高度，减去其他内容的高度 */
+      height: 400px;
+      min-height: 400px;
     }
 
     .chat-messages::-webkit-scrollbar {
@@ -100,6 +104,7 @@
     .chat-message {
       display: flex;
       align-items: flex-start;
+      margin-bottom: 10px;
     }
 
     .chat-message.sent {

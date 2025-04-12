@@ -90,8 +90,9 @@
             overflow-y: auto;
             /* 启用垂直滚动条 */
             max-height: calc(100vh - 400px);
-            height: 300px;
             /* 限制最大高度，减去其他内容的高度 */
+            height: 400px;
+            min-height: 400px;
         }
 
         /* 自定义滚动条样式 */
@@ -120,6 +121,7 @@
         .chat-message {
             display: flex;
             align-items: flex-start;
+            margin-bottom: 10px;
         }
 
         .chat-message.sent {
@@ -209,7 +211,7 @@
                     disabled>Disconnect</button>
             </div>
             <!-- 聊天区域 -->
-            <div class="chat-messages" id="chatMessages" style="display: none;">
+            <div class="chat-messages" id="chatMessages">
                 <!-- Messages will appear here -->
             </div>
             <div class="input-group">
@@ -251,6 +253,8 @@
                 socket.close();
             }
 
+            chatMessages.innerHTML = ""; // Clear chat messages
+
             //socket = new WebSocket(serverAddress);
 
             // 使用 clientId 作为查询参数建立 WebSocket 连接
@@ -270,7 +274,6 @@
             });
 
             socket.onopen = function () {
-                document.getElementById("chatMessages").style.display = "block"; // 显示聊天区域
                 console.log(`Connected as clientId: ${clientId}`);
                 console.log("Connected to WebSocket server!");
                 messageInput.disabled = false;

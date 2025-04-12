@@ -15,8 +15,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
   @Override
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(new SampleTextWebSocketHandler(), "/ws/sample/text").setAllowedOrigins("*");
-    registry.addHandler(new ExampleTextWebSocketHandler(), "/ws/example/text").setAllowedOrigins("*");
+    registry.addHandler(new SampleTextWebSocketHandler(), "/ws/sample-text").setAllowedOrigins("*");
+    registry.addHandler(new ExampleTextWebSocketHandler(), "/ws/example-text").setAllowedOrigins("*");
     registry.addHandler(new ChatTextWebSocketHandler(), "/ws/chat").setAllowedOrigins("*");
     registry.addHandler(new GroupChatTextWebSocketHandler(), "/ws/group-chat").setAllowedOrigins("*");
   }

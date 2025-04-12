@@ -15,7 +15,7 @@ public class ExampleTextWebSocketHandler extends TextWebSocketHandler {
     log.info("Received message from session {}: {}", session.getId(), clientMessage);
 
     // Echo the message back to the client
-    session.sendMessage(new TextMessage("Response message from ExampleTextWebSocketHandler: " + clientMessage));
+    session.sendMessage(new TextMessage(String.format("Response message from ExampleTextWebSocketHandler: %s", clientMessage)));
   }
 
   @Override
