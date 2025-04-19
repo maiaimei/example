@@ -1,5 +1,5 @@
 @startuml
-title Spring Boot 3.4.x Startup Process (Detailed)
+title Spring Boot 3.4.x Servlet Web Application Startup Process (Detailed)
 skinparam backgroundColor #FFFFFF
 skinparam handwritten false
 skinparam ParticipantPadding 20
@@ -11,12 +11,11 @@ participant ApplicationProperties
 participant WebApplicationType
 participant SpringFactoriesLoader
 participant DefaultBootstrapContext
-participant SpringApplicationBannerPrinter
 participant ApplicationContextFactory
+participant AnnotationConfigServletWebServerApplicationContext
 participant GenericApplicationContext
 participant AnnotatedBeanDefinitionReader
 participant ClassPathBeanDefinitionScanner
-participant ConfigurableApplicationContext
 participant ApplicationContextInitializer
 participant BeanFactory
 participant AutoConfiguration
@@ -27,14 +26,14 @@ App -> SpringApplication: SpringApplication.run(Class<?> primarySource, String..
 == Create a new SpringApplication instance ==
 
 activate SpringApplication
-SpringApplication -> SpringApplication: new SpringApplication(Class<?> primarySource)
-activate SpringApplication #FFBBBB
 
 SpringApplication -> ApplicationProperties: new ApplicationProperties()
 activate ApplicationProperties
 return properties
 deactivate ApplicationProperties
 
+SpringApplication -> SpringApplication: new SpringApplication(Class<?> primarySource)
+activate SpringApplication #98FB98
 SpringApplication -> WebApplicationType: deduceFromClasspath()
 activate SpringApplication #87CEEB
 activate WebApplicationType
@@ -103,58 +102,56 @@ note right: SpringApplicationRunListener is a powerful tool for monitoring and c
 deactivate SpringFactoriesLoader
 deactivate SpringApplication
 
-SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">starting()</font>
+SpringApplication -[#FF8700]> SpringApplicationRunListeners: <font color="#FF8700">starting()</font>
 activate SpringApplicationRunListeners
-SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+SpringApplicationRunListeners --[#FF8700]> SpringApplication
 deactivate SpringApplicationRunListeners
 
 SpringApplication -> SpringApplication: prepareEnvironment()
-activate SpringApplication #DarkSalmon
+activate SpringApplication #87CEEB
 SpringApplication -> SpringApplication: getOrCreateEnvironment()
 SpringApplication -> ApplicationContextFactory: createEnvironment()
 activate ApplicationContextFactory
 ApplicationContextFactory --> SpringApplication: ConfigurableEnvironment
 deactivate ApplicationContextFactory
 SpringApplication -> SpringApplication: configureEnvironment()
-SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">environmentPrepared()</font>
+SpringApplication -[#FF8700]> SpringApplicationRunListeners: <font color="#FF8700">environmentPrepared()</font>
 activate SpringApplicationRunListeners
-SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+SpringApplicationRunListeners --[#FF8700]> SpringApplication
 deactivate SpringApplicationRunListeners
-SpringApplication -> SpringApplication: bindToSpringApplication()
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: printBanner()
-activate SpringApplication #87CEEB
-SpringApplication -> SpringApplicationBannerPrinter: print()
-activate SpringApplicationBannerPrinter
-SpringApplicationBannerPrinter --> SpringApplication
-deactivate SpringApplicationBannerPrinter
-deactivate SpringApplication
 
 SpringApplication -> SpringApplication: createApplicationContext()
 activate SpringApplication #87CEEB
 SpringApplication -> ApplicationContextFactory: create()
 activate ApplicationContextFactory
-ApplicationContextFactory -> GenericApplicationContext
-note right: this.beanFactory = new DefaultListableBeanFactory();
+ApplicationContextFactory -> AnnotationConfigServletWebServerApplicationContext: new AnnotationConfigServletWebServerApplicationContext()
+activate AnnotationConfigServletWebServerApplicationContext
+AnnotationConfigServletWebServerApplicationContext -> GenericApplicationContext: super()
 activate GenericApplicationContext
-GenericApplicationContext --> ApplicationContextFactory
+GenericApplicationContext -> GenericApplicationContext: this.beanFactory = new DefaultListableBeanFactory()
+GenericApplicationContext --> AnnotationConfigServletWebServerApplicationContext
 deactivate GenericApplicationContext
-ApplicationContextFactory -> AnnotatedBeanDefinitionReader
-note right: AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry)\norg.springframework.context.annotation.internalConfigurationAnnotationProcessor\norg.springframework.context.annotation.internalAutowiredAnnotationProcessor\norg.springframework.context.annotation.internalCommonAnnotationProcessor\norg.springframework.context.event.internalEventListenerProcessor\norg.springframework.context.event.internalEventListenerFactory
+AnnotationConfigServletWebServerApplicationContext -> AnnotatedBeanDefinitionReader: this.reader = new AnnotatedBeanDefinitionReader(this)
 activate AnnotatedBeanDefinitionReader
-AnnotatedBeanDefinitionReader --> ApplicationContextFactory
+AnnotatedBeanDefinitionReader -> AnnotatedBeanDefinitionReader: initialize()
+note right: AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry)\norg.springframework.context.annotation.internalConfigurationAnnotationProcessor\norg.springframework.context.annotation.internalAutowiredAnnotationProcessor\norg.springframework.context.annotation.internalCommonAnnotationProcessor\norg.springframework.context.event.internalEventListenerProcessor\norg.springframework.context.event.internalEventListenerFactory
+AnnotatedBeanDefinitionReader --> AnnotationConfigServletWebServerApplicationContext
 deactivate AnnotatedBeanDefinitionReader
-ApplicationContextFactory -> ClassPathBeanDefinitionScanner
+AnnotationConfigServletWebServerApplicationContext -> ClassPathBeanDefinitionScanner: this.scanner = new ClassPathBeanDefinitionScanner(this)
 activate ClassPathBeanDefinitionScanner
-ClassPathBeanDefinitionScanner --> ApplicationContextFactory
+ClassPathBeanDefinitionScanner --> AnnotationConfigServletWebServerApplicationContext
 deactivate ClassPathBeanDefinitionScanner
+deactivate AnnotationConfigServletWebServerApplicationContext
+AnnotationConfigServletWebServerApplicationContext --> ApplicationContextFactory: ConfigurableApplicationContext
 ApplicationContextFactory --> SpringApplication: ConfigurableApplicationContext
 deactivate ApplicationContextFactory
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: prepareContext()
-activate SpringApplication #FFB6C1
+activate SpringApplication #87CEEB
 SpringApplication -> ConfigurableApplicationContext: setEnvironment()
 activate ConfigurableApplicationContext
 ConfigurableApplicationContext --> SpringApplication
@@ -163,13 +160,13 @@ SpringApplication -> ConfigurableApplicationContext: postProcessApplicationConte
 activate ConfigurableApplicationContext
 ConfigurableApplicationContext --> SpringApplication
 deactivate ConfigurableApplicationContext
-SpringApplication -> ApplicationContextInitializer: initialize(context)
+SpringApplication -> SpringApplication: applyInitializers(ConfigurableApplicationContext context)
 activate ApplicationContextInitializer
 ApplicationContextInitializer --> SpringApplication
 deactivate ApplicationContextInitializer
-SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">contextPrepared()</font>
+SpringApplication -[#FF8700]> SpringApplicationRunListeners: <font color="#FF8700">contextPrepared()</font>
 activate SpringApplicationRunListeners
-SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+SpringApplicationRunListeners --[#FF8700]> SpringApplication
 deactivate SpringApplicationRunListeners
 SpringApplication -> DefaultBootstrapContext: close(context)
 activate DefaultBootstrapContext
@@ -177,14 +174,14 @@ DefaultBootstrapContext --> SpringApplication
 deactivate DefaultBootstrapContext
 SpringApplication -> SpringApplication: load()
 note right: register bean definition: the startup class (also known as the main class) which is the entry point of the program
-SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">contextLoaded()</font>
+SpringApplication -[#FF8700]> SpringApplicationRunListeners: <font color="#FF8700">contextLoaded()</font>
 activate SpringApplicationRunListeners
-SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+SpringApplicationRunListeners --[#FF8700]> SpringApplication
 deactivate SpringApplicationRunListeners
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: refreshContext()
-activate SpringApplication #FFD700
+activate SpringApplication #87CEEB
 SpringApplication -> ConfigurableApplicationContext: refresh()
 activate ConfigurableApplicationContext
 
@@ -208,16 +205,13 @@ deactivate ConfigurableApplicationContext
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: afterRefresh()
-activate SpringApplication #B0E0E6
-SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">started()</font>
+SpringApplication -[#FF8700]> SpringApplicationRunListeners: <font color="#FF8700">started()</font>
 activate SpringApplicationRunListeners
-SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+SpringApplicationRunListeners --[#FF8700]> SpringApplication
 deactivate SpringApplicationRunListeners
-SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">running()</font>
-activate SpringApplicationRunListeners
-SpringApplicationRunListeners --[#FF8C00]> SpringApplication
-deactivate SpringApplicationRunListeners
-deactivate SpringApplication
+
+SpringApplication -> SpringApplication: callRunners()
+note right: ApplicationRunner\nCommandLineRunner
 
 SpringApplication --> App: return ApplicationContext
 deactivate SpringApplication
