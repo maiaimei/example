@@ -14,11 +14,9 @@ participant DefaultBootstrapContext
 participant ApplicationContextFactory
 participant AnnotationConfigServletWebServerApplicationContext
 participant GenericApplicationContext
+participant AbstractApplicationContext
 participant AnnotatedBeanDefinitionReader
 participant ClassPathBeanDefinitionScanner
-participant ApplicationContextInitializer
-participant BeanFactory
-participant AutoConfiguration
 participant SpringApplicationRunListeners
 
 App -> SpringApplication: SpringApplication.run(Class<?> primarySource, String... args)
@@ -152,18 +150,9 @@ deactivate SpringApplication
 
 SpringApplication -> SpringApplication: prepareContext()
 activate SpringApplication #87CEEB
-SpringApplication -> ConfigurableApplicationContext: setEnvironment()
-activate ConfigurableApplicationContext
-ConfigurableApplicationContext --> SpringApplication
-deactivate ConfigurableApplicationContext
-SpringApplication -> ConfigurableApplicationContext: postProcessApplicationContext()
-activate ConfigurableApplicationContext
-ConfigurableApplicationContext --> SpringApplication
-deactivate ConfigurableApplicationContext
+SpringApplication -> SpringApplication: setEnvironment()
+SpringApplication -> SpringApplication: postProcessApplicationContext()
 SpringApplication -> SpringApplication: applyInitializers(ConfigurableApplicationContext context)
-activate ApplicationContextInitializer
-ApplicationContextInitializer --> SpringApplication
-deactivate ApplicationContextInitializer
 SpringApplication -[#FF8700]> SpringApplicationRunListeners: <font color="#FF8700">contextPrepared()</font>
 activate SpringApplicationRunListeners
 SpringApplicationRunListeners --[#FF8700]> SpringApplication
@@ -182,26 +171,27 @@ deactivate SpringApplication
 
 SpringApplication -> SpringApplication: refreshContext()
 activate SpringApplication #87CEEB
-SpringApplication -> ConfigurableApplicationContext: refresh()
-activate ConfigurableApplicationContext
+SpringApplication -> AbstractApplicationContext: refresh()
+activate AbstractApplicationContext
 
-ConfigurableApplicationContext -> BeanFactory: prepareBeanFactory()
-activate BeanFactory
-BeanFactory --> ConfigurableApplicationContext
-deactivate BeanFactory
+AbstractApplicationContext -> AbstractApplicationContext: invokeBeanFactoryPostProcessors(beanFactory)
 
-ConfigurableApplicationContext -> AutoConfiguration: processAutoConfiguration()
-activate AutoConfiguration
-AutoConfiguration --> ConfigurableApplicationContext
-deactivate AutoConfiguration
+AbstractApplicationContext -> AbstractApplicationContext: registerBeanPostProcessors(beanFactory)
 
-ConfigurableApplicationContext -> ConfigurableApplicationContext: finishBeanFactoryInitialization()
-activate ConfigurableApplicationContext #98FB98
-ConfigurableApplicationContext -> ConfigurableApplicationContext: preInstantiateSingletons()
-deactivate ConfigurableApplicationContext
+AbstractApplicationContext -> AbstractApplicationContext: initMessageSource()
 
-ConfigurableApplicationContext --> SpringApplication
-deactivate ConfigurableApplicationContext
+AbstractApplicationContext -> AbstractApplicationContext: initApplicationEventMulticaster()
+
+AbstractApplicationContext -> AbstractApplicationContext: onRefresh()
+
+AbstractApplicationContext -> AbstractApplicationContext: registerListeners()
+
+AbstractApplicationContext -> AbstractApplicationContext: finishBeanFactoryInitialization(beanFactory)
+
+AbstractApplicationContext -> AbstractApplicationContext: finishRefresh()
+
+AbstractApplicationContext --> SpringApplication
+deactivate AbstractApplicationContext
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: afterRefresh()
@@ -212,6 +202,11 @@ deactivate SpringApplicationRunListeners
 
 SpringApplication -> SpringApplication: callRunners()
 note right: ApplicationRunner\nCommandLineRunner
+
+SpringApplication -[#FF8700]> SpringApplicationRunListeners: <font color="#FF8700">ready()</font>
+activate SpringApplicationRunListeners
+SpringApplicationRunListeners --[#FF8700]> SpringApplication
+deactivate SpringApplicationRunListeners
 
 SpringApplication --> App: return ApplicationContext
 deactivate SpringApplication
