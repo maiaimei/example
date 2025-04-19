@@ -6,151 +6,188 @@ skinparam ParticipantPadding 20
 skinparam BoxPadding 10
 
 participant "Main Application" as App
-participant "SpringApplication" as SpringApp
-participant "ApplicationProperties" as ApplicationProperties
-participant "WebApplicationType" as WebType
-participant "SpringFactoriesLoader" as SpringFactoriesLoader
-participant "ApplicationContextInitializer" as Initializer
-participant "ApplicationListeners" as Listeners
-participant "Environment" as Env
-participant "BannerPrinter" as Banner
-participant "ApplicationContext" as Context
-participant "BeanFactory" as BeanFactory
-participant "AutoConfiguration" as AutoConfig
+participant SpringApplication
+participant ApplicationProperties
+participant WebApplicationType
+participant SpringFactoriesLoader
+participant DefaultBootstrapContext
+participant SpringApplicationRunListener
+participant SpringApplicationBannerPrinter
+participant ApplicationContextFactory
+participant ApplicationContextInitializer
+participant ApplicationContext
+participant BeanFactory
+participant AutoConfiguration
+participant SpringApplicationRunListeners
 
-App -> SpringApp: SpringApplication.run(Class<?> primarySource, String... args)
+App -> SpringApplication: SpringApplication.run(Class<?> primarySource, String... args)
 
 == Create a new SpringApplication instance ==
 
-activate SpringApp
-SpringApp -> SpringApp: new SpringApplication(Class<?> primarySource)
-activate SpringApp #FFBBBB
+activate SpringApplication
+SpringApplication -> SpringApplication: new SpringApplication(Class<?> primarySource)
+activate SpringApplication #FFBBBB
 
-SpringApp -> ApplicationProperties: new ApplicationProperties()
+SpringApplication -> ApplicationProperties: new ApplicationProperties()
 activate ApplicationProperties
 return properties
 deactivate ApplicationProperties
 
-SpringApp -> WebType: deduceFromClasspath()
-activate WebType
+SpringApplication -> WebApplicationType: deduceFromClasspath()
+activate SpringApplication #87CEEB
+activate WebApplicationType
 return WebApplicationType
-deactivate WebType
+deactivate WebApplicationType
 
-SpringApp -> ApplicationProperties: setWebApplicationType()
+SpringApplication -> ApplicationProperties: setWebApplicationType()
 activate ApplicationProperties
 note right: Internal property setting:\nthis.webApplicationType = type
-ApplicationProperties --> SpringApp
+ApplicationProperties --> SpringApplication
 deactivate ApplicationProperties
+deactivate SpringApplication
 
-SpringApp -> SpringApp: getSpringFactoriesInstances(BootstrapRegistryInitializer.class)
-SpringApp -> SpringFactoriesLoader: load()
+SpringApplication -> SpringApplication: getSpringFactoriesInstances(BootstrapRegistryInitializer.class)
+activate SpringApplication #87CEEB
+SpringApplication -> SpringFactoriesLoader: load()
 note right: Load and instantiate the factory implementations of BootstrapRegistryInitializer from "META-INF/spring.factories"
 activate SpringFactoriesLoader
 return a list of BootstrapRegistryInitializer
 note right: BootstrapRegistryInitializer is a powerful tool for early initialization and configuration in Spring Boot applications, \nespecially when you need to set up components before the main application context is created.
 deactivate SpringFactoriesLoader
+deactivate SpringApplication
 
-SpringApp -> SpringApp: getSpringFactoriesInstances(ApplicationContextInitializer.class)
-SpringApp -> SpringFactoriesLoader: load()
+SpringApplication -> SpringApplication: getSpringFactoriesInstances(ApplicationContextInitializer.class)
+activate SpringApplication #87CEEB
+SpringApplication -> SpringFactoriesLoader: load()
 note right: Load and instantiate the factory implementations of ApplicationContextInitializer from "META-INF/spring.factories"
 activate SpringFactoriesLoader
 return a list of ApplicationContextInitializer
 note right: ApplicationContextInitializer is a powerful tool for customizing the Spring application context during its initialization phase.
 deactivate SpringFactoriesLoader
+deactivate SpringApplication
 
-SpringApp -> SpringApp: getSpringFactoriesInstances(ApplicationListener.class)
-SpringApp -> SpringFactoriesLoader: load()
+SpringApplication -> SpringApplication: getSpringFactoriesInstances(ApplicationListener.class)
+activate SpringApplication #87CEEB
+SpringApplication -> SpringFactoriesLoader: load()
 note right: Load and instantiate the factory implementations of ApplicationListener from "META-INF/spring.factories"
 activate SpringFactoriesLoader
 return a list of ApplicationListener
 note right: ApplicationListener is a powerful tool for handling various types of events in Spring Boot applications, \nenabling loose coupling and flexible event-driven architectures.
 deactivate SpringFactoriesLoader
-deactivate SpringApp
+deactivate SpringApplication
+deactivate SpringApplication
 
 == Run the Spring application, creating and refreshing a new ApplicationContext ==
 
-SpringApp -> SpringApp: run(String... args)
-activate SpringApp #98FB98
+SpringApplication -> SpringApplication: run(String... args)
+activate SpringApplication #98FB98
 
-SpringApp -> Listeners: starting()
-activate Listeners
-Listeners --> SpringApp
-deactivate Listeners
+SpringApplication -> SpringApplication: createBootstrapContext()
+activate SpringApplication #87CEEB
+SpringApplication -> DefaultBootstrapContext: new DefaultBootstrapContext()
+activate DefaultBootstrapContext
+return DefaultBootstrapContext
+deactivate DefaultBootstrapContext
+deactivate SpringApplication
 
-SpringApp -> SpringApp: prepareEnvironment()
-activate SpringApp #DarkSalmon
-SpringApp -> Env: createEnvironment()
-activate Env
-Env --> SpringApp: ConfigurableEnvironment
-deactivate Env
-SpringApp -> SpringApp: configureEnvironment()
-SpringApp -> SpringApp: bindToSpringApplication()
-deactivate SpringApp
+SpringApplication -> SpringApplication: getRunListeners()
+activate SpringApplication #87CEEB
+SpringApplication -> SpringApplication: getSpringFactoriesInstances(SpringApplicationRunListener.class)
+SpringApplication -> SpringFactoriesLoader: load()
+note right: Load and instantiate the factory implementations of SpringApplicationRunListener from "META-INF/spring.factories"
+activate SpringFactoriesLoader
+return a list of SpringApplicationRunListener
+note right: SpringApplicationRunListener is a powerful tool for monitoring and customizing the Spring Boot application startup process.
+deactivate SpringFactoriesLoader
+deactivate SpringApplication
 
-SpringApp -> Banner: printBanner()
-activate Banner
-Banner --> SpringApp
-deactivate Banner
+SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">starting()</font>
+activate SpringApplicationRunListeners
+SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+deactivate SpringApplicationRunListeners
 
-SpringApp -> SpringApp: createApplicationContext()
-activate SpringApp #87CEEB
-SpringApp -> Context: new AnnotationConfigApplicationContext()
-activate Context
-Context --> SpringApp: ConfigurableApplicationContext
-deactivate Context
-deactivate SpringApp
+SpringApplication -> SpringApplication: prepareEnvironment()
+activate SpringApplication #DarkSalmon
+SpringApplication -> SpringApplication: getOrCreateEnvironment()
+SpringApplication -> ApplicationContextFactory: createEnvironment()
+activate ApplicationContextFactory
+ApplicationContextFactory --> SpringApplication: ConfigurableEnvironment
+deactivate ApplicationContextFactory
+SpringApplication -> SpringApplication: configureEnvironment()
+SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">environmentPrepared()</font>
+activate SpringApplicationRunListeners
+SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+deactivate SpringApplicationRunListeners
+SpringApplication -> SpringApplication: bindToSpringApplication()
+deactivate SpringApplication
 
-SpringApp -> SpringApp: prepareContext()
-activate SpringApp #FFB6C1
-SpringApp -> Context: setEnvironment()
-SpringApp -> Context: postProcessApplicationContext()
-SpringApp -> Initializer: initialize(context)
-activate Initializer
-Initializer --> SpringApp
-deactivate Initializer
-SpringApp -> Listeners: contextPrepared()
-activate Listeners
-Listeners --> SpringApp
-deactivate Listeners
-deactivate SpringApp
+SpringApplication -> SpringApplication: printBanner()
+activate SpringApplication #87CEEB
+SpringApplication -> SpringApplicationBannerPrinter: print()
+activate SpringApplicationBannerPrinter
+SpringApplicationBannerPrinter --> SpringApplication
+deactivate SpringApplicationBannerPrinter
+deactivate SpringApplication
 
-SpringApp -> SpringApp: refreshContext()
-activate SpringApp #FFD700
-SpringApp -> Context: refresh()
-activate Context
+SpringApplication -> SpringApplication: createApplicationContext()
+activate SpringApplication #87CEEB
+SpringApplication -> ApplicationContextFactory: create()
+activate ApplicationContextFactory
+ApplicationContextFactory --> SpringApplication: ConfigurableApplicationContext
+deactivate ApplicationContextFactory
+deactivate SpringApplication
 
-Context -> BeanFactory: prepareBeanFactory()
+SpringApplication -> SpringApplication: prepareContext()
+activate SpringApplication #FFB6C1
+SpringApplication -> ApplicationContext: setEnvironment()
+SpringApplication -> ApplicationContext: postProcessApplicationContext()
+SpringApplication -> ApplicationContextInitializer: initialize(context)
+activate ApplicationContextInitializer
+ApplicationContextInitializer --> SpringApplication
+deactivate ApplicationContextInitializer
+SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">contextPrepared()</font>
+activate SpringApplicationRunListeners
+SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+deactivate SpringApplicationRunListeners
+deactivate SpringApplication
+
+SpringApplication -> SpringApplication: refreshContext()
+activate SpringApplication #FFD700
+SpringApplication -> ApplicationContext: refresh()
+activate ApplicationContext
+
+ApplicationContext -> BeanFactory: prepareBeanFactory()
 activate BeanFactory
-BeanFactory --> Context
+BeanFactory --> ApplicationContext
 deactivate BeanFactory
 
-Context -> AutoConfig: processAutoConfiguration()
-activate AutoConfig
-AutoConfig --> Context
-deactivate AutoConfig
+ApplicationContext -> AutoConfiguration: processAutoConfiguration()
+activate AutoConfiguration
+AutoConfiguration --> ApplicationContext
+deactivate AutoConfiguration
 
-Context -> Context: finishBeanFactoryInitialization()
-activate Context #98FB98
-Context -> Context: preInstantiateSingletons()
-deactivate Context
+ApplicationContext -> ApplicationContext: finishBeanFactoryInitialization()
+activate ApplicationContext #98FB98
+ApplicationContext -> ApplicationContext: preInstantiateSingletons()
+deactivate ApplicationContext
 
-Context --> SpringApp
-deactivate Context
-deactivate SpringApp
+ApplicationContext --> SpringApplication
+deactivate ApplicationContext
+deactivate SpringApplication
 
-SpringApp -> SpringApp: afterRefresh()
-activate SpringApp #B0E0E6
-SpringApp -> Listeners: started()
-activate Listeners
-Listeners --> SpringApp
-deactivate Listeners
-SpringApp -> Listeners: running()
-activate Listeners
-Listeners --> SpringApp
-deactivate Listeners
-deactivate SpringApp
+SpringApplication -> SpringApplication: afterRefresh()
+activate SpringApplication #B0E0E6
+SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">started()</font>
+activate SpringApplicationRunListeners
+SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+deactivate SpringApplicationRunListeners
+SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C00">running()</font>
+activate SpringApplicationRunListeners
+SpringApplicationRunListeners --[#FF8C00]> SpringApplication
+deactivate SpringApplicationRunListeners
+deactivate SpringApplication
 
-SpringApp --> App: return ApplicationContext
-deactivate SpringApp
+SpringApplication --> App: return ApplicationContext
+deactivate SpringApplication
 
 @enduml

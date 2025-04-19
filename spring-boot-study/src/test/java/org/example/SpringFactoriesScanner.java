@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarFile;
 import org.springframework.boot.BootstrapRegistryInitializer;
+import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.Resource;
@@ -63,28 +64,23 @@ public class SpringFactoriesScanner {
     // Method 3: Using Spring's SpringFactoriesLoader (internal implementation)
     public void printLoadedFactories() {
         // Get all BootstrapRegistryInitializer implementations as an example
-        List<BootstrapRegistryInitializer> bootstrapRegistryInitializers = SpringFactoriesLoader
-            .loadFactories(BootstrapRegistryInitializer.class, getClass().getClassLoader());
-        System.out.println("Found BootstrapRegistryInitializers:");
-        bootstrapRegistryInitializers.forEach(listener ->
-            System.out.println(listener.getClass().getName()));
-        System.out.println("Total number of BootstrapRegistryInitializers: " + bootstrapRegistryInitializers.size());
+        printLoadedFactories(BootstrapRegistryInitializer.class);
         
         // Get all ApplicationContextInitializer implementations
-        List<ApplicationContextInitializer> applicationContextInitializers = SpringFactoriesLoader
-            .loadFactories(ApplicationContextInitializer.class, getClass().getClassLoader());
-        System.out.println("\nFound ApplicationContextInitializers:");
-        applicationContextInitializers.forEach(initializer ->
-            System.out.println(initializer.getClass().getName()));
-        System.out.println("Total number of ApplicationContextInitializers: " + applicationContextInitializers.size());
+        printLoadedFactories(ApplicationContextInitializer.class);
 
         // Get all ApplicationListener implementations as an example
-        List<ApplicationListener> applicationListeners = SpringFactoriesLoader
-            .loadFactories(ApplicationListener.class, getClass().getClassLoader());
-        System.out.println("\nFound ApplicationListeners:");
-        applicationListeners.forEach(listener ->
-            System.out.println(listener.getClass().getName()));
-        System.out.println("Total number of ApplicationListeners: " + applicationListeners.size());
+        printLoadedFactories(ApplicationListener.class);
+
+        printLoadedFactories(SpringApplicationRunListener.class);
+    }
+
+    public <T> void  printLoadedFactories(Class<T> clazz){
+        List<T> factories = SpringFactoriesLoader.loadFactories(clazz, getClass().getClassLoader());
+        System.out.printf("\nFound %ss:\n", clazz.getSimpleName());
+        factories.forEach(factory -> System.out.println(factory.getClass().getName()));
+        System.out.printf("Total number of %ss: %d",clazz.getSimpleName(), factories.size());
+        System.out.println();
     }
 
     // Utility method to print JAR file information
