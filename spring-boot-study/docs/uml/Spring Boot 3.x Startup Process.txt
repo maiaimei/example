@@ -47,6 +47,7 @@ SpringApp -> SpringFactoriesLoader: load()
 note right: Load and instantiate the factory implementations of BootstrapRegistryInitializer from "META-INF/spring.factories"
 activate SpringFactoriesLoader
 return a list of BootstrapRegistryInitializer
+note right: BootstrapRegistryInitializer is a powerful tool for early initialization and configuration in Spring Boot applications, \nespecially when you need to set up components before the main application context is created.
 deactivate SpringFactoriesLoader
 
 SpringApp -> SpringApp: getSpringFactoriesInstances(ApplicationContextInitializer.class)
@@ -54,6 +55,7 @@ SpringApp -> SpringFactoriesLoader: load()
 note right: Load and instantiate the factory implementations of ApplicationContextInitializer from "META-INF/spring.factories"
 activate SpringFactoriesLoader
 return a list of ApplicationContextInitializer
+note right: ApplicationContextInitializer is a powerful tool for customizing the Spring application context during its initialization phase.
 deactivate SpringFactoriesLoader
 
 SpringApp -> SpringApp: getSpringFactoriesInstances(ApplicationListener.class)
@@ -61,6 +63,7 @@ SpringApp -> SpringFactoriesLoader: load()
 note right: Load and instantiate the factory implementations of ApplicationListener from "META-INF/spring.factories"
 activate SpringFactoriesLoader
 return a list of ApplicationListener
+note right: ApplicationListener is a powerful tool for handling various types of events in Spring Boot applications, \nenabling loose coupling and flexible event-driven architectures.
 deactivate SpringFactoriesLoader
 deactivate SpringApp
 
