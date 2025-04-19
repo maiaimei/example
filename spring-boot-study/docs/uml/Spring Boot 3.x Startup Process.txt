@@ -1,5 +1,5 @@
 @startuml
-title Spring Boot 3.x Startup Process (Detailed)
+title Spring Boot 3.4.x Startup Process (Detailed)
 skinparam backgroundColor #FFFFFF
 skinparam handwritten false
 skinparam ParticipantPadding 20
@@ -11,11 +11,11 @@ participant ApplicationProperties
 participant WebApplicationType
 participant SpringFactoriesLoader
 participant DefaultBootstrapContext
-participant SpringApplicationRunListener
 participant SpringApplicationBannerPrinter
 participant ApplicationContextFactory
+participant GenericApplicationContext
+participant ConfigurableApplicationContext
 participant ApplicationContextInitializer
-participant ApplicationContext
 participant BeanFactory
 participant AutoConfiguration
 participant SpringApplicationRunListeners
@@ -133,14 +133,25 @@ SpringApplication -> SpringApplication: createApplicationContext()
 activate SpringApplication #87CEEB
 SpringApplication -> ApplicationContextFactory: create()
 activate ApplicationContextFactory
+ApplicationContextFactory -> GenericApplicationContext: <init>
+note right: this.beanFactory = new DefaultListableBeanFactory();
+activate GenericApplicationContext
+GenericApplicationContext --> ApplicationContextFactory
+deactivate GenericApplicationContext
 ApplicationContextFactory --> SpringApplication: ConfigurableApplicationContext
 deactivate ApplicationContextFactory
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: prepareContext()
 activate SpringApplication #FFB6C1
-SpringApplication -> ApplicationContext: setEnvironment()
-SpringApplication -> ApplicationContext: postProcessApplicationContext()
+SpringApplication -> ConfigurableApplicationContext: setEnvironment()
+activate ConfigurableApplicationContext
+ConfigurableApplicationContext --> SpringApplication
+deactivate ConfigurableApplicationContext
+SpringApplication -> ConfigurableApplicationContext: postProcessApplicationContext()
+activate ConfigurableApplicationContext
+ConfigurableApplicationContext --> SpringApplication
+deactivate ConfigurableApplicationContext
 SpringApplication -> ApplicationContextInitializer: initialize(context)
 activate ApplicationContextInitializer
 ApplicationContextInitializer --> SpringApplication
@@ -149,30 +160,34 @@ SpringApplication -[#FF8C00]> SpringApplicationRunListeners: <font color="#FF8C0
 activate SpringApplicationRunListeners
 SpringApplicationRunListeners --[#FF8C00]> SpringApplication
 deactivate SpringApplicationRunListeners
+SpringApplication -> DefaultBootstrapContext: close(context)
+activate DefaultBootstrapContext
+DefaultBootstrapContext --> SpringApplication
+deactivate DefaultBootstrapContext
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: refreshContext()
 activate SpringApplication #FFD700
-SpringApplication -> ApplicationContext: refresh()
-activate ApplicationContext
+SpringApplication -> ConfigurableApplicationContext: refresh()
+activate ConfigurableApplicationContext
 
-ApplicationContext -> BeanFactory: prepareBeanFactory()
+ConfigurableApplicationContext -> BeanFactory: prepareBeanFactory()
 activate BeanFactory
-BeanFactory --> ApplicationContext
+BeanFactory --> ConfigurableApplicationContext
 deactivate BeanFactory
 
-ApplicationContext -> AutoConfiguration: processAutoConfiguration()
+ConfigurableApplicationContext -> AutoConfiguration: processAutoConfiguration()
 activate AutoConfiguration
-AutoConfiguration --> ApplicationContext
+AutoConfiguration --> ConfigurableApplicationContext
 deactivate AutoConfiguration
 
-ApplicationContext -> ApplicationContext: finishBeanFactoryInitialization()
-activate ApplicationContext #98FB98
-ApplicationContext -> ApplicationContext: preInstantiateSingletons()
-deactivate ApplicationContext
+ConfigurableApplicationContext -> ConfigurableApplicationContext: finishBeanFactoryInitialization()
+activate ConfigurableApplicationContext #98FB98
+ConfigurableApplicationContext -> ConfigurableApplicationContext: preInstantiateSingletons()
+deactivate ConfigurableApplicationContext
 
-ApplicationContext --> SpringApplication
-deactivate ApplicationContext
+ConfigurableApplicationContext --> SpringApplication
+deactivate ConfigurableApplicationContext
 deactivate SpringApplication
 
 SpringApplication -> SpringApplication: afterRefresh()
