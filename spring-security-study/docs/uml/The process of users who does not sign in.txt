@@ -1,5 +1,5 @@
 @startuml
-title Spring Security Process
+title The process of users who does not sign in
 skinparam backgroundColor #FFFFFF
 skinparam handwritten false
 skinparam ParticipantPadding 20
@@ -88,6 +88,7 @@ activate SecurityContextHolderAwareRequestFilter
 SecurityContextHolderAwareRequestFilter --> VirtualFilterChain
 deactivate SecurityContextHolderAwareRequestFilter
 VirtualFilterChain -> AnonymousAuthenticationFilter: doFilter(ServletRequest request, ServletResponse response)
+note right: create an AnonymousAuthenticationToken
 activate AnonymousAuthenticationFilter
 AnonymousAuthenticationFilter --> VirtualFilterChain
 deactivate AnonymousAuthenticationFilter
