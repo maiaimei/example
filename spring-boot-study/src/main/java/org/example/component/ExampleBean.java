@@ -1,4 +1,4 @@
-package org.example.config;
+package org.example.component;
 
 public class ExampleBean {
 

@@ -22,6 +22,7 @@ participant AbstractBeanFactory
 participant ConfigurationClassPostProcessor
 participant ConfigurationClassParser
 participant ConfigurationClassBeanDefinitionReader
+participant BeanFactoryPostProcessor
 participant SpringApplicationRunListeners
 
 App -> SpringApplication: SpringApplication.run(Class<?> primarySource, String... args)
@@ -189,26 +190,31 @@ return ConfigurationClassPostProcessor
 deactivate AbstractBeanFactory
 
 PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate: invokeBeanDefinitionRegistryPostProcessors(Collection<? extends BeanDefinitionRegistryPostProcessor> postProcessors, BeanDefinitionRegistry registry, ApplicationStartup applicationStartup)
+note right: 使用BeanDefinitionRegistryPostProcessor注册Bean
 activate PostProcessorRegistrationDelegate
 PostProcessorRegistrationDelegate -> ConfigurationClassPostProcessor: postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry)
 activate ConfigurationClassPostProcessor
 ConfigurationClassPostProcessor -> ConfigurationClassPostProcessor: processConfigBeanDefinitions(BeanDefinitionRegistry registry)
+note right: 解析@ComponentScan\n处理@Bean方法\n处理@Import注解
 activate ConfigurationClassPostProcessor
 
 ConfigurationClassPostProcessor -> ConfigurationClassParser: parse(Set<BeanDefinitionHolder> configCandidates)
-note right: 解析@ComponentScan
+note right: ConfigurationClassParser#doProcessConfigurationClass
 activate ConfigurationClassParser
 ConfigurationClassParser --> ConfigurationClassPostProcessor
 deactivate ConfigurationClassParser
 
-ConfigurationClassPostProcessor -> ConfigurationClassBeanDefinitionReader: loadBeanDefinitions(Set<ConfigurationClass> configurationModel)
-note right: 处理@Configuration注解和@Bean方法\n处理@Import注解
-activate ConfigurationClassBeanDefinitionReader
-ConfigurationClassBeanDefinitionReader --> ConfigurationClassPostProcessor
-deactivate ConfigurationClassBeanDefinitionReader
+deactivate ConfigurationClassPostProcessor
+deactivate ConfigurationClassPostProcessor
+deactivate PostProcessorRegistrationDelegate
 
-deactivate ConfigurationClassPostProcessor
-deactivate ConfigurationClassPostProcessor
+PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate: invokeBeanFactoryPostProcessors(Collection<? extends BeanFactoryPostProcessor> postProcessors, ConfigurableListableBeanFactory beanFactory)
+activate PostProcessorRegistrationDelegate
+PostProcessorRegistrationDelegate -> BeanFactoryPostProcessor: postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
+note right: 使用BeanFactoryPostProcessor注册Bean
+activate BeanFactoryPostProcessor
+BeanFactoryPostProcessor --> PostProcessorRegistrationDelegate
+deactivate BeanFactoryPostProcessor
 deactivate PostProcessorRegistrationDelegate
 
 PostProcessorRegistrationDelegate --> AbstractApplicationContext
