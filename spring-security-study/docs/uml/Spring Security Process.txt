@@ -1,0 +1,92 @@
+@startuml
+title Spring Security Process
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+participant FilterChainProxy
+participant VirtualFilterChainDecorator
+participant VirtualFilterChain
+participant DisableEncodeUrlFilter
+participant WebAsyncManagerIntegrationFilter
+participant SecurityContextHolderFilter
+participant HeaderWriterFilter
+participant CsrfFilter
+participant LogoutFilter
+participant UsernamePasswordAuthenticationFilter
+participant DefaultResourcesFilter
+participant DefaultLoginPageGeneratingFilter
+participant DefaultLogoutPageGeneratingFilter
+participant BasicAuthenticationFilter
+participant RequestCacheAwareFilter
+participant SecurityContextHolderAwareRequestFilter
+participant AnonymousAuthenticationFilter
+participant ExceptionTranslationFilter
+participant AuthorizationFilter
+
+[-> FilterChainProxy: send request
+activate FilterChainProxy
+FilterChainProxy -> FilterChainProxy: doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+activate FilterChainProxy
+FilterChainProxy -> FilterChainProxy: doFilterInternal(ServletRequest request, ServletResponse response, FilterChain chain)
+activate FilterChainProxy
+FilterChainProxy -> VirtualFilterChainDecorator
+activate VirtualFilterChainDecorator
+VirtualFilterChainDecorator -> VirtualFilterChain: doFilter(ServletRequest request, ServletResponse response)
+activate VirtualFilterChain
+VirtualFilterChain -> DisableEncodeUrlFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DisableEncodeUrlFilter
+DisableEncodeUrlFilter -> WebAsyncManagerIntegrationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate WebAsyncManagerIntegrationFilter
+WebAsyncManagerIntegrationFilter -> SecurityContextHolderFilter: doFilter(ServletRequest request, ServletResponse response)
+activate SecurityContextHolderFilter
+SecurityContextHolderFilter -> HeaderWriterFilter: doFilter(ServletRequest request, ServletResponse response)
+activate HeaderWriterFilter
+HeaderWriterFilter -> CsrfFilter: doFilter(ServletRequest request, ServletResponse response)
+activate CsrfFilter
+CsrfFilter -> LogoutFilter: doFilter(ServletRequest request, ServletResponse response)
+activate LogoutFilter
+LogoutFilter -> UsernamePasswordAuthenticationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate UsernamePasswordAuthenticationFilter
+UsernamePasswordAuthenticationFilter -> DefaultResourcesFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DefaultResourcesFilter
+DefaultResourcesFilter -> DefaultLoginPageGeneratingFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DefaultLoginPageGeneratingFilter
+DefaultLoginPageGeneratingFilter -> DefaultLogoutPageGeneratingFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DefaultLogoutPageGeneratingFilter
+DefaultLogoutPageGeneratingFilter -> BasicAuthenticationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate BasicAuthenticationFilter
+BasicAuthenticationFilter -> RequestCacheAwareFilter: doFilter(ServletRequest request, ServletResponse response)
+activate RequestCacheAwareFilter
+RequestCacheAwareFilter -> SecurityContextHolderAwareRequestFilter: doFilter(ServletRequest request, ServletResponse response)
+activate SecurityContextHolderAwareRequestFilter
+SecurityContextHolderAwareRequestFilter -> AnonymousAuthenticationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate AnonymousAuthenticationFilter
+AnonymousAuthenticationFilter -> ExceptionTranslationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate ExceptionTranslationFilter
+ExceptionTranslationFilter -> AuthorizationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate AuthorizationFilter
+deactivate AuthorizationFilter
+deactivate ExceptionTranslationFilter
+deactivate AnonymousAuthenticationFilter
+deactivate SecurityContextHolderAwareRequestFilter
+deactivate RequestCacheAwareFilter
+deactivate BasicAuthenticationFilter
+deactivate DefaultLogoutPageGeneratingFilter
+deactivate DefaultLoginPageGeneratingFilter
+deactivate DefaultResourcesFilter
+deactivate UsernamePasswordAuthenticationFilter
+deactivate LogoutFilter
+deactivate CsrfFilter
+deactivate HeaderWriterFilter
+deactivate SecurityContextHolderFilter
+deactivate WebAsyncManagerIntegrationFilter
+deactivate DisableEncodeUrlFilter
+deactivate VirtualFilterChain
+deactivate VirtualFilterChainDecorator
+deactivate FilterChainProxy
+deactivate FilterChainProxy
+deactivate FilterChainProxy
+
+@enduml
