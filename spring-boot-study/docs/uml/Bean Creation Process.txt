@@ -1,0 +1,27 @@
+@startuml
+title Bean Creation Process
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+participant AbstractBeanFactory
+participant AbstractAutowireCapableBeanFactory
+
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory: <T> T getBean(String name, Class<T> requiredType)
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory: <T> T doGetBean(String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
+activate AbstractBeanFactory
+AbstractBeanFactory -> AbstractAutowireCapableBeanFactory: createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
+activate AbstractAutowireCapableBeanFactory
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory: doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
+activate AbstractAutowireCapableBeanFactory
+deactivate AbstractAutowireCapableBeanFactory
+AbstractAutowireCapableBeanFactory --> AbstractBeanFactory
+deactivate AbstractAutowireCapableBeanFactory
+deactivate AbstractBeanFactory
+deactivate AbstractBeanFactory
+deactivate AbstractBeanFactory
+
+@enduml

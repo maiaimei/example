@@ -17,6 +17,11 @@ participant GenericApplicationContext
 participant AbstractApplicationContext
 participant AnnotatedBeanDefinitionReader
 participant ClassPathBeanDefinitionScanner
+participant PostProcessorRegistrationDelegate
+participant AbstractBeanFactory
+participant ConfigurationClassPostProcessor
+participant ConfigurationClassParser
+participant ConfigurationClassBeanDefinitionReader
 participant SpringApplicationRunListeners
 
 App -> SpringApplication: SpringApplication.run(Class<?> primarySource, String... args)
@@ -175,6 +180,40 @@ SpringApplication -> AbstractApplicationContext: refresh()
 activate AbstractApplicationContext
 
 AbstractApplicationContext -> AbstractApplicationContext: invokeBeanFactoryPostProcessors(beanFactory)
+activate AbstractApplicationContext
+AbstractApplicationContext -> PostProcessorRegistrationDelegate: invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors)
+activate PostProcessorRegistrationDelegate
+PostProcessorRegistrationDelegate -> AbstractBeanFactory: <T> T getBean(String name, Class<T> requiredType)
+activate AbstractBeanFactory
+return ConfigurationClassPostProcessor
+deactivate AbstractBeanFactory
+
+PostProcessorRegistrationDelegate -> PostProcessorRegistrationDelegate: invokeBeanDefinitionRegistryPostProcessors(Collection<? extends BeanDefinitionRegistryPostProcessor> postProcessors, BeanDefinitionRegistry registry, ApplicationStartup applicationStartup)
+activate PostProcessorRegistrationDelegate
+PostProcessorRegistrationDelegate -> ConfigurationClassPostProcessor: postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry)
+activate ConfigurationClassPostProcessor
+ConfigurationClassPostProcessor -> ConfigurationClassPostProcessor: processConfigBeanDefinitions(BeanDefinitionRegistry registry)
+activate ConfigurationClassPostProcessor
+
+ConfigurationClassPostProcessor -> ConfigurationClassParser: parse(Set<BeanDefinitionHolder> configCandidates)
+note right: 解析@ComponentScan
+activate ConfigurationClassParser
+ConfigurationClassParser --> ConfigurationClassPostProcessor
+deactivate ConfigurationClassParser
+
+ConfigurationClassPostProcessor -> ConfigurationClassBeanDefinitionReader: loadBeanDefinitions(Set<ConfigurationClass> configurationModel)
+note right: 处理@Configuration注解和@Bean方法\n处理@Import注解
+activate ConfigurationClassBeanDefinitionReader
+ConfigurationClassBeanDefinitionReader --> ConfigurationClassPostProcessor
+deactivate ConfigurationClassBeanDefinitionReader
+
+deactivate ConfigurationClassPostProcessor
+deactivate ConfigurationClassPostProcessor
+deactivate PostProcessorRegistrationDelegate
+
+PostProcessorRegistrationDelegate --> AbstractApplicationContext
+deactivate PostProcessorRegistrationDelegate
+deactivate AbstractApplicationContext
 
 AbstractApplicationContext -> AbstractApplicationContext: registerBeanPostProcessors(beanFactory)
 
