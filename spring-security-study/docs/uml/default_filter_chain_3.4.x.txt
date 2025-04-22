@@ -1,0 +1,137 @@
+@startuml
+title Default Filter Chain
+skinparam backgroundColor #FFFFFF
+skinparam handwritten false
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+participant DelegatingFilterProxy
+participant WebMvcSecurityConfiguration
+participant CompositeFilter
+participant CompositeFilter_VirtualFilterChain [
+    =CompositeFilter
+    ----
+    ""VirtualFilterChain""
+]
+participant FilterChainProxy
+participant FilterChainProxy_VirtualFilterChainDecorator [
+    =FilterChainProxy
+    ----
+    ""VirtualFilterChainDecorator""
+]
+participant FilterChainProxy_VirtualFilterChain [
+    =FilterChainProxy
+    ----
+    ""VirtualFilterChain""
+]
+participant DisableEncodeUrlFilter
+participant WebAsyncManagerIntegrationFilter
+participant SecurityContextHolderFilter
+participant HeaderWriterFilter
+participant CsrfFilter
+participant LogoutFilter
+participant UsernamePasswordAuthenticationFilter
+participant DefaultResourcesFilter
+participant DefaultLoginPageGeneratingFilter
+participant DefaultLogoutPageGeneratingFilter
+participant BasicAuthenticationFilter
+participant RequestCacheAwareFilter
+participant SecurityContextHolderAwareRequestFilter
+participant AnonymousAuthenticationFilter
+participant ExceptionTranslationFilter
+participant AuthorizationFilter
+
+[-> DelegatingFilterProxy: send request
+DelegatingFilterProxy -> WebMvcSecurityConfiguration: doFilter()
+WebMvcSecurityConfiguration -> CompositeFilter: doFilter()
+CompositeFilter -> CompositeFilter_VirtualFilterChain: doFilter()
+CompositeFilter_VirtualFilterChain -> FilterChainProxy: doFilter()
+
+activate FilterChainProxy
+FilterChainProxy -> FilterChainProxy: doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+activate FilterChainProxy
+FilterChainProxy -> FilterChainProxy: doFilterInternal(ServletRequest request, ServletResponse response, FilterChain chain)
+activate FilterChainProxy
+FilterChainProxy -> FilterChainProxy_VirtualFilterChainDecorator
+activate FilterChainProxy_VirtualFilterChainDecorator
+FilterChainProxy_VirtualFilterChainDecorator -> FilterChainProxy_VirtualFilterChain: doFilter(ServletRequest request, ServletResponse response)
+activate FilterChainProxy_VirtualFilterChain
+FilterChainProxy_VirtualFilterChain -> DisableEncodeUrlFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DisableEncodeUrlFilter
+DisableEncodeUrlFilter --> FilterChainProxy_VirtualFilterChain
+deactivate DisableEncodeUrlFilter
+FilterChainProxy_VirtualFilterChain -> WebAsyncManagerIntegrationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate WebAsyncManagerIntegrationFilter
+WebAsyncManagerIntegrationFilter --> FilterChainProxy_VirtualFilterChain
+deactivate WebAsyncManagerIntegrationFilter
+FilterChainProxy_VirtualFilterChain -> SecurityContextHolderFilter: doFilter(ServletRequest request, ServletResponse response)
+activate SecurityContextHolderFilter
+SecurityContextHolderFilter --> FilterChainProxy_VirtualFilterChain
+deactivate SecurityContextHolderFilter
+FilterChainProxy_VirtualFilterChain -> HeaderWriterFilter: doFilter(ServletRequest request, ServletResponse response)
+activate HeaderWriterFilter
+HeaderWriterFilter --> FilterChainProxy_VirtualFilterChain
+deactivate HeaderWriterFilter
+FilterChainProxy_VirtualFilterChain -> CsrfFilter: doFilter(ServletRequest request, ServletResponse response)
+activate CsrfFilter
+CsrfFilter --> FilterChainProxy_VirtualFilterChain
+deactivate CsrfFilter
+FilterChainProxy_VirtualFilterChain -> LogoutFilter: doFilter(ServletRequest request, ServletResponse response)
+activate LogoutFilter
+LogoutFilter --> FilterChainProxy_VirtualFilterChain
+deactivate LogoutFilter
+FilterChainProxy_VirtualFilterChain -> UsernamePasswordAuthenticationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate UsernamePasswordAuthenticationFilter
+UsernamePasswordAuthenticationFilter --> FilterChainProxy_VirtualFilterChain
+deactivate UsernamePasswordAuthenticationFilter
+FilterChainProxy_VirtualFilterChain -> DefaultResourcesFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DefaultResourcesFilter
+DefaultResourcesFilter --> FilterChainProxy_VirtualFilterChain
+deactivate DefaultResourcesFilter
+FilterChainProxy_VirtualFilterChain -> DefaultLoginPageGeneratingFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DefaultLoginPageGeneratingFilter
+DefaultLoginPageGeneratingFilter --> FilterChainProxy_VirtualFilterChain
+deactivate DefaultLoginPageGeneratingFilter
+FilterChainProxy_VirtualFilterChain -> DefaultLogoutPageGeneratingFilter: doFilter(ServletRequest request, ServletResponse response)
+activate DefaultLogoutPageGeneratingFilter
+DefaultLogoutPageGeneratingFilter --> FilterChainProxy_VirtualFilterChain
+deactivate DefaultLogoutPageGeneratingFilter
+FilterChainProxy_VirtualFilterChain -> BasicAuthenticationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate BasicAuthenticationFilter
+BasicAuthenticationFilter --> FilterChainProxy_VirtualFilterChain
+deactivate BasicAuthenticationFilter
+FilterChainProxy_VirtualFilterChain -> RequestCacheAwareFilter: doFilter(ServletRequest request, ServletResponse response)
+activate RequestCacheAwareFilter
+RequestCacheAwareFilter --> FilterChainProxy_VirtualFilterChain
+deactivate RequestCacheAwareFilter
+FilterChainProxy_VirtualFilterChain -> SecurityContextHolderAwareRequestFilter: doFilter(ServletRequest request, ServletResponse response)
+activate SecurityContextHolderAwareRequestFilter
+SecurityContextHolderAwareRequestFilter --> FilterChainProxy_VirtualFilterChain
+deactivate SecurityContextHolderAwareRequestFilter
+FilterChainProxy_VirtualFilterChain -> AnonymousAuthenticationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate AnonymousAuthenticationFilter
+AnonymousAuthenticationFilter --> FilterChainProxy_VirtualFilterChain
+deactivate AnonymousAuthenticationFilter
+FilterChainProxy_VirtualFilterChain -> ExceptionTranslationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate ExceptionTranslationFilter
+ExceptionTranslationFilter --> FilterChainProxy_VirtualFilterChain
+deactivate ExceptionTranslationFilter
+FilterChainProxy_VirtualFilterChain -> AuthorizationFilter: doFilter(ServletRequest request, ServletResponse response)
+activate AuthorizationFilter
+AuthorizationFilter --> FilterChainProxy_VirtualFilterChain
+deactivate AuthorizationFilter
+FilterChainProxy_VirtualFilterChain --> FilterChainProxy_VirtualFilterChainDecorator
+deactivate FilterChainProxy_VirtualFilterChain
+FilterChainProxy_VirtualFilterChainDecorator --> FilterChainProxy
+deactivate FilterChainProxy_VirtualFilterChainDecorator
+deactivate FilterChainProxy
+deactivate FilterChainProxy
+deactivate FilterChainProxy
+
+FilterChainProxy --> CompositeFilter_VirtualFilterChain
+CompositeFilter_VirtualFilterChain --> CompositeFilter
+CompositeFilter --> WebMvcSecurityConfiguration
+WebMvcSecurityConfiguration --> DelegatingFilterProxy
+[<-- DelegatingFilterProxy: send response
+
+@enduml
