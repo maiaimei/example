@@ -2,7 +2,7 @@
 
 ## JWT概念
 
-**JWT（JSON Web Token）**是一种开放标准（[RFC 7519](https://tools.ietf.org/html/rfc7519)），用于在各方之间安全地传输信息。JWT以JSON对象的形式存在，通过数字签名保证信息可以被验证和信任。JWT可以使用HMAC算法的密钥或RSA/ECDSA的公钥/私钥对进行签名。
+**[JWT](https://jwt.io/)（JSON Web Token）**是一种开放标准（[RFC 7519](https://tools.ietf.org/html/rfc7519)），用于在各方之间安全地传输信息。JWT以JSON对象的形式存在，通过数字签名保证信息可以被验证和信任。JWT可以使用HMAC算法的密钥或RSA/ECDSA的公钥/私钥对进行签名。
 
 **优点**：
 
@@ -101,10 +101,16 @@ HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload) ,secret)
 
 一次登录，多系统通用。JWT可以在多个系统之间共享，无需在每个系统中重新登录。这对于拥有多个应用的组织特别有用，可以提供无缝的用户体验。
 
+### 邮件激活
+
+## Java实现
+
+[https://jwt.io/libraries?filter=java](https://jwt.io/libraries?filter=java)
+
+[https://github.com/jwtk/jjwt](https://github.com/jwtk/jjwt)
+
 ## 参考资料
 
 [https://juejin.cn/post/7485239620579196939](https://juejin.cn/post/7485239620579196939)
-
-[https://developer.aliyun.com/article/1613854](https://developer.aliyun.com/article/1613854)
 
 [https://cloud.tencent.com/developer/article/2430977](https://cloud.tencent.com/developer/article/2430977)
