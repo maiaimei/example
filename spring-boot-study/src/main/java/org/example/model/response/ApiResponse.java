@@ -1,36 +1,38 @@
 package org.example.model.response;
 
-import java.math.BigDecimal;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.example.constants.ResponseCode;
+import org.example.utils.DateTimeUtils;
+import org.example.utils.TraceIdUtils;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ApiResponse<T> {
 
-  /**
-   * 响应的状态码或错误代码
-   */
   private Integer code;
-
-  /**
-   * 成功的简短描述或详细信息
-   */
   private String message;
-
-  /**
-   * 消息key，用于前端国际化
-   */
-  private String messageKey;
-
-  /**
-   * 当请求成功时，这里通常包含请求的数据。在错误响应中，这个字段可以包含额外的错误详情或修正建议。
-   */
   private T data;
-
-  /**
-   * 响应生成的时间戳
-   */
-  private Long timestamp;
-
+  private LocalDateTime timestamp;
   private String path;
-  private BigDecimal traceId;
+  private String method;
+  private String traceId;
+
+  public static <T> ApiResponse<T> success(T data, HttpServletRequest request) {
+    return ApiResponse.<T>builder()
+        .code(ResponseCode.SUCCESS.getCode())
+        .message(ResponseCode.SUCCESS.getMessage())
+        .data(data)
+        .timestamp(DateTimeUtils.getCurrentUtcTime())
+        .path(request.getRequestURI())
+        .method(request.getMethod())
+        .traceId(TraceIdUtils.getTraceId())
+        .build();
+  }
 }

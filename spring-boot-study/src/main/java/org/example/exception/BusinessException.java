@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.example.constants.ResponseCode;
 
 @Getter
-public class BusinessException extends RuntimeException{
+public class BusinessException extends RuntimeException {
 
   private final ResponseCode responseCode;
 

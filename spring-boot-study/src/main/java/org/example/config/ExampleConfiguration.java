@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 public class ExampleConfiguration {
 
   @Bean(name = "exampleBean01")
-  public ExampleBean exampleBean(){
+  public ExampleBean exampleBean() {
     return new ExampleBean();
   }
 }

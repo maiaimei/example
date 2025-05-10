@@ -1,15 +1,13 @@
 package org.example.advice;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
-import java.util.Objects;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
 import org.example.constants.ResponseCode;
+import org.example.model.response.ApiErrorResponse;
 import org.example.model.response.ApiResponse;
 import org.example.utils.JsonUtils;
-import org.example.utils.ResponseUtils;
-import org.springframework.context.MessageSource;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -20,7 +18,6 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /**
@@ -28,11 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  */
 @Slf4j
 @RestControllerAdvice
-@RequiredArgsConstructor
 public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
-
-  private final MessageSource responseMessageSource;
-  private final LocaleResolver localeResolver;
 
   @Override
   public boolean supports(MethodParameter returnType,
@@ -82,7 +75,7 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
     try {
       // 处理空值
       if (body == null) {
-        return handleNullResponse(selectedContentType, response);
+        return handleNullResponse(selectedContentType, request, response);
       }
 
       // 处理文件下载
@@ -97,29 +90,34 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
 
       // 处理String类型
       if (body instanceof String) {
-        return handleStringResponse(body, selectedContentType, response);
+        return handleStringResponse(body, selectedContentType, request, response);
       }
 
-      // 处理ApiResponse类型返回值
+      // 处理ApiErrorResponse类型
+      if (body instanceof ApiErrorResponse apiErrorResponse) {
+        return apiErrorResponse;
+      }
+
+      // 处理ApiResponse类型
       if (body instanceof ApiResponse<?> apiResponse) {
-        return handleApiResponse(apiResponse);
+        return apiResponse;
       }
 
       // 其他类型统一包装
-      return handleApiResponse(ResponseUtils.success(body));
+      return ApiResponse.success(body, (HttpServletRequest) request);
     } catch (Exception e) {
       log.error("Error processing response body", e);
-      return handleApiResponse(ResponseUtils.error(ResponseCode.INTERNAL_ERROR));
+      return ApiErrorResponse.error(ResponseCode.INTERNAL_ERROR, (HttpServletRequest) request);
     }
   }
 
   /**
    * 处理空值返回
    */
-  private Object handleNullResponse(MediaType selectedContentType, ServerHttpResponse response) {
+  private Object handleNullResponse(MediaType selectedContentType, ServerHttpRequest request, ServerHttpResponse response) {
     if (MediaType.APPLICATION_JSON.includes(selectedContentType)) {
       response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      return JsonUtils.toJsonString(handleApiResponse(ResponseUtils.success(null)));
+      return JsonUtils.toJsonString(ApiResponse.success(null, (HttpServletRequest) request));
     }
     response.setStatusCode(HttpStatus.NO_CONTENT);
     return null;
@@ -128,31 +126,15 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
   /**
    * 处理String类型响应
    */
-  private Object handleStringResponse(Object body, MediaType selectedContentType, ServerHttpResponse response) {
+  private Object handleStringResponse(Object body, MediaType selectedContentType, ServerHttpRequest request,
+      ServerHttpResponse response) {
     // 如果客户端期望JSON
     if (MediaType.APPLICATION_JSON.includes(selectedContentType)) {
       response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      return JsonUtils.toJsonString(handleApiResponse(ResponseUtils.success(body)));
+      return JsonUtils.toJsonString(ApiResponse.success(body, (HttpServletRequest) request));
     }
     // 如果是普通文本
     return body;
-  }
-
-  /**
-   * 处理ApiResponse的国际化消息
-   */
-  private ApiResponse<?> handleApiResponse(ApiResponse<?> apiResponse) {
-    String messageKey = apiResponse.getMessageKey();
-    if (Objects.nonNull(messageKey)) {
-      try {
-        String message = responseMessageSource.getMessage(messageKey, null, null);
-        log.debug("Resolved message for key {}: {}", messageKey, message);
-        apiResponse.setMessage(message);
-      } catch (Exception e) {
-        log.warn("Failed to resolve message for key: {}", messageKey, e);
-      }
-    }
-    return apiResponse;
   }
 
   /**
