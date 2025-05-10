@@ -3,14 +3,14 @@ package org.example.model.response;
 import lombok.Data;
 
 @Data
-public class ApiError {
+public class ApiErrorDetail {
 
-  private String type;
+  private String field;
 
   /**
-   * 类型key，用于前端国际化
+   * 字段key，用于前端国际化
    */
-  private String typeKey;
+  private String fieldKey;
 
   private String message;
 
