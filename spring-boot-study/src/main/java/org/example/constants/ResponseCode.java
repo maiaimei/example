@@ -12,7 +12,7 @@ public enum ResponseCode {
   UNAUTHORIZED(401, "Authentication Required"),
   FORBIDDEN(403, "Authorization Required"),
   NOT_FOUND(404, "Not Found"),
-  INTERNAL_ERROR(500, "Error");
+  INTERNAL_SERVER_ERROR(500, "Unknown");
 
   private final int code;
   private final String message;

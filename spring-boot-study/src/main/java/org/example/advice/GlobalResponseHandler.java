@@ -1,12 +1,11 @@
 package org.example.advice;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
 import org.example.constants.ResponseCode;
-import org.example.model.response.ApiErrorResponse;
 import org.example.model.response.ApiResponse;
+import org.example.model.response.ApiResponse.BasicResponse;
 import org.example.utils.JsonUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
@@ -93,21 +92,16 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
         return handleStringResponse(body, selectedContentType, request, response);
       }
 
-      // 处理ApiErrorResponse类型
-      if (body instanceof ApiErrorResponse apiErrorResponse) {
-        return apiErrorResponse;
-      }
-
-      // 处理ApiResponse类型
-      if (body instanceof ApiResponse<?> apiResponse) {
-        return apiResponse;
+      // 处理BasicResponse类型
+      if (body instanceof BasicResponse basicResponse) {
+        return basicResponse;
       }
 
       // 其他类型统一包装
-      return ApiResponse.success(body, (HttpServletRequest) request);
+      return ApiResponse.success(body, request.getURI().getPath(), request.getMethod().name());
     } catch (Exception e) {
       log.error("Error processing response body", e);
-      return ApiErrorResponse.error(ResponseCode.INTERNAL_ERROR, (HttpServletRequest) request);
+      return ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, request.getURI().getPath(), request.getMethod().name());
     }
   }
 
@@ -117,7 +111,7 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
   private Object handleNullResponse(MediaType selectedContentType, ServerHttpRequest request, ServerHttpResponse response) {
     if (MediaType.APPLICATION_JSON.includes(selectedContentType)) {
       response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      return JsonUtils.toJsonString(ApiResponse.success(null, (HttpServletRequest) request));
+      return JsonUtils.toJsonString(ApiResponse.success(null, request.getURI().getPath(), request.getMethod().name()));
     }
     response.setStatusCode(HttpStatus.NO_CONTENT);
     return null;
@@ -131,7 +125,7 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
     // 如果客户端期望JSON
     if (MediaType.APPLICATION_JSON.includes(selectedContentType)) {
       response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      return JsonUtils.toJsonString(ApiResponse.success(body, (HttpServletRequest) request));
+      return JsonUtils.toJsonString(ApiResponse.success(body, request.getURI().getPath(), request.getMethod().name()));
     }
     // 如果是普通文本
     return body;

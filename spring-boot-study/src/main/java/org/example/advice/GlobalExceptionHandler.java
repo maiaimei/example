@@ -10,12 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.constants.ErrorCode;
+import org.example.constants.ClientErrorCode;
 import org.example.constants.ResponseCode;
 import org.example.exception.BusinessException;
-import org.example.model.response.ApiErrorResponse;
-import org.example.model.response.ErrorInfo;
-import org.example.model.response.FieldError;
+import org.example.model.response.ApiResponse;
+import org.example.model.response.ApiResponse.BasicResponse;
+import org.example.model.response.ApiResponse.ErrorInfo;
+import org.example.model.response.ApiResponse.FieldError;
 import org.springframework.boot.json.JsonParseException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
@@ -38,8 +39,8 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(NoResourceFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ApiErrorResponse handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
-    return ApiErrorResponse.error(ResponseCode.NOT_FOUND, request);
+  public BasicResponse handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
+    return ApiResponse.error(ResponseCode.NOT_FOUND, request.getPathInfo(), request.getMethod());
   }
 
   /**
@@ -49,18 +50,18 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(HttpMessageNotReadableException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ApiErrorResponse handleHttpMessageNotReadableException(
+  public BasicResponse handleHttpMessageNotReadableException(
       HttpMessageNotReadableException ex,
       HttpServletRequest request) {
 
     String requestUrl = request.getRequestURL().toString();
     Throwable cause = ex.getMostSpecificCause();
 
-    ErrorCode errorCode = switch (cause) {
+    ClientErrorCode errorCode = switch (cause) {
       case JsonParseException jsonParseException -> {
         log.warn("JSON parse error - URL: {} - Details: {}",
             requestUrl, cause.getMessage());
-        yield ErrorCode.HTTP_MESSAGE_JSON_ERROR;
+        yield ClientErrorCode.HTTP_MESSAGE_JSON_ERROR;
       }
       case InvalidFormatException invalidFormatEx -> {
         if (invalidFormatEx.getTargetType() != null &&
@@ -70,48 +71,53 @@ public class GlobalExceptionHandler {
               invalidValue,
               invalidFormatEx.getTargetType().getSimpleName(),
               requestUrl);
-          yield ErrorCode.HTTP_MESSAGE_ENUM_ERROR;
+          yield ClientErrorCode.HTTP_MESSAGE_ENUM_ERROR;
         } else {
           log.warn("Type conversion error - Expected: [{}], Got: [{}] - URL: {}",
               invalidFormatEx.getTargetType().getSimpleName(),
               invalidFormatEx.getValue().getClass().getSimpleName(),
               requestUrl);
-          yield ErrorCode.HTTP_MESSAGE_TYPE_ERROR;
+          yield ClientErrorCode.HTTP_MESSAGE_TYPE_ERROR;
         }
       }
       case MismatchedInputException mismatchedInputException -> {
         log.warn("Missing required field - URL: {} - Details: {}",
             requestUrl, cause.getMessage());
-        yield ErrorCode.HTTP_MESSAGE_MISSING_FIELD;
+        yield ClientErrorCode.HTTP_MESSAGE_MISSING_FIELD;
       }
       case JsonMappingException jsonMappingException -> {
         log.warn("JSON mapping error - URL: {} - Details: {}",
             requestUrl, cause.getMessage());
-        yield ErrorCode.HTTP_MESSAGE_JSON_MAPPING_ERROR;
+        yield ClientErrorCode.HTTP_MESSAGE_JSON_MAPPING_ERROR;
       }
       default -> {
         log.error("Message parsing error - URL: {} - Error: {}",
             requestUrl, cause.getMessage());
-        yield ErrorCode.HTTP_MESSAGE_NOT_READABLE;
+        yield ClientErrorCode.HTTP_MESSAGE_NOT_READABLE;
       }
     };
 
     ErrorInfo errorInfo = ErrorInfo.builder()
         .code(errorCode.getCode())
         .message(errorCode.getMessage()).build();
-    return ApiErrorResponse.error(ResponseCode.BAD_REQUEST, request, errorInfo);
+    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), errorInfo);
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ApiErrorResponse handleMissingServletRequestParameterException(
+  public BasicResponse handleMissingServletRequestParameterException(
       MissingServletRequestParameterException ex, HttpServletRequest request) {
+    log.warn("Missing parameter - URL: {} - Parameter: {} - Type: {}",
+        request.getRequestURL(),
+        ex.getParameterName(),
+        ex.getParameterType());
+
     List<FieldError> details = new ArrayList<>();
     FieldError detail = new FieldError();
     detail.setField(ex.getParameterName());
     detail.setMessage("Parameter is missing");
 
-    return ApiErrorResponse.error(ResponseCode.BAD_REQUEST, request, details);
+    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), details);
   }
 
   /**
@@ -119,7 +125,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ApiErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex,
+  public BasicResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex,
       HttpServletRequest request) {
     String requestUrl = request.getRequestURL().toString();
     List<String> logMessages = new ArrayList<>();
@@ -138,9 +144,9 @@ public class GlobalExceptionHandler {
         requestUrl,
         String.join("; ", logMessages));
     final ErrorInfo errorInfo = ErrorInfo.builder()
-        .code(ErrorCode.REQUEST_PARAMETER_ERROR.getCode())
-        .message(ErrorCode.REQUEST_PARAMETER_ERROR.getMessage()).build();
-    return ApiErrorResponse.error(ResponseCode.BAD_REQUEST, request, errorInfo, details);
+        .code(ClientErrorCode.REQUEST_PARAMETER_ERROR.getCode())
+        .message(ClientErrorCode.REQUEST_PARAMETER_ERROR.getMessage()).build();
+    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), errorInfo, details);
   }
 
   /**
@@ -148,7 +154,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(BindException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ApiErrorResponse handleBindException(BindException ex, HttpServletRequest request) {
+  public BasicResponse handleBindException(BindException ex, HttpServletRequest request) {
     List<FieldError> details = new ArrayList<>();
     ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
       String field = fieldError.getField();
@@ -159,20 +165,20 @@ public class GlobalExceptionHandler {
       details.add(detail);
     });
 
-    return ApiErrorResponse.error(ResponseCode.BAD_REQUEST, request, details);
+    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), details);
   }
 
   @ExceptionHandler(ValidationException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ApiErrorResponse handleValidationException(ValidationException ex, HttpServletRequest request) {
+  public BasicResponse handleValidationException(ValidationException ex, HttpServletRequest request) {
     List<FieldError> details = new ArrayList<>();
-    return ApiErrorResponse.error(ResponseCode.BAD_REQUEST, request, details);
+    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), details);
   }
 
   @ExceptionHandler(AccessDeniedException.class)
   @ResponseStatus(HttpStatus.FORBIDDEN)
-  public ApiErrorResponse handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
-    return ApiErrorResponse.error(ResponseCode.FORBIDDEN, request);
+  public BasicResponse handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
+    return ApiResponse.error(ResponseCode.FORBIDDEN, request.getPathInfo(), request.getMethod());
   }
 
   /**
@@ -180,8 +186,8 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(BusinessException.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ApiErrorResponse handleBusinessException(BusinessException ex, HttpServletRequest request) {
-    return ApiErrorResponse.error(ex.getResponseCode(), request);
+  public BasicResponse handleBusinessException(BusinessException ex, HttpServletRequest request) {
+    return ApiResponse.error(ex.getResponseCode(), request.getPathInfo(), request.getMethod());
   }
 
   /**
@@ -189,9 +195,9 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public ApiErrorResponse handleException(Exception ex, HttpServletRequest request) {
+  public BasicResponse handleException(Exception ex, HttpServletRequest request) {
     log.error("Unexpected error occurred", ex);
-    return ApiErrorResponse.error(ResponseCode.INTERNAL_ERROR, request);
+    return ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, request.getPathInfo(), request.getMethod());
   }
 
   /**
