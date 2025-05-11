@@ -24,7 +24,7 @@ public class ApiErrorResponse {
   private LocalDateTime timestamp;
   private String path;
   private String method;
-  private String traceId;
+  private String correlationId;
 
   public static ApiErrorResponse error(ResponseCode responseCode, HttpServletRequest request) {
     return ApiErrorResponse.builder()
@@ -33,7 +33,7 @@ public class ApiErrorResponse {
         .timestamp(DateTimeUtils.getCurrentUtcTime())
         .path(request.getRequestURI())
         .method(request.getMethod())
-        .traceId(TraceIdUtils.getTraceId())
+        .correlationId(TraceIdUtils.getTraceId())
         .build();
   }
 
@@ -45,7 +45,7 @@ public class ApiErrorResponse {
         .timestamp(DateTimeUtils.getCurrentUtcTime())
         .path(request.getRequestURI())
         .method(request.getMethod())
-        .traceId(TraceIdUtils.getTraceId())
+        .correlationId(TraceIdUtils.getTraceId())
         .build();
   }
 
@@ -59,7 +59,7 @@ public class ApiErrorResponse {
         .timestamp(DateTimeUtils.getCurrentUtcTime())
         .path(request.getRequestURI())
         .method(request.getMethod())
-        .traceId(TraceIdUtils.getTraceId())
+        .correlationId(TraceIdUtils.getTraceId())
         .build();
   }
 
@@ -71,7 +71,7 @@ public class ApiErrorResponse {
         .timestamp(DateTimeUtils.getCurrentUtcTime())
         .path(request.getRequestURI())
         .method(request.getMethod())
-        .traceId(TraceIdUtils.getTraceId())
+        .correlationId(TraceIdUtils.getTraceId())
         .build();
   }
 

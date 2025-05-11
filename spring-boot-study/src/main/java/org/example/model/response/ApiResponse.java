@@ -22,7 +22,7 @@ public class ApiResponse<T> {
   private LocalDateTime timestamp;
   private String path;
   private String method;
-  private String traceId;
+  private String correlationId;
 
   public static <T> ApiResponse<T> success(T data, HttpServletRequest request) {
     return ApiResponse.<T>builder()
@@ -32,7 +32,7 @@ public class ApiResponse<T> {
         .timestamp(DateTimeUtils.getCurrentUtcTime())
         .path(request.getRequestURI())
         .method(request.getMethod())
-        .traceId(TraceIdUtils.getTraceId())
+        .correlationId(TraceIdUtils.getTraceId())
         .build();
   }
 }

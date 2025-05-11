@@ -1,12 +1,14 @@
 spring:
+  application:
+    name: spring-boot-study
+    group: spring
   profiles:
     active: dev
 
+# https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging
 logging:
-  config: classpath:logback-spring.xml
+  include-application-name: false
+  include-application-group: false
+  config: classpath:logback-spring.xml # Custom Log Configuration
   file:
     path: logs
-  level:
-    root: INFO
-    org.springframework: INFO
-    org.example: DEBUG
