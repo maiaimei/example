@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FieldError {
 
-  private String field;
   private String code;
+  private String field;
   private String message;
   private Object[] args;
 }

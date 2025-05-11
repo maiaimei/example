@@ -2,11 +2,11 @@
 # By default, ERROR-level, WARN-level, and INFO-level messages are logged.
 # You can also enable a “debug” mode by starting your application with a --debug flag. For example: java -jar myapp.jar --debug
 # You can also specify debug=true in your application.properties.
-debug: true
-
-logging:
-  level:
-    root: DEBUG                    # 全局日志级别
-    com.example.myapp: DEBUG       # 特定包的日志级别
-    org.springframework: DEBUG     # Spring框架的日志级别
-    org.hibernate: DEBUG           # Hibernate的日志级别
+#debug: true
+#
+#logging:
+#  level:
+#    root: DEBUG                    # 全局日志级别
+#    com.example.myapp: DEBUG       # 特定包的日志级别
+#    org.springframework: DEBUG     # Spring框架的日志级别
+#    org.hibernate: DEBUG           # Hibernate的日志级别
