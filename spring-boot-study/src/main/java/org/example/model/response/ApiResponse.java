@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.example.constants.ErrorCode;
 import org.example.constants.ResponseCode;
 import org.example.utils.DateTimeUtils;
 import org.example.utils.TraceIdUtils;
@@ -60,6 +61,26 @@ public class ApiResponse {
     return ErrorResponse.create()
         .code(responseCode.getCode())
         .message(responseCode.getMessage())
+        .details(details)
+        .path(path)
+        .method(method);
+  }
+
+  public static ErrorResponse<Object> error(ResponseCode responseCode, String path, String method, ErrorCode errorCode) {
+    return ErrorResponse.create()
+        .code(responseCode.getCode())
+        .message(responseCode.getMessage())
+        .error(ErrorInfo.builder().code(errorCode.getCode()).message(errorCode.getMessage()).build())
+        .path(path)
+        .method(method);
+  }
+
+  public static ErrorResponse<Object> error(ResponseCode responseCode, String path, String method, ErrorCode errorCode,
+      List<FieldError> details) {
+    return ErrorResponse.create()
+        .code(responseCode.getCode())
+        .message(responseCode.getMessage())
+        .error(ErrorInfo.builder().code(errorCode.getCode()).message(errorCode.getMessage()).build())
         .details(details)
         .path(path)
         .method(method);
@@ -224,7 +245,6 @@ public class ApiResponse {
   @NoArgsConstructor
   public static class FieldError {
 
-    private String code;
     private String field;
     private String message;
     private Object[] args;
