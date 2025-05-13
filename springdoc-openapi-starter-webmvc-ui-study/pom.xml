@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-      <version>2.3.0</version>
+      <version>2.8.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -52,50 +52,6 @@
           <compilerArgs>--enable-preview</compilerArgs>
         </configuration>
       </plugin>
-
-      <!-- SpringDoc OpenAPI Maven Plugin -->
-      <plugin>
-        <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-maven-plugin</artifactId>
-        <version>1.4</version>
-        <executions>
-          <!-- 生成默认文档 -->
-          <execution>
-            <id>generate-default-spec</id>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-            <configuration>
-              <apiDocsUrl>http://localhost:8080/v3/api-docs</apiDocsUrl>
-              <outputFileName>openapi-default.json</outputFileName>
-              <outputDir>${project.build.directory}/api-docs</outputDir>
-            </configuration>
-          </execution>
-          <!-- 生成用户服务文档 -->
-          <execution>
-            <id>generate-user-spec</id>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-            <configuration>
-              <apiDocsUrl>http://localhost:8080/v3/api-docs?group=users</apiDocsUrl>
-              <outputFileName>openapi-users.json</outputFileName>
-              <outputDir>${project.build.directory}/api-docs</outputDir>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <!-- API文档地址 -->
-          <apiDocsUrl>http://localhost:8080/v3/api-docs</apiDocsUrl>
-          <!-- 输出文件名 -->
-          <outputFileName>openapi.json</outputFileName>
-          <!-- 输出目录 -->
-          <outputDir>${project.build.directory}</outputDir>
-          <!-- 是否跳过生成 -->
-          <skip>false</skip>
-        </configuration>
-      </plugin>
-
     </plugins>
   </build>
 
