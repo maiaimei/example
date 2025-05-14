@@ -2,7 +2,7 @@ package org.example.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import org.example.utils.OpenApiUtils;
+import org.example.utils.OpenApiCustomizerUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
@@ -17,8 +17,8 @@ public class AdvancedOpenApiConfig {
   @Bean
   public OpenApiCustomizer openApiCustomizer() {
     return openApi -> {
-      JsonNode config = OpenApiUtils.loadConfiguration(CONFIG_FILE);
-      OpenApiUtils.configureOpenApiPathsOnly(openApi, config);
+      JsonNode config = OpenApiCustomizerUtils.loadConfiguration(CONFIG_FILE);
+      OpenApiCustomizerUtils.configureOpenApiPathsOnly(openApi, config);
     };
   }
 

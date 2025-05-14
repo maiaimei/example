@@ -20,7 +20,7 @@ import java.util.List;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-public class OpenApiUtils {
+public class OpenApiCustomizerUtils {
 
   public static JsonNode loadConfiguration(String path) {
     try {
