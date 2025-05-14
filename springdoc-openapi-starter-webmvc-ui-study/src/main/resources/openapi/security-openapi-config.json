@@ -1,0 +1,101 @@
+{
+  "info": {
+    "title": "API Documentation",
+    "version": "1.0.0",
+    "description": "REST API Documentation",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "paths": {
+    "/security/login": {
+      "post": {
+        "summary": "User Login",
+        "description": "Authenticate user and return JWT token",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "username": {
+                        "type": "string",
+                        "description": "User's username",
+                        "example": "john.doe",
+                        "minLength": 3,
+                        "maxLength": 50
+                      },
+                      "password": {
+                        "type": "string",
+                        "description": "User's password",
+                        "format": "password",
+                        "minLength": 6,
+                        "maxLength": 100
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "accessToken": {
+                          "type": "string",
+                          "description": "JWT access token",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/security/login"
+                    },
+                    "method": {
+                      "type": "string",
+                      "example": "POST"
+                    },
+                    "correlationId": {
+                      "type": "string",
+                      "example": "123e4567-e89b-12d3-a456-426614174000"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

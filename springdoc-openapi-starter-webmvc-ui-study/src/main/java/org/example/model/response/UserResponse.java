@@ -1,4 +1,4 @@
-package org.example.model;
+package org.example.model.response;
 
 import java.util.Set;
 import lombok.Data;
