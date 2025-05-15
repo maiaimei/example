@@ -34,6 +34,10 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+/**
+ * A utility class for generating OpenAPI schemas from annotated Java classes. This class scans a specified package for classes
+ * annotated with {@link Schema}, processes their fields, and generates OpenAPI-compatible schemas.
+ */
 public class OpenAPIModelSchemaGenerator {
 
   private final OpenAPI openAPI;
@@ -41,17 +45,28 @@ public class OpenAPIModelSchemaGenerator {
   private final Set<Class<?>> processedClasses = new HashSet<>();
   private final Components processedComponents = new Components();
 
+  /**
+   * Constructor to initialize the generator with an OpenAPI instance.
+   *
+   * @param openAPI The OpenAPI instance to which schemas will be added.
+   */
   public OpenAPIModelSchemaGenerator(OpenAPI openAPI) {
     this.openAPI = openAPI;
   }
 
+  /**
+   * Scans the specified package for classes annotated with {@link Schema}, processes them, and generates OpenAPI schemas.
+   *
+   * @param basePackage The base package to scan for annotated classes.
+   */
   public void generateSchemas(String basePackage) {
     ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
     scanner.addIncludeFilter(new AnnotationTypeFilter(Schema.class));
 
     for (BeanDefinition bd : scanner.findCandidateComponents(basePackage)) {
       try {
-        Class<?> modelClass = ClassUtils.forName(Objects.requireNonNull(bd.getBeanClassName()), this.getClass().getClassLoader());
+        Class<?> modelClass = ClassUtils.forName(Objects.requireNonNull(bd.getBeanClassName()),
+            this.getClass().getClassLoader());
         processClass(modelClass);
       } catch (ClassNotFoundException e) {
         throw new RuntimeException("Failed to load class: " + bd.getBeanClassName(), e);
@@ -59,19 +74,21 @@ public class OpenAPIModelSchemaGenerator {
     }
   }
 
+  /**
+   * Processes a single class to generate its OpenAPI schema. This method handles the class's fields, annotations, and
+   * relationships.
+   *
+   * @param modelClass The class to process.
+   */
   public void processClass(Class<?> modelClass) {
     String modelName = modelClass.getSimpleName();
 
-    // 防止循环引用
     if (processedClasses.contains(modelClass)) {
       return;
     }
     processedClasses.add(modelClass);
 
-    // 检查是否已存在该Schema
-    if (openAPI.getComponents() != null &&
-        openAPI.getComponents().getSchemas() != null &&
-        openAPI.getComponents().getSchemas().containsKey(modelName)) {
+    if (schemaAlreadyExists(modelName)) {
       return;
     }
 
@@ -98,26 +115,29 @@ public class OpenAPIModelSchemaGenerator {
       schema.setRequired(requiredFields);
     }
 
-    // 确保Components存在
-    if (openAPI.getComponents() == null) {
-      openAPI.setComponents(new Components());
-    }
-
-    // 添加Schema
+    ensureComponentsExist();
     openAPI.getComponents().addSchemas(modelName, schema);
     processedComponents.addSchemas(modelName, schema);
 
-    // 保存Example
     if (!exampleValues.isEmpty()) {
       examples.put(modelClass, exampleValues);
     }
   }
 
+  /**
+   * Processes a single field of a class to generate its schema and example values.
+   *
+   * @param field          The field to process.
+   * @param fieldSchema    The {@link Schema} annotation on the field.
+   * @param properties     The map of properties to which the field's schema will be added.
+   * @param requiredFields The list of required fields to which the field will be added if required.
+   * @param exampleValues  The map of example values to which the field's example will be added.
+   */
   private void processField(Field field, Schema fieldSchema,
       Map<String, io.swagger.v3.oas.models.media.Schema> properties,
       List<String> requiredFields,
       Map<String, Object> exampleValues) {
-    io.swagger.v3.oas.models.media.Schema<?> propertySchema = createPropertySchema(field);
+    io.swagger.v3.oas.models.media.Schema<?> propertySchema = createSchemaFromType(field.getGenericType());
 
     if (StringUtils.hasText(fieldSchema.description())) {
       propertySchema.description(fieldSchema.description());
@@ -136,131 +156,141 @@ public class OpenAPIModelSchemaGenerator {
     properties.put(field.getName(), propertySchema);
   }
 
-  private io.swagger.v3.oas.models.media.Schema<?> createPropertySchema(Field field) {
-    Type genericType = field.getGenericType();
-    Class<?> type = field.getType();
-
-    // 处理泛型类型
-    if (genericType instanceof ParameterizedType parameterizedType) {
+  /**
+   * Creates a schema for a given Java type.
+   *
+   * @param type The Java type to process.
+   * @return The generated schema.
+   */
+  private io.swagger.v3.oas.models.media.Schema<?> createSchemaFromType(Type type) {
+    if (type instanceof Class<?> clazz) {
+      return createSchemaForClass(clazz);
+    } else if (type instanceof ParameterizedType parameterizedType) {
       return handleParameterizedType(parameterizedType);
+    } else if (type instanceof WildcardType wildcardType) {
+      return createSchemaFromType(wildcardType.getUpperBounds()[0]);
+    } else if (type instanceof TypeVariable<?> typeVar) {
+      return createSchemaFromType(typeVar.getBounds()[0]);
     }
-
-    // 处理基本类型
-    if (type == String.class) {
-      return new StringSchema();
-    } else if (type == Integer.class || type == int.class) {
-      return new IntegerSchema();
-    } else if (type == Long.class || type == long.class) {
-      return new IntegerSchema().format("int64");
-    } else if (type == Double.class || type == double.class) {
-      return new NumberSchema().format("double");
-    } else if (type == Float.class || type == float.class) {
-      return new NumberSchema().format("float");
-    } else if (type == Boolean.class || type == boolean.class) {
-      return new BooleanSchema();
-    } else if (type == BigDecimal.class) {
-      return new NumberSchema();
-    } else if (type == LocalDateTime.class) {
-      return new StringSchema().format("date-time");
-    } else if (type.isEnum()) {
-      StringSchema enumSchema = new StringSchema();
-      enumSchema.setEnum(Arrays.stream(type.getEnumConstants())
-          .map(Object::toString)
-          .collect(Collectors.toList()));
-      return enumSchema;
-    }
-
-    // 处理集合类型
-    if (Collection.class.isAssignableFrom(type)) {
-      return handleCollectionType(field);
-    }
-
-    // 处理Map类型
-    if (Map.class.isAssignableFrom(type)) {
-      return handleMapType(field);
-    }
-
-    // 处理数组
-    if (type.isArray()) {
-      Class<?> componentType = type.getComponentType();
-      ArraySchema arraySchema = new ArraySchema();
-      arraySchema.setItems(createSchemaForClass(componentType));
-      return arraySchema;
-    }
-
-    // 处理复杂对象
-    if (!type.isPrimitive() && !type.getPackage().getName().startsWith("java.")) {
-      processClass(type); // 递归处理复杂对象
-      return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + type.getSimpleName());
-    }
-
-    // 默认返回Object类型
     return new ObjectSchema();
   }
 
-  private io.swagger.v3.oas.models.media.Schema<?> handleCollectionType(Field field) {
-    Type genericType = field.getGenericType();
-    ArraySchema arraySchema = new ArraySchema();
-
-    if (genericType instanceof ParameterizedType paramType) {
-      Type[] typeArguments = paramType.getActualTypeArguments();
-      if (typeArguments.length > 0) {
-        Type actualTypeArgument = typeArguments[0];
-        if (actualTypeArgument instanceof Class<?> actualClass) {
-          io.swagger.v3.oas.models.media.Schema<?> itemSchema = createSchemaForClass(actualClass);
-          arraySchema.setItems(itemSchema);
-        }
-      }
-    }
-
-    return arraySchema;
-  }
-
-  private io.swagger.v3.oas.models.media.Schema<?> handleMapType(Field field) {
-    Type genericType = field.getGenericType();
-    MapSchema mapSchema = new MapSchema();
-
-    if (genericType instanceof ParameterizedType paramType) {
-      Type[] typeArguments = paramType.getActualTypeArguments();
-      if (typeArguments.length > 1 && typeArguments[1] instanceof Class<?> valueClass) {
-        io.swagger.v3.oas.models.media.Schema<?> valueSchema = createSchemaForClass(valueClass);
-        mapSchema.setAdditionalProperties(valueSchema);
-      }
-    }
-
-    return mapSchema;
-  }
-
+  /**
+   * Creates a schema for a given Java class.
+   *
+   * @param clazz The Java class to process.
+   * @return The generated schema.
+   */
   private io.swagger.v3.oas.models.media.Schema<?> createSchemaForClass(Class<?> clazz) {
-    if (clazz.isPrimitive() || clazz == String.class || Number.class.isAssignableFrom(clazz)) {
-      // 对于基本类型，直接创建对应的Schema
-      if (clazz == String.class) {
-        return new StringSchema();
-      } else if (clazz == Integer.class || clazz == int.class) {
-        return new IntegerSchema();
-      } else if (clazz == Long.class || clazz == long.class) {
-        return new IntegerSchema().format("int64");
-      } else if (clazz == Double.class || clazz == double.class) {
-        return new NumberSchema().format("double");
-      } else if (clazz == Float.class || clazz == float.class) {
-        return new NumberSchema().format("float");
-      } else if (clazz == Boolean.class || clazz == boolean.class) {
-        return new BooleanSchema();
-      } else if (Number.class.isAssignableFrom(clazz)) {
-        return new NumberSchema();
-      }
+    if (isPrimitiveOrWrapper(clazz)) {
+      return createPrimitiveSchema(clazz);
     }
 
-    // 对于复杂对象，先处理后返回引用
+    if (clazz.isEnum()) {
+      return createEnumSchema(clazz);
+    }
+
+    if (Collection.class.isAssignableFrom(clazz)) {
+      return new ArraySchema().items(new ObjectSchema());
+    }
+
+    if (Map.class.isAssignableFrom(clazz)) {
+      return new MapSchema().additionalProperties(new ObjectSchema());
+    }
+
+    if (clazz.isArray()) {
+      return new ArraySchema().items(createSchemaForClass(clazz.getComponentType()));
+    }
+
     if (!clazz.isPrimitive() && !clazz.getPackage().getName().startsWith("java.")) {
       processClass(clazz);
       return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + clazz.getSimpleName());
     }
 
-    // 默认返回Object类型
     return new ObjectSchema();
   }
 
+  /**
+   * Handles parameterized types (e.g., collections, maps) to generate their schemas.
+   *
+   * @param parameterizedType The parameterized type to process.
+   * @return The generated schema.
+   */
+  private io.swagger.v3.oas.models.media.Schema<?> handleParameterizedType(ParameterizedType parameterizedType) {
+    Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+    Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+    if (Collection.class.isAssignableFrom(rawType)) {
+      return new ArraySchema().items(createSchemaFromType(typeArguments[0]));
+    }
+
+    if (Map.class.isAssignableFrom(rawType)) {
+      return new MapSchema().additionalProperties(createSchemaFromType(typeArguments[1]));
+    }
+
+    processClass(rawType);
+    return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + rawType.getSimpleName());
+  }
+
+  /**
+   * Creates a schema for a primitive or wrapper type.
+   *
+   * @param clazz The class representing the primitive or wrapper type.
+   * @return The generated schema.
+   */
+  private io.swagger.v3.oas.models.media.Schema<?> createPrimitiveSchema(Class<?> clazz) {
+    if (clazz == String.class) {
+      return new StringSchema();
+    } else if (clazz == Integer.class || clazz == int.class) {
+      return new IntegerSchema();
+    } else if (clazz == Long.class || clazz == long.class) {
+      return new IntegerSchema().format("int64");
+    } else if (clazz == Double.class || clazz == double.class) {
+      return new NumberSchema().format("double");
+    } else if (clazz == Float.class || clazz == float.class) {
+      return new NumberSchema().format("float");
+    } else if (clazz == Boolean.class || clazz == boolean.class) {
+      return new BooleanSchema();
+    } else if (clazz == BigDecimal.class) {
+      return new NumberSchema();
+    } else if (clazz == LocalDateTime.class) {
+      return new StringSchema().format("date-time");
+    }
+    return new ObjectSchema();
+  }
+
+  /**
+   * Creates a schema for an enum type.
+   *
+   * @param clazz The enum class to process.
+   * @return The generated schema.
+   */
+  private io.swagger.v3.oas.models.media.Schema<?> createEnumSchema(Class<?> clazz) {
+    StringSchema enumSchema = new StringSchema();
+    enumSchema.setEnum(Arrays.stream(clazz.getEnumConstants())
+        .map(Object::toString)
+        .collect(Collectors.toList()));
+    return enumSchema;
+  }
+
+  /**
+   * Checks if a class is a primitive type or its wrapper.
+   *
+   * @param clazz The class to check.
+   * @return True if the class is a primitive or wrapper, false otherwise.
+   */
+  private boolean isPrimitiveOrWrapper(Class<?> clazz) {
+    return clazz.isPrimitive() || clazz == String.class || Number.class.isAssignableFrom(clazz)
+        || clazz == Boolean.class || clazz == LocalDateTime.class;
+  }
+
+  /**
+   * Converts a string example value to the appropriate type.
+   *
+   * @param example The example value as a string.
+   * @param type    The target type.
+   * @return The converted example value.
+   */
   private Object convertExample(String example, Class<?> type) {
     try {
       if (type == String.class) {
@@ -281,111 +311,66 @@ public class OpenAPIModelSchemaGenerator {
         return LocalDateTime.parse(example);
       }
     } catch (Exception e) {
-      // 转换失败时返回原始字符串
       return example;
     }
     return example;
   }
 
-  private io.swagger.v3.oas.models.media.Schema<?> handleParameterizedType(ParameterizedType parameterizedType) {
-    Class<?> rawType = (Class<?>) parameterizedType.getRawType();
-    Type[] typeArguments = parameterizedType.getActualTypeArguments();
-
-    // 处理Collection类型
-    if (Collection.class.isAssignableFrom(rawType)) {
-      return createArraySchema(typeArguments[0]);
-    }
-
-    // 处理Map类型
-    if (Map.class.isAssignableFrom(rawType)) {
-      return createMapSchema(typeArguments);
-    }
-
-    // 处理其他泛型类型
-    return createGenericTypeSchema(rawType, typeArguments);
+  /**
+   * Checks if a schema with the given model name already exists in the OpenAPI components.
+   *
+   * @param modelName The name of the model to check.
+   * @return True if the schema already exists, false otherwise.
+   */
+  private boolean schemaAlreadyExists(String modelName) {
+    return openAPI.getComponents() != null &&
+        openAPI.getComponents().getSchemas() != null &&
+        openAPI.getComponents().getSchemas().containsKey(modelName);
   }
 
-  private io.swagger.v3.oas.models.media.Schema<?> createArraySchema(Type elementType) {
-    ArraySchema arraySchema = new ArraySchema();
-    arraySchema.setItems(createSchemaFromType(elementType));
-    return arraySchema;
-  }
-
-  private io.swagger.v3.oas.models.media.Schema<?> createMapSchema(Type[] typeArguments) {
-    MapSchema mapSchema = new MapSchema();
-    // 处理Map的值类型
-    if (typeArguments.length > 1) {
-      mapSchema.setAdditionalProperties(createSchemaFromType(typeArguments[1]));
+  /**
+   * Ensures that the OpenAPI components object is initialized. If it is null, a new Components object is created and set.
+   */
+  private void ensureComponentsExist() {
+    if (openAPI.getComponents() == null) {
+      openAPI.setComponents(new Components());
     }
-    return mapSchema;
   }
 
-  private io.swagger.v3.oas.models.media.Schema<?> createGenericTypeSchema(Class<?> rawType, Type[] typeArguments) {
-    // 处理自定义泛型类型
-    processClass(rawType);
-    ObjectSchema schema = new ObjectSchema();
-    schema.setProperties(new LinkedHashMap<>());
-
-    // 获取泛型类的所有字段
-    for (Field field : rawType.getDeclaredFields()) {
-      Schema fieldSchema = field.getAnnotation(Schema.class);
-      if (fieldSchema != null) {
-        Type resolvedType = resolveGenericType(field.getGenericType(), typeArguments);
-        io.swagger.v3.oas.models.media.Schema<?> propertySchema = createSchemaFromType(resolvedType);
-        schema.getProperties().put(field.getName(), propertySchema);
-      }
-    }
-
-    return schema;
-  }
-
-  private io.swagger.v3.oas.models.media.Schema<?> createSchemaFromType(Type type) {
-    if (type instanceof Class<?>) {
-      return createSchemaForClass((Class<?>) type);
-    } else if (type instanceof ParameterizedType) {
-      return handleParameterizedType((ParameterizedType) type);
-    } else if (type instanceof WildcardType wildcardType) {
-      // 处理通配符类型（如 ? extends Number）
-      Type[] upperBounds = wildcardType.getUpperBounds();
-      if (upperBounds.length > 0) {
-        return createSchemaFromType(upperBounds[0]);
-      }
-    } else if (type instanceof TypeVariable<?> typeVar) {
-      // 处理类型变量（如 T, E 等）
-      Type[] bounds = typeVar.getBounds();
-      if (bounds.length > 0) {
-        return createSchemaFromType(bounds[0]);
-      }
-    }
-
-    return new ObjectSchema();
-  }
-
-  private Type resolveGenericType(Type type, Type[] typeArguments) {
-    if (type instanceof TypeVariable<?> typeVar) {
-      // 查找类型变量在声明中的位置
-      TypeVariable<?>[] typeParameters = ((Class<?>) typeVar.getGenericDeclaration()).getTypeParameters();
-      for (int i = 0; i < typeParameters.length; i++) {
-        if (typeParameters[i].getName().equals(typeVar.getName()) && i < typeArguments.length) {
-          return typeArguments[i];
-        }
-      }
-    }
-    return type;
-  }
-
+  /**
+   * Retrieves a schema from the processed components by its key.
+   *
+   * @param key The key of the schema to retrieve.
+   * @return The schema associated with the given key, or null if not found.
+   */
   public io.swagger.v3.oas.models.media.Schema getSchema(String key) {
     return processedComponents.getSchemas().get(key);
   }
 
+  /**
+   * Retrieves the processed components object containing all schemas.
+   *
+   * @return The processed components object.
+   */
   public Components getProcessedComponents() {
     return processedComponents;
   }
 
+  /**
+   * Retrieves example values for a specific schema key.
+   *
+   * @param key The key of the schema for which to retrieve examples.
+   * @return A map of example values for the schema, or null if not found.
+   */
   public Map<String, Object> getExample(String key) {
     return examples.get(key);
   }
 
+  /**
+   * Retrieves all example values for all processed classes.
+   *
+   * @return A map where the key is the class and the value is a map of example values.
+   */
   public Map<Class<?>, Map<String, Object>> getExamples() {
     return examples;
   }
