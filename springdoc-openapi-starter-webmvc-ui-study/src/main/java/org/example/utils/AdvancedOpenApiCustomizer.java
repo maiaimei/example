@@ -6,6 +6,8 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.DateSchema;
+import io.swagger.v3.oas.models.media.DateTimeSchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.MapSchema;
 import io.swagger.v3.oas.models.media.MediaType;
@@ -17,9 +19,14 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -112,31 +119,139 @@ public class AdvancedOpenApiCustomizer {
       operation.getResponses().addApiResponse("200", successResponse);
     }
 
-    // 创建响应内容
     Content content = new Content();
     MediaType mediaType = new MediaType();
 
     // 创建包装响应schema
     Schema<?> wrapperSchema = new ObjectSchema()
-        .type("object")
-        .$ref("#/components/schemas/" + SuccessResponse.class.getSimpleName());
+        .type("object");
 
-    Map<String, Object> exampleValues = generator.getExamples().get(SuccessResponse.class);
+    // 获取基础响应示例
+    Map<String, Object> exampleValues = new HashMap<>(generator.getExamples().get(SuccessResponse.class));
+
+    // 处理实际返回类型
+    Schema<?> dataSchema = createResponseSchema(actualType, generator);
+    Object dataExample = null;
+
+    // 根据不同类型处理 data 属性
+    if (dataSchema instanceof ArraySchema arraySchema) {
+      // 处理数组类型
+      Schema<?> itemSchema = arraySchema.getItems();
+
+      List<Object> exampleArray = new ArrayList<>();
+      Object itemExample = itemSchema.getExample();
+      if (itemExample != null) {
+        exampleArray.add(itemExample);
+      } else {
+        // 如果数组项没有示例，创建默认示例
+        exampleArray.add(createExampleForArrayItem(itemSchema, generator));
+      }
+      dataExample = exampleArray;
+
+    } else if (dataSchema instanceof ObjectSchema) {
+      // 处理对象类型
+      if (dataSchema.get$ref() != null) {
+        // 处理引用类型
+        dataExample = generator.getExamples().get(actualType.getClass());
+      } else {
+        // 处理普通对象
+        dataExample = dataSchema.getExample();
+      }
+
+    } else {
+      // 处理基本数据类型
+      dataExample = dataSchema.getExample();
+      if (dataExample == null) {
+        dataExample = getDefaultExampleForSchema(dataSchema);
+      }
+    }
+
+    // 更新示例中的 data 字段
+    exampleValues.put("data", dataExample);
+
+    // 设置其他属性的 schema
     exampleValues.forEach((key, val) -> {
-      final Class<?> valClass = val.getClass();
-      if (!"data".equals(key)) {
-        final Schema<?> valSchema = createPrimitiveSchema(valClass).example(val);
+      if (!key.equals("data")) {
+        Schema<?> valSchema = createPrimitiveSchema(val.getClass()).example(val);
         wrapperSchema.addProperty(key, valSchema);
       }
     });
 
-    // 处理实际返回类型
-    Schema<?> dataSchema = createResponseSchema(actualType, generator);
+    // 添加 data 属性到 wrapperSchema
     wrapperSchema.addProperty("data", dataSchema);
 
+    // 设置整个响应的示例
     mediaType.setSchema(wrapperSchema);
+    mediaType.setExample(exampleValues);
+
     content.addMediaType("application/json", mediaType);
     successResponse.setContent(content);
+  }
+
+  private Object getDefaultExampleForSchema(Schema<?> schema) {
+    String type = schema.getType();
+    if (type == null) {
+      return null;
+    }
+
+    return switch (type) {
+      case "string" -> "example";
+      case "integer" -> 1;
+      case "number" -> {
+        if ("float".equals(schema.getFormat())) {
+          yield 1.0f;
+        }
+        yield 1.0;
+      }
+      case "boolean" -> true;
+      case "object" -> new HashMap<>();
+      case "array" -> new ArrayList<>();
+      default -> null;
+    };
+  }
+
+  private Schema<?> createPrimitiveSchema(Class<?> type) {
+    if (String.class.equals(type)) {
+      return new StringSchema();
+    } else if (Integer.class.equals(type) || int.class.equals(type)) {
+      return new IntegerSchema();
+    } else if (Long.class.equals(type) || long.class.equals(type)) {
+      return new IntegerSchema().format("int64");
+    } else if (Float.class.equals(type) || float.class.equals(type)) {
+      return new NumberSchema().format("float");
+    } else if (Double.class.equals(type) || double.class.equals(type)) {
+      return new NumberSchema().format("double");
+    } else if (Boolean.class.equals(type) || boolean.class.equals(type)) {
+      return new BooleanSchema();
+    } else if (BigDecimal.class.equals(type)) {
+      return new NumberSchema();
+    } else if (Date.class.equals(type)) {
+      return new DateTimeSchema();
+    } else if (LocalDateTime.class.equals(type)) {
+      return new DateTimeSchema();
+    } else if (LocalDate.class.equals(type)) {
+      return new DateSchema();
+    }
+    return new ObjectSchema();
+  }
+
+  private Object createExampleForArrayItem(Schema<?> itemSchema, OpenAPIModelSchemaGenerator generator) {
+    // 优先使用已有的示例
+    if (itemSchema.getExample() != null) {
+      return itemSchema.getExample();
+    }
+
+    // 处理引用类型
+    if (itemSchema.get$ref() != null) {
+      String className = itemSchema.get$ref().substring(itemSchema.get$ref().lastIndexOf("/") + 1);
+      Map<String, Object> example = generator.getExamples().get(className);
+      if (example != null) {
+        return example;
+      }
+    }
+
+    // 返回默认示例
+    return getDefaultExampleForSchema(itemSchema);
   }
 
   private Schema<?> createResponseSchema(Type type, OpenAPIModelSchemaGenerator generator) {
@@ -216,25 +331,6 @@ public class AdvancedOpenApiCustomizer {
       mapSchema.setAdditionalProperties(createResponseSchema(typeArguments[1], generator));
     }
     return mapSchema;
-  }
-
-  private Schema<?> createPrimitiveSchema(Class<?> clazz) {
-    if (clazz == String.class) {
-      return new StringSchema();
-    } else if (clazz == Integer.class || clazz == int.class) {
-      return new IntegerSchema();
-    } else if (clazz == Long.class || clazz == long.class) {
-      return new IntegerSchema().format("int64");
-    } else if (clazz == Double.class || clazz == double.class) {
-      return new NumberSchema().format("double");
-    } else if (clazz == Float.class || clazz == float.class) {
-      return new NumberSchema().format("float");
-    } else if (clazz == Boolean.class || clazz == boolean.class) {
-      return new BooleanSchema();
-    } else if (clazz == BigDecimal.class) {
-      return new NumberSchema();
-    }
-    return new ObjectSchema();
   }
 
   private void processOperation(Operation operation, String httpMethod, String pathUrl,
