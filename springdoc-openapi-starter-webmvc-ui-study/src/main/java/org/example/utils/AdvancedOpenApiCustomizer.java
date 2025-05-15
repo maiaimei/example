@@ -14,7 +14,6 @@ import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -24,17 +23,13 @@ import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.example.model.ApiResponse.BaseResponse;
+import org.example.model.ApiResponse.SuccessResponse;
 import org.example.model.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.method.HandlerMethod;
@@ -121,14 +116,27 @@ public class AdvancedOpenApiCustomizer {
     MediaType mediaType = new MediaType();
 
     // 创建包装响应schema
+    Schema<?> wrapperSchema2 = generator.getSchema(SuccessResponse.class.getSimpleName())
+        .type("object")
+        .$ref("#/components/schemas/" + SuccessResponse.class.getSimpleName());
+
+    // 创建包装响应schema
     Schema<?> wrapperSchema = new ObjectSchema()
         .type("object")
-        .addProperties("code", new IntegerSchema().example(200))
-        .addProperties("message", new StringSchema().example("操作成功"));
+        .$ref("#/components/schemas/" + SuccessResponse.class.getSimpleName());
+
+    Map<String, Object> exampleValues = generator.getExamples().get(SuccessResponse.class);
+    exampleValues.forEach((key, val) -> {
+      final Class<?> valClass = val.getClass();
+      if (!"data".equals(key)) {
+        final Schema<?> valSchema = createPrimitiveSchema(valClass).example(val);
+        wrapperSchema.addProperty(key, valSchema);
+      }
+    });
 
     // 处理实际返回类型
     Schema<?> dataSchema = createResponseSchema(actualType, generator);
-    wrapperSchema.addProperties("data", dataSchema);
+    wrapperSchema.addProperty("data", dataSchema);
 
     mediaType.setSchema(wrapperSchema);
     content.addMediaType("application/json", mediaType);
@@ -139,6 +147,11 @@ public class AdvancedOpenApiCustomizer {
     if (type instanceof ParameterizedType parameterizedType) {
       Class<?> rawType = (Class<?>) parameterizedType.getRawType();
       Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+      // 处理BaseResponse类型
+      if (BaseResponse.class.equals(rawType)) {
+        return createResponseSchema(typeArguments[0], generator);
+      }
 
       // 处理分页响应
       if (Page.class.isAssignableFrom(rawType)) {
@@ -157,9 +170,8 @@ public class AdvancedOpenApiCustomizer {
     }
 
     // 处理普通类型
-    if (type instanceof Class<?>) {
-      Class<?> clazz = (Class<?>) type;
-      if (clazz.isPrimitive() || clazz == String.class || Number.class.isAssignableFrom(clazz)) {
+    if (type instanceof Class<?> clazz) {
+      if (isPrimitiveType(clazz)) {
         return createPrimitiveSchema(clazz);
       }
 
@@ -173,15 +185,15 @@ public class AdvancedOpenApiCustomizer {
 
   private Schema<?> createPageResponseSchema(Type elementType, OpenAPIModelSchemaGenerator generator) {
     ObjectSchema pageSchema = new ObjectSchema();
-    pageSchema.addProperties("total", new IntegerSchema().format("int64"));
-    pageSchema.addProperties("size", new IntegerSchema());
-    pageSchema.addProperties("current", new IntegerSchema());
-    pageSchema.addProperties("pages", new IntegerSchema());
+    pageSchema.addProperty("total", new IntegerSchema().format("int64"));
+    pageSchema.addProperty("size", new IntegerSchema());
+    pageSchema.addProperty("current", new IntegerSchema());
+    pageSchema.addProperty("pages", new IntegerSchema());
 
     // 创建内容列表schema
     ArraySchema contentSchema = new ArraySchema();
     contentSchema.setItems(createResponseSchema(elementType, generator));
-    pageSchema.addProperties("records", contentSchema);
+    pageSchema.addProperty("records", contentSchema);
 
     return pageSchema;
   }
@@ -224,8 +236,7 @@ public class AdvancedOpenApiCustomizer {
       OpenAPIModelSchemaGenerator generator) {
     if (operation != null) {
       // 标准化路径，移除路径参数的花括号
-      String normalizedPath = normalizePath(pathUrl);
-      HandlerMethod handlerMethod = operationMethods.get(new OperationId(normalizedPath, httpMethod));
+      HandlerMethod handlerMethod = operationMethods.get(new OperationId(pathUrl, httpMethod));
 
       if (handlerMethod != null) {
         MethodParameter returnParameter = handlerMethod.getReturnType();
@@ -237,6 +248,13 @@ public class AdvancedOpenApiCustomizer {
     }
   }
 
+  private boolean isPrimitiveType(Class<?> clazz) {
+    if (clazz.isPrimitive() || clazz == String.class || Number.class.isAssignableFrom(clazz)) {
+      return Boolean.TRUE;
+    }
+    return Boolean.FALSE;
+  }
+
   @Data
   @AllArgsConstructor
   private static class OperationId {
@@ -245,58 +263,4 @@ public class AdvancedOpenApiCustomizer {
     private String method;
   }
 
-  private String getMethodPath(Method method, String basePath) {
-    String methodPath = null;
-
-    // 检查各种Mapping注解
-    if (method.isAnnotationPresent(GetMapping.class)) {
-      methodPath = method.getAnnotation(GetMapping.class).value().length > 0
-          ? method.getAnnotation(GetMapping.class).value()[0] : "";
-    } else if (method.isAnnotationPresent(PostMapping.class)) {
-      methodPath = method.getAnnotation(PostMapping.class).value().length > 0
-          ? method.getAnnotation(PostMapping.class).value()[0] : "";
-    } else if (method.isAnnotationPresent(PutMapping.class)) {
-      methodPath = method.getAnnotation(PutMapping.class).value().length > 0
-          ? method.getAnnotation(PutMapping.class).value()[0] : "";
-    } else if (method.isAnnotationPresent(DeleteMapping.class)) {
-      methodPath = method.getAnnotation(DeleteMapping.class).value().length > 0
-          ? method.getAnnotation(DeleteMapping.class).value()[0] : "";
-    } else if (method.isAnnotationPresent(PatchMapping.class)) {
-      methodPath = method.getAnnotation(PatchMapping.class).value().length > 0
-          ? method.getAnnotation(PatchMapping.class).value()[0] : "";
-    } else if (method.isAnnotationPresent(RequestMapping.class)) {
-      methodPath = method.getAnnotation(RequestMapping.class).value().length > 0
-          ? method.getAnnotation(RequestMapping.class).value()[0] : "";
-    }
-
-    if (methodPath != null) {
-      return (basePath + methodPath).replaceAll("//", "/");
-    }
-    return null;
-  }
-
-  private String getHttpMethod(Method method) {
-    if (method.isAnnotationPresent(GetMapping.class)) {
-      return "get";
-    } else if (method.isAnnotationPresent(PostMapping.class)) {
-      return "post";
-    } else if (method.isAnnotationPresent(PutMapping.class)) {
-      return "put";
-    } else if (method.isAnnotationPresent(DeleteMapping.class)) {
-      return "delete";
-    } else if (method.isAnnotationPresent(PatchMapping.class)) {
-      return "patch";
-    } else if (method.isAnnotationPresent(RequestMapping.class)) {
-      RequestMapping annotation = method.getAnnotation(RequestMapping.class);
-      if (annotation.method().length > 0) {
-        return annotation.method()[0].toString().toLowerCase();
-      }
-    }
-    return null;
-  }
-
-  private String normalizePath(String path) {
-    // 移除路径中的花括号参数，统一格式
-    return path.replaceAll("\\{[^}]+\\}", "*");
-  }
 }

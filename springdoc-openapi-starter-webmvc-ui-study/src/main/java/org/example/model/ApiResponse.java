@@ -8,25 +8,25 @@ import org.springframework.http.HttpStatus;
 
 public class ApiResponse {
 
-  public static <T> BaseResponse success(T data) {
+  public static <T> BaseResponse<T> success(T data) {
     return new SuccessResponse<T>()
         .setCode(HttpStatus.OK.value())
         .setData(data);
   }
 
-  public static <T> BaseResponse error() {
+  public static <T> BaseResponse<T> error() {
     return new ErrorResponse<T>()
         .setCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
   }
 
-  public interface BaseResponse {
+  public interface BaseResponse<T> {
 
   }
 
   @Data
   @Accessors(chain = true)
   @Schema(description = "The success response")
-  public static class SuccessResponse<T> implements BaseResponse {
+  public static class SuccessResponse<T> implements BaseResponse<T> {
 
     @Schema(description = "The code of response", example = "200")
     private Integer code;
@@ -53,7 +53,7 @@ public class ApiResponse {
   @Data
   @Accessors(chain = true)
   @Schema(description = "The error response")
-  public static class ErrorResponse<T> implements BaseResponse {
+  public static class ErrorResponse<T> implements BaseResponse<T> {
 
     @Schema(description = "The code of response", example = "500")
     private Integer code;

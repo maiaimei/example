@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import org.example.model.ApiRequest;
 import org.example.model.ApiResponse;
+import org.example.model.ApiResponse.BaseResponse;
 import org.example.model.request.ExamplePageQueryRequest;
 import org.example.model.request.ExampleRequest;
 import org.example.model.response.ExampleResponse;
@@ -30,24 +31,24 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "BasicExampleController", description = "This is description of BasicExampleController")
 @RestController
 @RequestMapping("/examples")
-public class BasicExampleController {
+public class ExampleController {
 
   private static final List<ExampleResponse> exampleResponseList = new ArrayList<>();
 
   @Operation(summary = "Get an example response", description = "This is description of getting an example response")
   @GetMapping("/{id}")
-  public ResponseEntity<?> get(@PathVariable BigDecimal id) {
+  public ResponseEntity<BaseResponse<ExampleResponse>> get(@PathVariable BigDecimal id) {
     final Optional<ExampleResponse> optional = exampleResponseList.stream()
         .filter(exampleResponse -> exampleResponse.getBigDecimalField().equals(id)).findFirst();
-    if (optional.isPresent()) {
-      return ResponseEntity.status(HttpStatus.OK).body(optional.get());
-    }
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    return optional.<ResponseEntity<BaseResponse<ExampleResponse>>>map(
+            exampleResponse -> ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(exampleResponse)))
+        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
   }
 
-  @Operation(summary = "Get an example response", description = "This is description of getting an example response")
+  @Operation(summary = "List example responses", description = "This is description of listing responses")
   @GetMapping
-  public ResponseEntity<?> list(@Parameter(required = true) @Valid @RequestBody ApiRequest<ExamplePageQueryRequest> request) {
+  public ResponseEntity<BaseResponse<List<ExampleResponse>>> list(
+      @Parameter(required = true) @Valid @RequestBody ApiRequest<ExamplePageQueryRequest> request) {
     final ExamplePageQueryRequest examplePageQueryRequest = request.getData();
     final List<ExampleResponse> list = exampleResponseList.stream()
         .filter(exampleResponse -> exampleResponse.getStringField().contains(examplePageQueryRequest.getStringField()))
@@ -58,7 +59,8 @@ public class BasicExampleController {
 
   @Operation(summary = "Create a new example response", description = "This is description of creating a new example response")
   @PostMapping
-  public ResponseEntity<?> create(@Parameter(required = true) @Valid @RequestBody ApiRequest<ExampleRequest> request) {
+  public ResponseEntity<BaseResponse<ExampleResponse>> create(
+      @Parameter(required = true) @Valid @RequestBody ApiRequest<ExampleRequest> request) {
     final ExampleResponse exampleResponse = new ExampleResponse();
     BeanUtils.copyProperties(request.getData(), exampleResponse);
     exampleResponse.setBigDecimalField(IdGenerator.nextId());
@@ -69,7 +71,8 @@ public class BasicExampleController {
   @Operation(summary = "Update an existing example response", description = "This is description of update an existing example "
       + "response")
   @PutMapping
-  public ResponseEntity<?> update(@Parameter(required = true) @Valid @RequestBody ApiRequest<ExampleRequest> request) {
+  public ResponseEntity<BaseResponse<ExampleResponse>> update(
+      @Parameter(required = true) @Valid @RequestBody ApiRequest<ExampleRequest> request) {
     final ExampleRequest exampleRequest = request.getData();
     final Optional<ExampleResponse> optional = exampleResponseList.stream()
         .filter(exampleResponse -> exampleResponse.getBigDecimalField().equals(exampleRequest.getBigDecimalField())).findFirst();
@@ -87,7 +90,8 @@ public class BasicExampleController {
       "This is description of PartialUpdating an existing example "
           + "response")
   @PatchMapping
-  public ResponseEntity<?> partialUpdate(@Parameter(required = true) @Valid @RequestBody ApiRequest<ExampleRequest> request) {
+  public ResponseEntity<BaseResponse<ExampleResponse>> partialUpdate(
+      @Parameter(required = true) @Valid @RequestBody ApiRequest<ExampleRequest> request) {
     final ExampleRequest exampleRequest = request.getData();
     final Optional<ExampleResponse> optional = exampleResponseList.stream()
         .filter(exampleResponse -> exampleResponse.getBigDecimalField().equals(exampleRequest.getBigDecimalField())).findFirst();
@@ -102,7 +106,7 @@ public class BasicExampleController {
   @Operation(summary = "Delete an existing example response", description = "This is description of deleting existing an example "
       + "response")
   @DeleteMapping("/{id}")
-  public ResponseEntity<?> delete(@PathVariable BigDecimal id) {
+  public ResponseEntity<BaseResponse<Object>> delete(@PathVariable BigDecimal id) {
     exampleResponseList.removeIf(exampleResponse -> exampleResponse.getBigDecimalField().equals(id));
     return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null));
   }
