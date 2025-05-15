@@ -58,7 +58,7 @@ public class OpenAPIModelSchemaGenerator {
     }
   }
 
-  private void processClass(Class<?> modelClass) {
+  public void processClass(Class<?> modelClass) {
     String modelName = modelClass.getSimpleName();
 
     // 防止循环引用
