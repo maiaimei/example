@@ -16,6 +16,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
+import java.util.Map;
 import org.example.utils.OpenAPIModelSchemaGenerator;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -69,6 +70,7 @@ public class OpenAPIConfig {
 
       OpenAPIModelSchemaGenerator generator = new OpenAPIModelSchemaGenerator(openAPI);
       generator.generateSchemas("org.example.model"); // 指定要扫描的包路径
+      final Map<Class<?>, Object> examples = generator.getExamples();
 
       final Paths paths = openAPI.getPaths();
       paths.forEach((endpoint, pathItem) -> {

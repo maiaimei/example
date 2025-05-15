@@ -55,7 +55,7 @@ public class ApiResponse {
   @Schema(description = "The error response")
   public static class ErrorResponse<T> implements BaseResponse {
 
-    @Schema(description = "The code of response", example = "200")
+    @Schema(description = "The code of response", example = "500")
     private Integer code;
 
     @Schema(description = "The message of response", example = "This is message")

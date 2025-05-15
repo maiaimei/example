@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
 public class OpenAPIModelSchemaGenerator {
 
   private final OpenAPI openAPI;
-  private final Map<String, Object> examples = new HashMap<>();
+  private final Map<Class<?>, Object> examples = new HashMap<>();
   private final Set<Class<?>> processedClasses = new HashSet<>();
 
   public OpenAPIModelSchemaGenerator(OpenAPI openAPI) {
@@ -107,7 +107,7 @@ public class OpenAPIModelSchemaGenerator {
 
     // 保存Example
     if (!exampleValues.isEmpty()) {
-      examples.put(modelName, exampleValues);
+      examples.put(modelClass, exampleValues);
     }
   }
 
@@ -372,7 +372,7 @@ public class OpenAPIModelSchemaGenerator {
     return type;
   }
 
-  public Map<String, Object> getExamples() {
+  public Map<Class<?>, Object> getExamples() {
     return examples;
   }
 }
