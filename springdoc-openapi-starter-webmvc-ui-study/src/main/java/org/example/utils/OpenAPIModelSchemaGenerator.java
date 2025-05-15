@@ -13,6 +13,8 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -133,7 +135,13 @@ public class OpenAPIModelSchemaGenerator {
   }
 
   private io.swagger.v3.oas.models.media.Schema<?> createPropertySchema(Field field) {
+    Type genericType = field.getGenericType();
     Class<?> type = field.getType();
+
+    // 处理泛型类型
+    if (genericType instanceof ParameterizedType parameterizedType) {
+      return handleParameterizedType(parameterizedType);
+    }
 
     // 处理基本类型
     if (type == String.class) {
@@ -275,6 +283,93 @@ public class OpenAPIModelSchemaGenerator {
       return example;
     }
     return example;
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> handleParameterizedType(ParameterizedType parameterizedType) {
+    Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+    Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+    // 处理Collection类型
+    if (Collection.class.isAssignableFrom(rawType)) {
+      return createArraySchema(typeArguments[0]);
+    }
+
+    // 处理Map类型
+    if (Map.class.isAssignableFrom(rawType)) {
+      return createMapSchema(typeArguments);
+    }
+
+    // 处理其他泛型类型
+    return createGenericTypeSchema(rawType, typeArguments);
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> createArraySchema(Type elementType) {
+    ArraySchema arraySchema = new ArraySchema();
+    arraySchema.setItems(createSchemaFromType(elementType));
+    return arraySchema;
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> createMapSchema(Type[] typeArguments) {
+    MapSchema mapSchema = new MapSchema();
+    // 处理Map的值类型
+    if (typeArguments.length > 1) {
+      mapSchema.setAdditionalProperties(createSchemaFromType(typeArguments[1]));
+    }
+    return mapSchema;
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> createGenericTypeSchema(Class<?> rawType, Type[] typeArguments) {
+    // 处理自定义泛型类型
+    processClass(rawType);
+    ObjectSchema schema = new ObjectSchema();
+    schema.setProperties(new LinkedHashMap<>());
+
+    // 获取泛型类的所有字段
+    for (Field field : rawType.getDeclaredFields()) {
+      Schema fieldSchema = field.getAnnotation(Schema.class);
+      if (fieldSchema != null) {
+        Type resolvedType = resolveGenericType(field.getGenericType(), typeArguments);
+        io.swagger.v3.oas.models.media.Schema<?> propertySchema = createSchemaFromType(resolvedType);
+        schema.getProperties().put(field.getName(), propertySchema);
+      }
+    }
+
+    return schema;
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> createSchemaFromType(Type type) {
+    if (type instanceof Class<?>) {
+      return createSchemaForClass((Class<?>) type);
+    } else if (type instanceof ParameterizedType) {
+      return handleParameterizedType((ParameterizedType) type);
+    } else if (type instanceof WildcardType wildcardType) {
+      // 处理通配符类型（如 ? extends Number）
+      Type[] upperBounds = wildcardType.getUpperBounds();
+      if (upperBounds.length > 0) {
+        return createSchemaFromType(upperBounds[0]);
+      }
+    } else if (type instanceof TypeVariable<?> typeVar) {
+      // 处理类型变量（如 T, E 等）
+      Type[] bounds = typeVar.getBounds();
+      if (bounds.length > 0) {
+        return createSchemaFromType(bounds[0]);
+      }
+    }
+
+    return new ObjectSchema();
+  }
+
+  private Type resolveGenericType(Type type, Type[] typeArguments) {
+    if (type instanceof TypeVariable<?> typeVar) {
+      // 查找类型变量在声明中的位置
+      TypeVariable<?>[] typeParameters = ((Class<?>) typeVar.getGenericDeclaration()).getTypeParameters();
+      for (int i = 0; i < typeParameters.length; i++) {
+        if (typeParameters[i].getName().equals(typeVar.getName()) && i < typeArguments.length) {
+          return typeArguments[i];
+        }
+      }
+    }
+    return type;
   }
 
   public Map<String, Object> getExamples() {
