@@ -18,6 +18,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -116,11 +117,6 @@ public class AdvancedOpenApiCustomizer {
     MediaType mediaType = new MediaType();
 
     // 创建包装响应schema
-    Schema<?> wrapperSchema2 = generator.getSchema(SuccessResponse.class.getSimpleName())
-        .type("object")
-        .$ref("#/components/schemas/" + SuccessResponse.class.getSimpleName());
-
-    // 创建包装响应schema
     Schema<?> wrapperSchema = new ObjectSchema()
         .type("object")
         .$ref("#/components/schemas/" + SuccessResponse.class.getSimpleName());
@@ -177,7 +173,8 @@ public class AdvancedOpenApiCustomizer {
 
       // 处理复杂对象
       generator.processClass(clazz);
-      return new Schema<>().$ref("#/components/schemas/" + clazz.getSimpleName());
+      final Map<String, Object> map = generator.getExamples().get(clazz);
+      return new Schema<>().$ref("#/components/schemas/" + clazz.getSimpleName()).example(map);
     }
 
     return new ObjectSchema();
@@ -200,9 +197,18 @@ public class AdvancedOpenApiCustomizer {
 
   private Schema<?> createCollectionSchema(Type elementType, OpenAPIModelSchemaGenerator generator) {
     ArraySchema arraySchema = new ArraySchema();
+    // 明确设置类型为array
+    arraySchema.setType("array");
+    // 设置数组项的schema
     arraySchema.setItems(createResponseSchema(elementType, generator));
+    // 可选：设置一些描述信息
+    arraySchema.setDescription("Array of " + elementType.getTypeName());
+    // 可选：设置默认值为空数组
+    arraySchema.setDefault(Collections.emptyList());
+
     return arraySchema;
   }
+
 
   private Schema<?> createMapResponseSchema(Type[] typeArguments, OpenAPIModelSchemaGenerator generator) {
     MapSchema mapSchema = new MapSchema();
