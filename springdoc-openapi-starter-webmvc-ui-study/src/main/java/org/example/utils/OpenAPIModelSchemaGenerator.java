@@ -3,18 +3,29 @@ package org.example.utils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.MapSchema;
 import io.swagger.v3.oas.models.media.NumberSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -25,6 +36,7 @@ public class OpenAPIModelSchemaGenerator {
 
   private final OpenAPI openAPI;
   private final Map<String, Object> examples = new HashMap<>();
+  private final Set<Class<?>> processedClasses = new HashSet<>();
 
   public OpenAPIModelSchemaGenerator(OpenAPI openAPI) {
     this.openAPI = openAPI;
@@ -47,6 +59,12 @@ public class OpenAPIModelSchemaGenerator {
   private void processClass(Class<?> modelClass) {
     String modelName = modelClass.getSimpleName();
 
+    // 防止循环引用
+    if (processedClasses.contains(modelClass)) {
+      return;
+    }
+    processedClasses.add(modelClass);
+
     // 检查是否已存在该Schema
     if (openAPI.getComponents() != null &&
         openAPI.getComponents().getSchemas() != null &&
@@ -62,16 +80,20 @@ public class OpenAPIModelSchemaGenerator {
     }
 
     Map<String, io.swagger.v3.oas.models.media.Schema> properties = new LinkedHashMap<>();
+    List<String> requiredFields = new ArrayList<>();
     Map<String, Object> exampleValues = new LinkedHashMap<>();
 
     for (Field field : modelClass.getDeclaredFields()) {
       Schema fieldSchema = field.getAnnotation(Schema.class);
       if (fieldSchema != null) {
-        processField(field, fieldSchema, properties, exampleValues);
+        processField(field, fieldSchema, properties, requiredFields, exampleValues);
       }
     }
 
     schema.setProperties(properties);
+    if (!requiredFields.isEmpty()) {
+      schema.setRequired(requiredFields);
+    }
 
     // 确保Components存在
     if (openAPI.getComponents() == null) {
@@ -89,6 +111,7 @@ public class OpenAPIModelSchemaGenerator {
 
   private void processField(Field field, Schema fieldSchema,
       Map<String, io.swagger.v3.oas.models.media.Schema> properties,
+      List<String> requiredFields,
       Map<String, Object> exampleValues) {
     io.swagger.v3.oas.models.media.Schema<?> propertySchema = createPropertySchema(field);
 
@@ -97,7 +120,7 @@ public class OpenAPIModelSchemaGenerator {
     }
 
     if (fieldSchema.requiredMode() == Schema.RequiredMode.REQUIRED) {
-      propertySchema.addRequiredItem(fieldSchema.name());
+      requiredFields.add(field.getName());
     }
 
     if (StringUtils.hasText(fieldSchema.example())) {
@@ -112,6 +135,7 @@ public class OpenAPIModelSchemaGenerator {
   private io.swagger.v3.oas.models.media.Schema<?> createPropertySchema(Field field) {
     Class<?> type = field.getType();
 
+    // 处理基本类型
     if (type == String.class) {
       return new StringSchema();
     } else if (type == Integer.class || type == int.class) {
@@ -129,11 +153,102 @@ public class OpenAPIModelSchemaGenerator {
     } else if (type == LocalDateTime.class) {
       return new StringSchema().format("date-time");
     } else if (type.isEnum()) {
-      // TODO
+      StringSchema enumSchema = new StringSchema();
+      enumSchema.setEnum(Arrays.stream(type.getEnumConstants())
+          .map(Object::toString)
+          .collect(Collectors.toList()));
+      return enumSchema;
     }
 
-    // 对于复杂对象，创建引用
-    return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + type.getSimpleName());
+    // 处理集合类型
+    if (Collection.class.isAssignableFrom(type)) {
+      return handleCollectionType(field);
+    }
+
+    // 处理Map类型
+    if (Map.class.isAssignableFrom(type)) {
+      return handleMapType(field);
+    }
+
+    // 处理数组
+    if (type.isArray()) {
+      Class<?> componentType = type.getComponentType();
+      ArraySchema arraySchema = new ArraySchema();
+      arraySchema.setItems(createSchemaForClass(componentType));
+      return arraySchema;
+    }
+
+    // 处理复杂对象
+    if (!type.isPrimitive() && !type.getPackage().getName().startsWith("java.")) {
+      processClass(type); // 递归处理复杂对象
+      return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + type.getSimpleName());
+    }
+
+    // 默认返回Object类型
+    return new ObjectSchema();
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> handleCollectionType(Field field) {
+    Type genericType = field.getGenericType();
+    ArraySchema arraySchema = new ArraySchema();
+
+    if (genericType instanceof ParameterizedType paramType) {
+      Type[] typeArguments = paramType.getActualTypeArguments();
+      if (typeArguments.length > 0) {
+        Type actualTypeArgument = typeArguments[0];
+        if (actualTypeArgument instanceof Class<?> actualClass) {
+          io.swagger.v3.oas.models.media.Schema<?> itemSchema = createSchemaForClass(actualClass);
+          arraySchema.setItems(itemSchema);
+        }
+      }
+    }
+
+    return arraySchema;
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> handleMapType(Field field) {
+    Type genericType = field.getGenericType();
+    MapSchema mapSchema = new MapSchema();
+
+    if (genericType instanceof ParameterizedType paramType) {
+      Type[] typeArguments = paramType.getActualTypeArguments();
+      if (typeArguments.length > 1 && typeArguments[1] instanceof Class<?> valueClass) {
+        io.swagger.v3.oas.models.media.Schema<?> valueSchema = createSchemaForClass(valueClass);
+        mapSchema.setAdditionalProperties(valueSchema);
+      }
+    }
+
+    return mapSchema;
+  }
+
+  private io.swagger.v3.oas.models.media.Schema<?> createSchemaForClass(Class<?> clazz) {
+    if (clazz.isPrimitive() || clazz == String.class || Number.class.isAssignableFrom(clazz)) {
+      // 对于基本类型，直接创建对应的Schema
+      if (clazz == String.class) {
+        return new StringSchema();
+      } else if (clazz == Integer.class || clazz == int.class) {
+        return new IntegerSchema();
+      } else if (clazz == Long.class || clazz == long.class) {
+        return new IntegerSchema().format("int64");
+      } else if (clazz == Double.class || clazz == double.class) {
+        return new NumberSchema().format("double");
+      } else if (clazz == Float.class || clazz == float.class) {
+        return new NumberSchema().format("float");
+      } else if (clazz == Boolean.class || clazz == boolean.class) {
+        return new BooleanSchema();
+      } else if (Number.class.isAssignableFrom(clazz)) {
+        return new NumberSchema();
+      }
+    }
+
+    // 对于复杂对象，先处理后返回引用
+    if (!clazz.isPrimitive() && !clazz.getPackage().getName().startsWith("java.")) {
+      processClass(clazz);
+      return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + clazz.getSimpleName());
+    }
+
+    // 默认返回Object类型
+    return new ObjectSchema();
   }
 
   private Object convertExample(String example, Class<?> type) {
