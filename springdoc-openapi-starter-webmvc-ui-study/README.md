@@ -776,6 +776,213 @@ public class SecurityOpenAPIConfig {
 }
 ```
 
+# OpenAPI 数据类型
+
+OpenAPI (Swagger) 支持多种数据类型。以下是主要支持的类型及其使用方式：
+
+基础类型：
+
+```
+# OpenAPI 基础类型定义
+types:
+  string:    # 字符串
+  number:    # 数字（包括浮点数）
+  integer:   # 整数
+  boolean:   # 布尔值
+  array:     # 数组
+  object:    # 对象
+```
+
+详细类型示例：
+
+```java
+/**
+ * OpenAPI类型映射工具类
+ */
+public class OpenAPITypeMapper {
+    
+    /**
+     * 字符串类型及格式
+     */
+    public Schema<?> createStringSchema() {
+        // 基础字符串
+        Schema<?> basicString = new StringSchema();
+        
+        // 特定格式的字符串
+        Schema<?> dateString = new StringSchema().format("date");        // 日期: 2024-01-20
+        Schema<?> dateTimeString = new StringSchema().format("date-time"); // 日期时间: 2024-01-20T12:00:00Z
+        Schema<?> passwordString = new StringSchema().format("password"); // 密码
+        Schema<?> emailString = new StringSchema().format("email");      // 电子邮件
+        Schema<?> uuidString = new StringSchema().format("uuid");        // UUID
+        Schema<?> binaryString = new StringSchema().format("binary");    // 二进制
+        
+        return basicString;
+    }
+    
+    /**
+     * 数字类型及格式
+     */
+    public Schema<?> createNumberSchema() {
+        // 整数类型
+        Schema<?> int32 = new IntegerSchema().format("int32");     // 32位整数
+        Schema<?> int64 = new IntegerSchema().format("int64");     // 64位整数
+        
+        // 浮点数类型
+        Schema<?> floatNum = new NumberSchema().format("float");   // 单精度浮点数
+        Schema<?> doubleNum = new NumberSchema().format("double"); // 双精度浮点数
+        
+        return int32;
+    }
+    
+    /**
+     * 数组类型
+     */
+    public Schema<?> createArraySchema() {
+        // 字符串数组
+        Schema<?> stringArray = new ArraySchema()
+            .items(new StringSchema());
+        
+        // 数字数组
+        Schema<?> numberArray = new ArraySchema()
+            .items(new NumberSchema());
+        
+        // 对象数组
+        Schema<?> objectArray = new ArraySchema()
+            .items(new ObjectSchema());
+        
+        return stringArray;
+    }
+    
+    /**
+     * 对象类型
+     */
+    public Schema<?> createObjectSchema() {
+        // 基础对象
+        ObjectSchema objectSchema = new ObjectSchema();
+        
+        // 添加属性
+        objectSchema.addProperty("name", new StringSchema());
+        objectSchema.addProperty("age", new IntegerSchema());
+        objectSchema.addProperty("email", new StringSchema().format("email"));
+        
+        return objectSchema;
+    }
+    
+    /**
+     * 复杂对象示例
+     */
+    public Schema<?> createComplexSchema() {
+        ObjectSchema userSchema = new ObjectSchema()
+            .addProperty("id", new IntegerSchema().format("int64"))
+            .addProperty("username", new StringSchema().minLength(3).maxLength(50))
+            .addProperty("email", new StringSchema().format("email"))
+            .addProperty("roles", new ArraySchema().items(new StringSchema()))
+            .addProperty("createdAt", new StringSchema().format("date-time"))
+            .addProperty("active", new BooleanSchema());
+            
+        return userSchema;
+    }
+}
+```
+
+类型约束示例:
+
+```java
+/**
+ * OpenAPI类型约束示例
+ */
+public class OpenAPIConstraints {
+    
+    /**
+     * 字符串约束
+     */
+    public Schema<?> createStringConstraints() {
+        return new StringSchema()
+            .minLength(5)          // 最小长度
+            .maxLength(100)        // 最大长度
+            .pattern("^[A-Za-z]+$") // 正则表达式模式
+            .example("example");    // 示例值
+    }
+    
+    /**
+     * 数字约束
+     */
+    public Schema<?> createNumberConstraints() {
+        return new NumberSchema()
+            .minimum(BigDecimal.ZERO)     // 最小值
+            .maximum(BigDecimal.valueOf(100)) // 最大值
+            .multipleOf(BigDecimal.valueOf(5)) // 倍数
+            .example(50);                 // 示例值
+    }
+    
+    /**
+     * 数组约束
+     */
+    public Schema<?> createArrayConstraints() {
+        return new ArraySchema()
+            .items(new StringSchema())
+            .minItems(1)           // 最小项数
+            .maxItems(10)          // 最大项数
+            .uniqueItems(true);    // 唯一项
+    }
+}
+```
+
+常用组合和高级用法：
+
+```java
+/**
+ * OpenAPI高级类型示例
+ */
+public class OpenAPIAdvancedTypes {
+    
+    /**
+     * 枚举类型
+     */
+    public Schema<?> createEnumSchema() {
+        return new StringSchema()
+            .addEnumItem("PENDING")
+            .addEnumItem("ACTIVE")
+            .addEnumItem("INACTIVE");
+    }
+    
+    /**
+     * 组合类型
+     */
+    public Schema<?> createCompositeSchema() {
+        // 创建一个包含多个属性的对象
+        return new ObjectSchema()
+            .addProperty("basicInfo", new ObjectSchema()
+                .addProperty("name", new StringSchema())
+                .addProperty("age", new IntegerSchema()))
+            .addProperty("contacts", new ArraySchema()
+                .items(new ObjectSchema()
+                    .addProperty("type", new StringSchema())
+                    .addProperty("value", new StringSchema())));
+    }
+    
+    /**
+     * 可空类型
+     */
+    public Schema<?> createNullableSchema() {
+        return new StringSchema()
+            .nullable(true);
+    }
+    
+    /**
+     * 带描述的类型
+     */
+    public Schema<?> createDocumentedSchema() {
+        return new ObjectSchema()
+            .description("用户信息对象")
+            .addProperty("id", new IntegerSchema()
+                .description("用户唯一标识符"))
+            .addProperty("name", new StringSchema()
+                .description("用户姓名"));
+    }
+}
+```
+
 # 生成不同版本的 OpenAPI 规范文档（如 OpenAPI 2.0/3.0/3.1）
 
 指定某个版本的 OpenAPI 规范文档，在 application.yml 中配置：

@@ -11,7 +11,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
-import org.example.utils.OpenAPIAdvancedCustomizer;
+import org.example.openapi.OpenAPIAdvancedCustomizer;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SpringDocConfigProperties;

@@ -1,4 +1,17 @@
-package org.example.utils;
+package org.example.openapi;
+
+import static org.example.openapi.OpenAPIConstants.APPLICATION_JSON;
+import static org.example.openapi.OpenAPIConstants.COMPONENTS_SCHEMAS_PATH;
+import static org.example.openapi.OpenAPIConstants.DATA;
+import static org.example.openapi.OpenAPIConstants.SUCCESS_CODE;
+import static org.example.openapi.OpenAPIType.ARRAY;
+import static org.example.openapi.OpenAPIType.BOOLEAN;
+import static org.example.openapi.OpenAPIType.DOUBLE;
+import static org.example.openapi.OpenAPIType.FLOAT;
+import static org.example.openapi.OpenAPIType.INTEGER;
+import static org.example.openapi.OpenAPIType.NUMBER;
+import static org.example.openapi.OpenAPIType.OBJECT;
+import static org.example.openapi.OpenAPIType.STRING;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -54,10 +67,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  */
 @Component
 public class OpenAPIAdvancedCustomizer {
-
-  private static final String APPLICATION_JSON = "application/json";
-  private static final String COMPONENTS_SCHEMAS_PATH = "#/components/schemas/";
-  private static final String SUCCESS_CODE = "200";
 
   @Autowired
   private WebApplicationContext webApplicationContext;
@@ -169,8 +178,13 @@ public class OpenAPIAdvancedCustomizer {
     MediaType mediaType = new MediaType();
 
     // 创建包装响应schema
+    final String successResponseSimpleName = SuccessResponse.class.getSimpleName();
+    final Schema<?> successResponseSchema = generator.getSchema(successResponseSimpleName);
     Schema<?> wrapperSchema = new ObjectSchema()
-        .type("object");
+        .type(OBJECT)
+        .name(successResponseSimpleName)
+        .description(successResponseSchema.getDescription())
+        .$ref(COMPONENTS_SCHEMAS_PATH + successResponseSimpleName);
 
     // 获取基础响应示例
     Map<String, Object> exampleValues = new HashMap<>(generator.getExample(SuccessResponse.class));
@@ -180,18 +194,18 @@ public class OpenAPIAdvancedCustomizer {
     Object dataExample = generateDataExample(dataSchema, actualType, generator);
 
     // 更新示例中的 data 字段
-    exampleValues.put("data", dataExample);
+    exampleValues.put(DATA, dataExample);
 
     // 设置其他属性的 schema
     exampleValues.forEach((key, val) -> {
-      if (!key.equals("data")) {
+      if (!key.equals(DATA)) {
         Schema<?> valSchema = createPrimitiveSchema(val.getClass()).example(val);
         wrapperSchema.addProperty(key, valSchema);
       }
     });
 
     // 添加 data 属性到 wrapperSchema
-    wrapperSchema.addProperty("data", dataSchema);
+    wrapperSchema.addProperty(DATA, dataSchema);
 
     // 设置整个响应的示例
     mediaType.setSchema(wrapperSchema);
@@ -245,7 +259,6 @@ public class OpenAPIAdvancedCustomizer {
 
     // 处理引用类型
     if (itemSchema.get$ref() != null) {
-      String className = itemSchema.get$ref().substring(itemSchema.get$ref().lastIndexOf("/") + 1);
       Map<String, Object> example = generator.getExample(actualType.getClass());
       if (example != null) {
         return example;
@@ -269,17 +282,17 @@ public class OpenAPIAdvancedCustomizer {
     }
 
     return switch (type) {
-      case "string" -> "example";
-      case "integer" -> 1;
-      case "number" -> {
-        if ("float".equals(schema.getFormat())) {
+      case STRING -> "example";
+      case INTEGER -> 1;
+      case NUMBER -> {
+        if (FLOAT.equals(schema.getFormat())) {
           yield 1.0f;
         }
         yield 1.0;
       }
-      case "boolean" -> true;
-      case "object" -> new HashMap<>();
-      case "array" -> new ArrayList<>();
+      case BOOLEAN -> true;
+      case OBJECT -> new HashMap<>();
+      case ARRAY -> new ArrayList<>();
       default -> null;
     };
   }
@@ -357,7 +370,7 @@ public class OpenAPIAdvancedCustomizer {
   private Schema<?> createCollectionSchema(Type elementType, OpenAPIModelSchemaGenerator generator) {
     ArraySchema arraySchema = new ArraySchema();
     // 明确设置类型为array
-    arraySchema.setType("array");
+    arraySchema.setType(ARRAY);
     // 设置数组项的schema
     arraySchema.setItems(createResponseSchema(elementType, generator));
     // 可选：设置一些描述信息
@@ -384,9 +397,9 @@ public class OpenAPIAdvancedCustomizer {
     } else if (Long.class.equals(type) || long.class.equals(type)) {
       return new IntegerSchema().format("int64");
     } else if (Float.class.equals(type) || float.class.equals(type)) {
-      return new NumberSchema().format("float");
+      return new NumberSchema().format(FLOAT);
     } else if (Double.class.equals(type) || double.class.equals(type)) {
-      return new NumberSchema().format("double");
+      return new NumberSchema().format(DOUBLE);
     } else if (Boolean.class.equals(type) || boolean.class.equals(type)) {
       return new BooleanSchema();
     } else if (BigDecimal.class.equals(type)) {

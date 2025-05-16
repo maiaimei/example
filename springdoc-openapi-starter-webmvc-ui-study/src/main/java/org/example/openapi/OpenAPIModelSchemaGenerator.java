@@ -1,4 +1,9 @@
-package org.example.utils;
+package org.example.openapi;
+
+import static org.example.openapi.OpenAPIConstants.COMPONENTS_SCHEMAS_PATH;
+import static org.example.openapi.OpenAPIType.DOUBLE;
+import static org.example.openapi.OpenAPIType.FLOAT;
+import static org.example.openapi.OpenAPIType.INT64;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.models.Components;
@@ -204,7 +209,7 @@ public class OpenAPIModelSchemaGenerator {
 
     if (!clazz.isPrimitive() && !clazz.getPackage().getName().startsWith("java.")) {
       processClass(clazz);
-      return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + clazz.getSimpleName());
+      return new io.swagger.v3.oas.models.media.Schema<>().$ref(COMPONENTS_SCHEMAS_PATH + clazz.getSimpleName());
     }
 
     return new ObjectSchema();
@@ -229,7 +234,7 @@ public class OpenAPIModelSchemaGenerator {
     }
 
     processClass(rawType);
-    return new io.swagger.v3.oas.models.media.Schema<>().$ref("#/components/schemas/" + rawType.getSimpleName());
+    return new io.swagger.v3.oas.models.media.Schema<>().$ref(COMPONENTS_SCHEMAS_PATH + rawType.getSimpleName());
   }
 
   /**
@@ -244,11 +249,11 @@ public class OpenAPIModelSchemaGenerator {
     } else if (clazz == Integer.class || clazz == int.class) {
       return new IntegerSchema();
     } else if (clazz == Long.class || clazz == long.class) {
-      return new IntegerSchema().format("int64");
+      return new IntegerSchema().format(INT64);
     } else if (clazz == Double.class || clazz == double.class) {
-      return new NumberSchema().format("double");
+      return new NumberSchema().format(DOUBLE);
     } else if (clazz == Float.class || clazz == float.class) {
-      return new NumberSchema().format("float");
+      return new NumberSchema().format(FLOAT);
     } else if (clazz == Boolean.class || clazz == boolean.class) {
       return new BooleanSchema();
     } else if (clazz == BigDecimal.class) {
