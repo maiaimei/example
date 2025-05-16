@@ -87,6 +87,11 @@ public class OpenAPIModelSchemaGenerator {
    * @param modelClass The class to process.
    */
   public void processClass(Class<?> modelClass) {
+    if (ClassUtils.isPrimitiveOrWrapper(modelClass)
+        || Object.class.equals(modelClass)
+        || String.class.equals(modelClass)) {
+      return;
+    }
     String modelName = modelClass.getSimpleName();
 
     if (processedClasses.contains(modelClass)) {
