@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
 public class OpenAPIModelSchemaGenerator {
 
   private final OpenAPI openAPI;
-  private final Map<Class<?>, Map<String, Object>> examples = new HashMap<>();
+  private final Map<Class<?>, Map<String, Object>> processedExamples = new HashMap<>();
   private final Set<Class<?>> processedClasses = new HashSet<>();
   private final Components processedComponents = new Components();
 
@@ -120,7 +120,7 @@ public class OpenAPIModelSchemaGenerator {
     processedComponents.addSchemas(modelName, schema);
 
     if (!exampleValues.isEmpty()) {
-      examples.put(modelClass, exampleValues);
+      processedExamples.put(modelClass, exampleValues);
     }
   }
 
@@ -182,7 +182,7 @@ public class OpenAPIModelSchemaGenerator {
    * @return The generated schema.
    */
   private io.swagger.v3.oas.models.media.Schema<?> createSchemaForClass(Class<?> clazz) {
-    if (isPrimitiveOrWrapper(clazz)) {
+    if (ClassUtils.isPrimitiveOrWrapper(clazz)) {
       return createPrimitiveSchema(clazz);
     }
 
@@ -274,17 +274,6 @@ public class OpenAPIModelSchemaGenerator {
   }
 
   /**
-   * Checks if a class is a primitive type or its wrapper.
-   *
-   * @param clazz The class to check.
-   * @return True if the class is a primitive or wrapper, false otherwise.
-   */
-  private boolean isPrimitiveOrWrapper(Class<?> clazz) {
-    return clazz.isPrimitive() || clazz == String.class || Number.class.isAssignableFrom(clazz)
-        || clazz == Boolean.class || clazz == LocalDateTime.class;
-  }
-
-  /**
    * Converts a string example value to the appropriate type.
    *
    * @param example The example value as a string.
@@ -338,6 +327,15 @@ public class OpenAPIModelSchemaGenerator {
   }
 
   /**
+   * Retrieves the processed components object containing all schemas.
+   *
+   * @return The processed components object.
+   */
+  public Components getProcessedComponents() {
+    return processedComponents;
+  }
+
+  /**
    * Retrieves a schema from the processed components by its key.
    *
    * @param key The key of the schema to retrieve.
@@ -348,30 +346,21 @@ public class OpenAPIModelSchemaGenerator {
   }
 
   /**
-   * Retrieves the processed components object containing all schemas.
+   * Retrieves all example values for all processed classes.
    *
-   * @return The processed components object.
+   * @return A map where the key is the class and the value is a map of example values.
    */
-  public Components getProcessedComponents() {
-    return processedComponents;
+  public Map<Class<?>, Map<String, Object>> getProcessedExamples() {
+    return processedExamples;
   }
 
   /**
    * Retrieves example values for a specific schema key.
    *
-   * @param key The key of the schema for which to retrieve examples.
+   * @param clazz The clazz of the schema for which to retrieve examples.
    * @return A map of example values for the schema, or null if not found.
    */
-  public Map<String, Object> getExample(String key) {
-    return examples.get(key);
-  }
-
-  /**
-   * Retrieves all example values for all processed classes.
-   *
-   * @return A map where the key is the class and the value is a map of example values.
-   */
-  public Map<Class<?>, Map<String, Object>> getExamples() {
-    return examples;
+  public Map<String, Object> getExample(Class<?> clazz) {
+    return processedExamples.get(clazz);
   }
 }

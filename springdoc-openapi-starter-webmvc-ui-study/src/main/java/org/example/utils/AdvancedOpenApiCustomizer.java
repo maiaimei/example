@@ -2,6 +2,7 @@ package org.example.utils;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.method.HandlerMethod;
@@ -46,37 +49,39 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
- * Customizes the OpenAPI documentation by dynamically generating schemas and updating operation responses.
+ * Advanced customizer for OpenAPI (Swagger) documentation. This class provides enhanced customization capabilities for OpenAPI
+ * documentation, including operation ID generation, schema customization, and response handling.
  */
 @Component
 public class AdvancedOpenApiCustomizer {
 
+  private static final String APPLICATION_JSON = "application/json";
+  private static final String COMPONENTS_SCHEMAS_PATH = "#/components/schemas/";
+  private static final String SUCCESS_CODE = "200";
+
   @Autowired
   private WebApplicationContext webApplicationContext;
 
+  private RequestMappingHandlerMapping mappingHandler;
+
   /**
-   * Customizes the provided OpenAPI object by generating schemas and updating operation responses.
+   * Customizes the OpenAPI documentation by processing paths, operations, and schemas. This method is called by the OpenAPI
+   * generation process to apply custom modifications.
    *
-   * @param openAPI the OpenAPI object to customize
+   * @param openAPI The OpenAPI object to be customized
    */
   public void customise(OpenAPI openAPI) {
     OpenAPIModelSchemaGenerator generator = new OpenAPIModelSchemaGenerator(openAPI);
     generator.generateSchemas("org.example.model");
 
-    RequestMappingHandlerMapping mappingHandler = webApplicationContext.getBean(RequestMappingHandlerMapping.class);
+    mappingHandler = webApplicationContext.getBean(RequestMappingHandlerMapping.class);
     Map<RequestMappingInfo, HandlerMethod> handlerMethods = mappingHandler.getHandlerMethods();
     Map<OperationId, HandlerMethod> operationMethods = collectOperationMethods(handlerMethods);
 
     // 更新OpenAPI文档
     final Paths paths = openAPI.getPaths();
-    if (paths != null) {
-      paths.forEach((pathUrl, pathItem) -> {
-        processOperation(pathItem.getGet(), "get", pathUrl, operationMethods, generator);
-        processOperation(pathItem.getPost(), "post", pathUrl, operationMethods, generator);
-        processOperation(pathItem.getPut(), "put", pathUrl, operationMethods, generator);
-        processOperation(pathItem.getDelete(), "delete", pathUrl, operationMethods, generator);
-        processOperation(pathItem.getPatch(), "patch", pathUrl, operationMethods, generator);
-      });
+    if (Objects.nonNull(paths)) {
+      paths.forEach((pathUrl, pathItem) -> processHttpMethods(pathItem, pathUrl, operationMethods, generator));
     }
   }
 
@@ -87,7 +92,7 @@ public class AdvancedOpenApiCustomizer {
    * @return a map of OperationId to HandlerMethod
    */
   private Map<OperationId, HandlerMethod> collectOperationMethods(Map<RequestMappingInfo, HandlerMethod> handlerMethods) {
-    Map<OperationId, HandlerMethod> operationMethods = new HashMap<>();
+    Map<OperationId, HandlerMethod> operationMethods = new HashMap<>(handlerMethods.size() * 2);
     // 收集所有Controller的方法信息
     for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethods.entrySet()) {
       RequestMappingInfo mappingInfo = entry.getKey();
@@ -107,38 +112,58 @@ public class AdvancedOpenApiCustomizer {
   }
 
   /**
-   * Extracts the actual return type of a method parameter, handling generic types like ResponseEntity.
+   * Processes HTTP methods for a given path item. Handles GET, POST, PUT, DELETE, and PATCH operations.
    *
-   * @param returnParameter the method parameter to analyze
-   * @return the actual return type
+   * @param pathItem         The path item containing operations
+   * @param pathUrl          The URL path being processed
+   * @param operationMethods Map of operation IDs to handler methods
+   * @param generator        Schema generator for OpenAPI models
    */
-  private Type extractActualReturnType(MethodParameter returnParameter) {
-    // 获取方法返回类型
-    Type returnType = returnParameter.getGenericParameterType();
-
-    // 处理ResponseEntity
-    if (returnType instanceof ParameterizedType parameterizedType) {
-      Class<?> rawType = (Class<?>) parameterizedType.getRawType();
-      if (ResponseEntity.class.isAssignableFrom(rawType)) {
-        Type[] typeArguments = parameterizedType.getActualTypeArguments();
-        if (typeArguments.length > 0) {
-          return typeArguments[0];
-        }
-      }
-    }
-
-    return returnType;
+  private void processHttpMethods(PathItem pathItem, String pathUrl,
+      Map<OperationId, HandlerMethod> operationMethods,
+      OpenAPIModelSchemaGenerator generator) {
+    processOperation(pathItem.getGet(), "get", pathUrl, operationMethods, generator);
+    processOperation(pathItem.getPost(), "post", pathUrl, operationMethods, generator);
+    processOperation(pathItem.getPut(), "put", pathUrl, operationMethods, generator);
+    processOperation(pathItem.getDelete(), "delete", pathUrl, operationMethods, generator);
+    processOperation(pathItem.getPatch(), "patch", pathUrl, operationMethods, generator);
   }
 
   /**
-   * Updates the operation response schema and example based on the actual return type.
+   * Processes a single operation, updating its schema and response information.
    *
-   * @param operation  the operation to update
-   * @param actualType the actual return type of the operation
-   * @param generator  the schema generator
+   * @param operation        The operation to process
+   * @param httpMethod       The HTTP method
+   * @param pathUrl          The URL path
+   * @param operationMethods Map of operation IDs to handler methods
+   * @param generator        Schema generator for OpenAPI models
+   */
+  private void processOperation(Operation operation, String httpMethod, String pathUrl,
+      Map<OperationId, HandlerMethod> operationMethods,
+      OpenAPIModelSchemaGenerator generator) {
+    if (operation != null) {
+      // 标准化路径，移除路径参数的花括号
+      HandlerMethod handlerMethod = operationMethods.get(new OperationId(pathUrl, httpMethod));
+
+      if (handlerMethod != null) {
+        MethodParameter returnParameter = handlerMethod.getReturnType();
+        // 获取实际返回类型
+        Type returnType = extractActualReturnType(returnParameter);
+        // 更新响应schema
+        updateOperationResponse(operation, returnType, generator);
+      }
+    }
+  }
+
+  /**
+   * Updates the response section of an operation with appropriate schemas.
+   *
+   * @param operation  The operation to update
+   * @param actualType The actual return type of the operation
+   * @param generator  Schema generator for OpenAPI models
    */
   private void updateOperationResponse(Operation operation, Type actualType, OpenAPIModelSchemaGenerator generator) {
-    ApiResponse successResponse = operation.getResponses().computeIfAbsent("200", k -> new ApiResponse());
+    ApiResponse successResponse = operation.getResponses().computeIfAbsent(SUCCESS_CODE, k -> new ApiResponse());
 
     Content content = new Content();
     MediaType mediaType = new MediaType();
@@ -148,7 +173,7 @@ public class AdvancedOpenApiCustomizer {
         .type("object");
 
     // 获取基础响应示例
-    Map<String, Object> exampleValues = new HashMap<>(generator.getExamples().get(SuccessResponse.class));
+    Map<String, Object> exampleValues = new HashMap<>(generator.getExample(SuccessResponse.class));
 
     // 处理实际返回类型
     Schema<?> dataSchema = createResponseSchema(actualType, generator);
@@ -172,7 +197,7 @@ public class AdvancedOpenApiCustomizer {
     mediaType.setSchema(wrapperSchema);
     mediaType.setExample(exampleValues);
 
-    content.addMediaType("application/json", mediaType);
+    content.addMediaType(APPLICATION_JSON, mediaType);
     successResponse.setContent(content);
   }
 
@@ -194,14 +219,14 @@ public class AdvancedOpenApiCustomizer {
         exampleArray.add(itemExample);
       } else {
         // 如果数组项没有示例，创建默认示例
-        exampleArray.add(createExampleForArrayItem(itemSchema, generator));
+        exampleArray.add(createExampleForArrayItem(itemSchema, actualType, generator));
       }
       return exampleArray;
     } else if (dataSchema instanceof ObjectSchema) {
       // 处理对象类型
       if (dataSchema.get$ref() != null) {
         // 处理引用类型
-        return generator.getExamples().get(actualType.getClass());
+        return generator.getExample(actualType.getClass());
       } else {
         // 处理普通对象
         return dataSchema.getExample();
@@ -212,6 +237,31 @@ public class AdvancedOpenApiCustomizer {
     }
   }
 
+  private Object createExampleForArrayItem(Schema<?> itemSchema, Type actualType, OpenAPIModelSchemaGenerator generator) {
+    // 优先使用已有的示例
+    if (itemSchema.getExample() != null) {
+      return itemSchema.getExample();
+    }
+
+    // 处理引用类型
+    if (itemSchema.get$ref() != null) {
+      String className = itemSchema.get$ref().substring(itemSchema.get$ref().lastIndexOf("/") + 1);
+      Map<String, Object> example = generator.getExample(actualType.getClass());
+      if (example != null) {
+        return example;
+      }
+    }
+
+    // 返回默认示例
+    return getDefaultExampleForSchema(itemSchema);
+  }
+
+  /**
+   * Generates a default example value for a given schema type.
+   *
+   * @param schema The schema to generate an example for
+   * @return A default example value appropriate for the schema type
+   */
   private Object getDefaultExampleForSchema(Schema<?> schema) {
     String type = schema.getType();
     if (type == null) {
@@ -234,50 +284,13 @@ public class AdvancedOpenApiCustomizer {
     };
   }
 
-  private Schema<?> createPrimitiveSchema(Class<?> type) {
-    if (String.class.equals(type)) {
-      return new StringSchema();
-    } else if (Integer.class.equals(type) || int.class.equals(type)) {
-      return new IntegerSchema();
-    } else if (Long.class.equals(type) || long.class.equals(type)) {
-      return new IntegerSchema().format("int64");
-    } else if (Float.class.equals(type) || float.class.equals(type)) {
-      return new NumberSchema().format("float");
-    } else if (Double.class.equals(type) || double.class.equals(type)) {
-      return new NumberSchema().format("double");
-    } else if (Boolean.class.equals(type) || boolean.class.equals(type)) {
-      return new BooleanSchema();
-    } else if (BigDecimal.class.equals(type)) {
-      return new NumberSchema();
-    } else if (Date.class.equals(type)) {
-      return new DateTimeSchema();
-    } else if (LocalDateTime.class.equals(type)) {
-      return new DateTimeSchema();
-    } else if (LocalDate.class.equals(type)) {
-      return new DateSchema();
-    }
-    return new ObjectSchema();
-  }
-
-  private Object createExampleForArrayItem(Schema<?> itemSchema, OpenAPIModelSchemaGenerator generator) {
-    // 优先使用已有的示例
-    if (itemSchema.getExample() != null) {
-      return itemSchema.getExample();
-    }
-
-    // 处理引用类型
-    if (itemSchema.get$ref() != null) {
-      String className = itemSchema.get$ref().substring(itemSchema.get$ref().lastIndexOf("/") + 1);
-      Map<String, Object> example = generator.getExamples().get(className);
-      if (example != null) {
-        return example;
-      }
-    }
-
-    // 返回默认示例
-    return getDefaultExampleForSchema(itemSchema);
-  }
-
+  /**
+   * Creates a response schema for the given type.
+   *
+   * @param type      The Java type to create a schema for
+   * @param generator Schema generator for OpenAPI models
+   * @return Schema representing the type
+   */
   private Schema<?> createResponseSchema(Type type, OpenAPIModelSchemaGenerator generator) {
     if (type instanceof ParameterizedType parameterizedType) {
       Class<?> rawType = (Class<?>) parameterizedType.getRawType();
@@ -306,19 +319,26 @@ public class AdvancedOpenApiCustomizer {
 
     // 处理普通类型
     if (type instanceof Class<?> clazz) {
-      if (isPrimitiveType(clazz)) {
+      if (ClassUtils.isPrimitiveOrWrapper(clazz)) {
         return createPrimitiveSchema(clazz);
       }
 
       // 处理复杂对象
       generator.processClass(clazz);
-      final Map<String, Object> map = generator.getExamples().get(clazz);
-      return new Schema<>().$ref("#/components/schemas/" + clazz.getSimpleName()).example(map);
+      final Map<String, Object> map = generator.getProcessedExamples().get(clazz);
+      return new Schema<>().$ref(COMPONENTS_SCHEMAS_PATH + clazz.getSimpleName()).example(map);
     }
 
     return new ObjectSchema();
   }
 
+  /**
+   * Creates a schema for paginated responses.
+   *
+   * @param elementType The type of elements in the page
+   * @param generator   Schema generator for OpenAPI models
+   * @return Schema representing a paginated response
+   */
   private Schema<?> createPageResponseSchema(Type elementType, OpenAPIModelSchemaGenerator generator) {
     ObjectSchema pageSchema = new ObjectSchema();
     pageSchema.addProperty("total", new IntegerSchema().format("int64"));
@@ -348,7 +368,6 @@ public class AdvancedOpenApiCustomizer {
     return arraySchema;
   }
 
-
   private Schema<?> createMapResponseSchema(Type[] typeArguments, OpenAPIModelSchemaGenerator generator) {
     MapSchema mapSchema = new MapSchema();
     if (typeArguments.length > 1) {
@@ -357,37 +376,53 @@ public class AdvancedOpenApiCustomizer {
     return mapSchema;
   }
 
-  /**
-   * Processes an operation by updating its response schema and example.
-   *
-   * @param operation        the operation to process
-   * @param httpMethod       the HTTP method of the operation
-   * @param pathUrl          the URL path of the operation
-   * @param operationMethods the map of operation IDs to handler methods
-   * @param generator        the schema generator
-   */
-  private void processOperation(Operation operation, String httpMethod, String pathUrl,
-      Map<OperationId, HandlerMethod> operationMethods,
-      OpenAPIModelSchemaGenerator generator) {
-    if (operation != null) {
-      // 标准化路径，移除路径参数的花括号
-      HandlerMethod handlerMethod = operationMethods.get(new OperationId(pathUrl, httpMethod));
-
-      if (handlerMethod != null) {
-        MethodParameter returnParameter = handlerMethod.getReturnType();
-        // 获取实际返回类型
-        Type returnType = extractActualReturnType(returnParameter);
-        // 更新响应schema
-        updateOperationResponse(operation, returnType, generator);
-      }
+  private Schema<?> createPrimitiveSchema(Class<?> type) {
+    if (String.class.equals(type)) {
+      return new StringSchema();
+    } else if (Integer.class.equals(type) || int.class.equals(type)) {
+      return new IntegerSchema();
+    } else if (Long.class.equals(type) || long.class.equals(type)) {
+      return new IntegerSchema().format("int64");
+    } else if (Float.class.equals(type) || float.class.equals(type)) {
+      return new NumberSchema().format("float");
+    } else if (Double.class.equals(type) || double.class.equals(type)) {
+      return new NumberSchema().format("double");
+    } else if (Boolean.class.equals(type) || boolean.class.equals(type)) {
+      return new BooleanSchema();
+    } else if (BigDecimal.class.equals(type)) {
+      return new NumberSchema();
+    } else if (Date.class.equals(type)) {
+      return new DateTimeSchema();
+    } else if (LocalDateTime.class.equals(type)) {
+      return new DateTimeSchema();
+    } else if (LocalDate.class.equals(type)) {
+      return new DateSchema();
     }
+    return new ObjectSchema();
   }
 
-  private boolean isPrimitiveType(Class<?> clazz) {
-    if (clazz.isPrimitive() || clazz == String.class || Number.class.isAssignableFrom(clazz)) {
-      return Boolean.TRUE;
+  /**
+   * Extracts the actual return type of a method parameter, handling generic types like ResponseEntity.
+   *
+   * @param returnParameter the method parameter to analyze
+   * @return the actual return type
+   */
+  private Type extractActualReturnType(MethodParameter returnParameter) {
+    // 获取方法返回类型
+    Type returnType = returnParameter.getGenericParameterType();
+
+    // 处理ResponseEntity
+    if (returnType instanceof ParameterizedType parameterizedType) {
+      Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+      if (ResponseEntity.class.isAssignableFrom(rawType)) {
+        Type[] typeArguments = parameterizedType.getActualTypeArguments();
+        if (typeArguments.length > 0) {
+          return typeArguments[0];
+        }
+      }
     }
-    return Boolean.FALSE;
+
+    return returnType;
   }
 
   @Data
