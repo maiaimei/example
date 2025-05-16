@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.example.model.ApiRequest;
 import org.example.model.ApiResponse;
 import org.example.model.ApiResponse.BaseResponse;
+import org.example.model.Page;
 import org.example.model.request.ExamplePageQueryRequest;
 import org.example.model.request.ExampleRequest;
 import org.example.model.response.ExampleResponse;
@@ -46,7 +47,7 @@ public class ExampleController {
   }
 
   @Operation(summary = "List example responses", description = "This is description of listing responses")
-  @GetMapping
+  @GetMapping("list")
   public ResponseEntity<BaseResponse<List<ExampleResponse>>> list(
       @Parameter(required = true) @Valid @RequestBody ApiRequest<ExamplePageQueryRequest> request) {
     final ExamplePageQueryRequest examplePageQueryRequest = request.getData();
@@ -55,6 +56,24 @@ public class ExampleController {
         .skip(examplePageQueryRequest.getCurrent() * examplePageQueryRequest.getSize())
         .limit(examplePageQueryRequest.getSize()).toList();
     return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(list));
+  }
+
+  @Operation(summary = "Page list example responses", description = "This is description of paging list responses")
+  @GetMapping("page-list")
+  public ResponseEntity<BaseResponse<Page<ExampleResponse>>> pageList(
+      @Parameter(required = true) @Valid @RequestBody ApiRequest<ExamplePageQueryRequest> request) {
+    final ExamplePageQueryRequest examplePageQueryRequest = request.getData();
+    final List<ExampleResponse> list = exampleResponseList.stream()
+        .filter(exampleResponse -> exampleResponse.getStringField().contains(examplePageQueryRequest.getStringField()))
+        .skip(examplePageQueryRequest.getCurrent() * examplePageQueryRequest.getSize())
+        .limit(examplePageQueryRequest.getSize()).toList();
+    Page<ExampleResponse> page = new Page<>();
+    page.setTotal(exampleResponseList.size());
+    page.setCurrent(examplePageQueryRequest.getCurrent());
+    page.setSize(examplePageQueryRequest.getSize());
+    page.setPages((long) Math.ceil((double) exampleResponseList.size() / examplePageQueryRequest.getSize()));
+    page.setRecords(list);
+    return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(page));
   }
 
   @Operation(summary = "Create a new example response", description = "This is description of creating a new example response")

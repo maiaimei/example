@@ -8,6 +8,7 @@ import static org.example.openapi.OpenAPIType.ARRAY;
 import static org.example.openapi.OpenAPIType.BOOLEAN;
 import static org.example.openapi.OpenAPIType.DOUBLE;
 import static org.example.openapi.OpenAPIType.FLOAT;
+import static org.example.openapi.OpenAPIType.INT64;
 import static org.example.openapi.OpenAPIType.INTEGER;
 import static org.example.openapi.OpenAPIType.NUMBER;
 import static org.example.openapi.OpenAPIType.OBJECT;
@@ -354,7 +355,7 @@ public class OpenAPIAdvancedCustomizer {
    */
   private Schema<?> createPageResponseSchema(Type elementType, OpenAPIModelSchemaGenerator generator) {
     ObjectSchema pageSchema = new ObjectSchema();
-    pageSchema.addProperty("total", new IntegerSchema().format("int64"));
+    pageSchema.addProperty("total", new IntegerSchema().format(INT64));
     pageSchema.addProperty("size", new IntegerSchema());
     pageSchema.addProperty("current", new IntegerSchema());
     pageSchema.addProperty("pages", new IntegerSchema());

@@ -2,8 +2,10 @@ package org.example.model;
 
 import java.util.List;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 @Data
+@Accessors
 public class Page<T> {
 
   private long total;
