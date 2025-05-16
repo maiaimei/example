@@ -152,13 +152,15 @@ public class OpenAPIAdvancedCustomizer {
       Map<OperationId, HandlerMethod> operationMethods,
       OpenAPIModelSchemaGenerator generator) {
     if (operation != null) {
-      // 标准化路径，移除路径参数的花括号
       HandlerMethod handlerMethod = operationMethods.get(new OperationId(pathUrl, httpMethod));
 
       if (handlerMethod != null) {
         MethodParameter returnParameter = handlerMethod.getReturnType();
         // 获取实际返回类型
         Type returnType = extractActualReturnType(returnParameter);
+
+        // TODO: 跳过处理文件或二进制
+
         // 更新响应schema
         createOrUpdateOperationSuccessResponse(operation, returnType, generator);
         createOperationErrorResponse(operation);
