@@ -49,10 +49,13 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.example.model.ApiResponse.BaseResponse;
+import org.example.model.ApiResponse.ErrorResponse;
 import org.example.model.ApiResponse.SuccessResponse;
 import org.example.model.Page;
+import org.example.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
@@ -159,11 +162,16 @@ public class OpenAPIAdvancedCustomizer {
         // 获取实际返回类型
         Type returnType = extractActualReturnType(returnParameter);
 
-        // TODO: 跳过处理文件或二进制
-
-        // 更新响应schema
-        createOrUpdateOperationSuccessResponse(operation, returnType, generator);
-        createOperationErrorResponse(operation);
+        // 跳过处理文件或二进制
+        OpenAPIFileRelatedCustomizer openAPIFileRelatedCustomizer = new OpenAPIFileRelatedCustomizer(operation, handlerMethod,
+            returnType);
+        if (openAPIFileRelatedCustomizer.shouldSkipCustomise(handlerMethod, returnType)) {
+          openAPIFileRelatedCustomizer.customise();
+        } else {
+          // 更新响应schema
+          createOrUpdateOperationSuccessResponse(operation, returnType, generator);
+          createOperationErrorResponse(operation);
+        }
       }
     }
   }
@@ -220,7 +228,25 @@ public class OpenAPIAdvancedCustomizer {
   }
 
   private void createOperationErrorResponse(Operation operation) {
-    // TODO: createOperationErrorResponse
+    createOperationErrorResponse(operation, HttpStatus.UNAUTHORIZED, "Unauthorized");
+    createOperationErrorResponse(operation, HttpStatus.FORBIDDEN, "Forbidden");
+    createOperationErrorResponse(operation, HttpStatus.INTERNAL_SERVER_ERROR, "Error");
+  }
+
+  private void createOperationErrorResponse(Operation operation, HttpStatus httpStatus, String message) {
+    final ErrorResponse<Object> resp = new ErrorResponse<>()
+        .setCode(httpStatus.value())
+        .setMessage(message)
+        .setError("example")
+        .setDetails("example")
+        .setTimestamp(LocalDateTime.now())
+        .setPath("/examples")
+        .setMethod("GET")
+        .setCorrelationId("2025051522504809400001");
+    final Map<String, Object> map = JsonUtils.toMap(resp);
+    operation.getResponses().addApiResponse(String.valueOf(httpStatus.value()), new ApiResponse()
+        .content(new Content().addMediaType(APPLICATION_JSON,
+            new MediaType().schema(new Schema<>().$ref(COMPONENTS_SCHEMAS_PATH + "ErrorResponse").example(map)))));
   }
 
   /**

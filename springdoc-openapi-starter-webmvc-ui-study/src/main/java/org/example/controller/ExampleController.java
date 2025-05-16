@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "BasicExampleController", description = "This is description of BasicExampleController")
+@Tag(name = "ExampleController", description = "This is description of BasicExampleController")
 @RestController
 @RequestMapping("/examples")
 public class ExampleController {

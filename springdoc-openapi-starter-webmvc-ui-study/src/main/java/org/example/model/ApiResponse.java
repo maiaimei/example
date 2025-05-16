@@ -31,7 +31,7 @@ public class ApiResponse {
     @Schema(description = "The code of response", example = "200")
     private Integer code;
 
-    @Schema(description = "The message of response", example = "This is message")
+    @Schema(description = "The message of response", example = "success")
     private String message;
 
     @Schema(description = "The data of response")
@@ -40,7 +40,7 @@ public class ApiResponse {
     @Schema(description = "The timestamp of response", example = "2025-05-15T21:14:26.858234600")
     private LocalDateTime timestamp;
 
-    @Schema(description = "The path of request", example = "/example")
+    @Schema(description = "The path of request", example = "/examples")
     private String path;
 
     @Schema(description = "The method of request", example = "GET")
@@ -58,7 +58,7 @@ public class ApiResponse {
     @Schema(description = "The code of response", example = "500")
     private Integer code;
 
-    @Schema(description = "The message of response", example = "This is message")
+    @Schema(description = "The message of response", example = "Error")
     private String message;
 
     @Schema(description = "The data of response")
@@ -73,7 +73,7 @@ public class ApiResponse {
     @Schema(description = "The timestamp of response", example = "2025-05-15T21:14:26.858234600")
     private LocalDateTime timestamp;
 
-    @Schema(description = "The path of request", example = "/example")
+    @Schema(description = "The path of request", example = "/examples")
     private String path;
 
     @Schema(description = "The method of request", example = "GET")
