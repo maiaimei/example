@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.example.utils.FieldUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -92,10 +93,6 @@ public class OpenAPIModelSchemaGenerator {
       return;
     }
     processedClasses.add(modelClass);
-    
-//    if (schemaAlreadyExists(modelName)) {
-//      return;
-//    }
 
     Schema classSchema = modelClass.getAnnotation(Schema.class);
     ObjectSchema schema = new ObjectSchema();
@@ -108,7 +105,7 @@ public class OpenAPIModelSchemaGenerator {
     List<String> requiredFields = new ArrayList<>();
     Map<String, Object> exampleValues = new LinkedHashMap<>();
 
-    for (Field field : modelClass.getDeclaredFields()) {
+    for (Field field : FieldUtils.getAllFields(modelClass)) {
       Schema fieldSchema = field.getAnnotation(Schema.class);
       if (fieldSchema != null) {
         processField(field, fieldSchema, properties, requiredFields, exampleValues);
@@ -308,18 +305,6 @@ public class OpenAPIModelSchemaGenerator {
       return example;
     }
     return example;
-  }
-
-  /**
-   * Checks if a schema with the given model name already exists in the OpenAPI components.
-   *
-   * @param modelName The name of the model to check.
-   * @return True if the schema already exists, false otherwise.
-   */
-  private boolean schemaAlreadyExists(String modelName) {
-    return openAPI.getComponents() != null &&
-        openAPI.getComponents().getSchemas() != null &&
-        openAPI.getComponents().getSchemas().containsKey(modelName);
   }
 
   /**

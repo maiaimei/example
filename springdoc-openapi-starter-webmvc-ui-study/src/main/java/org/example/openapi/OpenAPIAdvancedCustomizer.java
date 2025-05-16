@@ -160,19 +160,20 @@ public class OpenAPIAdvancedCustomizer {
         // 获取实际返回类型
         Type returnType = extractActualReturnType(returnParameter);
         // 更新响应schema
-        updateOperationResponse(operation, returnType, generator);
+        createOrUpdateOperationSuccessResponse(operation, returnType, generator);
+        createOperationErrorResponse(operation);
       }
     }
   }
 
   /**
-   * Updates the response section of an operation with appropriate schemas.
+   * Adds or updates the success response for an operation.
    *
    * @param operation  The operation to update
    * @param actualType The actual return type of the operation
    * @param generator  Schema generator for OpenAPI models
    */
-  private void updateOperationResponse(Operation operation, Type actualType, OpenAPIModelSchemaGenerator generator) {
+  private void createOrUpdateOperationSuccessResponse(Operation operation, Type actualType, OpenAPIModelSchemaGenerator generator) {
     ApiResponse successResponse = operation.getResponses().computeIfAbsent(SUCCESS_CODE, k -> new ApiResponse());
 
     Content content = new Content();
@@ -214,6 +215,10 @@ public class OpenAPIAdvancedCustomizer {
 
     content.addMediaType(APPLICATION_JSON, mediaType);
     successResponse.setContent(content);
+  }
+
+  private void createOperationErrorResponse(Operation operation) {
+    // TODO: createOperationErrorResponse
   }
 
   /**
