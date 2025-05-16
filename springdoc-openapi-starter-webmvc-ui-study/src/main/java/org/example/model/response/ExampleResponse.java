@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
+@Schema(description = "The response of example", example = "1")
 public class ExampleResponse {
 
   @JsonSerialize(using = ToStringSerializer.class)

@@ -92,10 +92,10 @@ public class OpenAPIModelSchemaGenerator {
       return;
     }
     processedClasses.add(modelClass);
-
-    if (schemaAlreadyExists(modelName)) {
-      return;
-    }
+    
+//    if (schemaAlreadyExists(modelName)) {
+//      return;
+//    }
 
     Schema classSchema = modelClass.getAnnotation(Schema.class);
     ObjectSchema schema = new ObjectSchema();
