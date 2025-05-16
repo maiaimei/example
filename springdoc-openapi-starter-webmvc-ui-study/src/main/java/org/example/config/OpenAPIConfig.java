@@ -11,7 +11,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
-import org.example.utils.AdvancedOpenApiCustomizer;
+import org.example.utils.OpenAPIAdvancedCustomizer;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SpringDocConfigProperties;
@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenAPIConfig {
 
   @Autowired
-  private AdvancedOpenApiCustomizer advancedOpenApiCustomizer;
+  private OpenAPIAdvancedCustomizer openApiAdvancedCustomizer;
 
   @Bean
   public OpenAPI openAPI() {
@@ -65,7 +65,7 @@ public class OpenAPIConfig {
   @Bean
   public OpenApiCustomizer openApiCustomizer() {
     return openAPI -> {
-      advancedOpenApiCustomizer.customise(openAPI);
+      openApiAdvancedCustomizer.customise(openAPI);
     };
   }
 

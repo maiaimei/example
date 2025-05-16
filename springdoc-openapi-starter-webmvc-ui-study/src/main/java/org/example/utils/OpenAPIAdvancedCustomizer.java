@@ -53,7 +53,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * documentation, including operation ID generation, schema customization, and response handling.
  */
 @Component
-public class AdvancedOpenApiCustomizer {
+public class OpenAPIAdvancedCustomizer {
 
   private static final String APPLICATION_JSON = "application/json";
   private static final String COMPONENTS_SCHEMAS_PATH = "#/components/schemas/";
