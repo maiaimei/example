@@ -7,8 +7,10 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.Base64;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 public class SecureRandomTest {
 
   @Test

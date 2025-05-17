@@ -9,9 +9,7 @@ import java.security.Security;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -108,10 +106,29 @@ public class ProviderUtils {
     return Objects.nonNull(Security.getProvider(providerName));
   }
 
+  public static Provider getProvider(String providerName) {
+    final Provider provider = Security.getProvider(providerName);
+    if (Objects.isNull(provider)) {
+      throw new RuntimeException("Provider " + providerName + " does not exist");
+    }
+    return provider;
+  }
+
   /**
-   * 检查 Provider 状态
+   * 获取 Provider 支持的算法
    */
-  public static ProviderState checkProviderState(String providerName) {
+  public static Set<String> getProviderAlgorithms(Provider provider) {
+    Set<String> algorithms = new HashSet<>();
+    for (Provider.Service service : provider.getServices()) {
+      algorithms.add(service.getAlgorithm());
+    }
+    return algorithms;
+  }
+
+  /**
+   * 获取 Provider 状态
+   */
+  public static ProviderState getProviderState(String providerName) {
     Provider provider = Security.getProvider(providerName);
     boolean installed = provider != null;
     int position = -1;
@@ -134,17 +151,6 @@ public class ProviderUtils {
   }
 
   /**
-   * 获取 Provider 支持的算法
-   */
-  public static Set<String> getProviderAlgorithms(Provider provider) {
-    Set<String> algorithms = new HashSet<>();
-    for (Provider.Service service : provider.getServices()) {
-      algorithms.add(service.getAlgorithm());
-    }
-    return algorithms;
-  }
-
-  /**
    * 临时使用 Provider
    */
   public static void withProvider(Provider provider, Runnable action) {
@@ -155,42 +161,6 @@ public class ProviderUtils {
         throw new RuntimeException("Provider " + providerName + " does not exist");
       }
       action.run();
-    } finally {
-      removeProvider(providerName);
-    }
-  }
-
-  /**
-   * 临时使用 Provider
-   */
-  public static <T> T withProvider(Provider provider, Callable<T> action) {
-    String providerName = provider.getName();
-    addProvider(provider);
-    try {
-      if (!existProvider(provider)) {
-        throw new RuntimeException("Provider " + providerName + " does not exist");
-      }
-      return action.call();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    } finally {
-      removeProvider(providerName);
-    }
-  }
-
-  /**
-   * 临时使用 Provider
-   */
-  public static <T> T withProvider(Provider provider, Function<Provider, T> action) {
-    String providerName = provider.getName();
-    addProvider(provider);
-    try {
-      if (!existProvider(provider)) {
-        throw new RuntimeException("Provider " + providerName + " does not exist");
-      }
-      return action.apply(provider);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
     } finally {
       removeProvider(providerName);
     }

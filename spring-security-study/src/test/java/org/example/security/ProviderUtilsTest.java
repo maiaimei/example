@@ -1,5 +1,6 @@
 package org.example.security;
 
+import java.security.Provider;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -31,7 +32,7 @@ public class ProviderUtilsTest {
     ProviderUtils.listInstalledProviders();
 
     // 检查 Provider 状态
-    final ProviderState providerState = ProviderUtils.checkProviderState(BouncyCastleConstants.PROVIDER_NAME);
+    final ProviderState providerState = ProviderUtils.getProviderState(BouncyCastleConstants.PROVIDER_NAME);
     System.out.println("Provider state: " + providerState);
     if (providerState.isInstalled()) {
       final Set<String> supportedAlgorithms = providerState.getSupportedAlgorithms();
@@ -46,18 +47,20 @@ public class ProviderUtilsTest {
   }
 
   @Test
-  public void testWithProvider_Runnable() {
+  public void testWithProvider_listInstalledProviders() {
     ProviderUtils.withProvider(new BouncyCastleProvider(), ProviderUtils::listInstalledProviders);
   }
 
   @Test
-  public void testWithProvider_Function() {
-    final Set<String> supportedAlgorithms = ProviderUtils.withProvider(new BouncyCastleProvider(),
-        ProviderUtils::getProviderAlgorithms);
-    System.out.println("Supported Algorithms: " + supportedAlgorithms.size());
-    for (String supportedAlgorithm : supportedAlgorithms) {
-      System.out.println(supportedAlgorithm);
-    }
+  public void testWithProvider_getProviderAlgorithms() {
+    ProviderUtils.withProvider(new BouncyCastleProvider(), () -> {
+      final Provider provider = ProviderUtils.getProvider(BouncyCastleConstants.PROVIDER_NAME);
+      final Set<String> supportedAlgorithms = ProviderUtils.getProviderAlgorithms(provider);
+      System.out.println("Supported Algorithms: " + supportedAlgorithms.size());
+      for (String supportedAlgorithm : supportedAlgorithms) {
+        System.out.println(supportedAlgorithm);
+      }
+    });
   }
 
   @Test
@@ -67,6 +70,5 @@ public class ProviderUtilsTest {
         BouncyCastleConstants.ALGORITHM_SHA_256,
         1000));
   }
-
 
 }
