@@ -1,4 +1,4 @@
-package org.example.bc;
+package org.example.security.bc;
 
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class BouncyCastleTest {
-  
+
   @Test
   public void performModernCryptoOperation() {
     try {

@@ -1,4 +1,4 @@
-package org.example.bc;
+package org.example.security.bc;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;

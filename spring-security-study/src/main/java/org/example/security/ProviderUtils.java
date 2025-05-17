@@ -7,10 +7,11 @@ import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,12 +73,12 @@ public class ProviderUtils {
         if (!ACTIVE_PROVIDERS.contains(providerName)) {
           Security.addProvider(provider);
           ACTIVE_PROVIDERS.add(providerName);
-          log.info("Successfully initialized {} provider", providerName);
+          log.info("Provider {} initialization success", providerName);
+          log.info("Provider version: {}, Provider info: {}", provider.getVersionStr(), provider.getInfo());
         }
       }
-      log.info("Provider version: {}, Provider info: {}", provider.getVersionStr(), provider.getInfo());
     } catch (Exception e) {
-      log.error("Failed to initialize provider", e);
+      log.error("Provider initialization failed", e);
       throw new RuntimeException("Provider initialization failed", e);
     }
   }
@@ -97,6 +98,14 @@ public class ProviderUtils {
         log.info("Removed provider: {}", providerName);
       }
     }
+  }
+
+  public static boolean existProvider(Provider provider) {
+    return Objects.nonNull(Security.getProvider(provider.getName()));
+  }
+
+  public static boolean existProvider(String providerName) {
+    return Objects.nonNull(Security.getProvider(providerName));
   }
 
   /**
@@ -127,7 +136,7 @@ public class ProviderUtils {
   /**
    * 获取 Provider 支持的算法
    */
-  private static Set<String> getProviderAlgorithms(Provider provider) {
+  public static Set<String> getProviderAlgorithms(Provider provider) {
     Set<String> algorithms = new HashSet<>();
     for (Provider.Service service : provider.getServices()) {
       algorithms.add(service.getAlgorithm());
@@ -138,61 +147,53 @@ public class ProviderUtils {
   /**
    * 临时使用 Provider
    */
-  public static <T> T withProvider(Provider provider, Callable<T> action) throws Exception {
+  public static void withProvider(Provider provider, Runnable action) {
     String providerName = provider.getName();
     addProvider(provider);
     try {
-      return action.call();
+      if (!existProvider(provider)) {
+        throw new RuntimeException("Provider " + providerName + " does not exist");
+      }
+      action.run();
     } finally {
       removeProvider(providerName);
     }
   }
 
   /**
-   * Provider 生命周期管理
+   * 临时使用 Provider
    */
-  public static class ProviderLifecycle implements AutoCloseable {
-
-    private final String providerName;
-    private boolean isActive;
-
-    public ProviderLifecycle(Provider provider) {
-      this.providerName = provider.getName();
-      addProvider(provider);
-      this.isActive = true;
-    }
-
-    public void ensureActive() {
-      if (!isActive || Security.getProvider(providerName) == null) {
-        throw new IllegalStateException("Provider is not active: " + providerName);
+  public static <T> T withProvider(Provider provider, Callable<T> action) {
+    String providerName = provider.getName();
+    addProvider(provider);
+    try {
+      if (!existProvider(provider)) {
+        throw new RuntimeException("Provider " + providerName + " does not exist");
       }
-    }
-
-    @Override
-    public void close() {
-      if (isActive) {
-        removeProvider(providerName);
-        isActive = false;
-      }
+      return action.call();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      removeProvider(providerName);
     }
   }
 
   /**
-   * 检查 Provider 依赖
+   * 临时使用 Provider
    */
-  public static Set<String> checkMissingAlgorithms(String providerName,
-      Set<String> requiredAlgorithms) {
-    Set<String> missing = new LinkedHashSet<>();
-
-    for (String algorithm : requiredAlgorithms) {
-      try {
-        MessageDigest.getInstance(algorithm, providerName);
-      } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-        missing.add(algorithm);
+  public static <T> T withProvider(Provider provider, Function<Provider, T> action) {
+    String providerName = provider.getName();
+    addProvider(provider);
+    try {
+      if (!existProvider(provider)) {
+        throw new RuntimeException("Provider " + providerName + " does not exist");
       }
+      return action.apply(provider);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      removeProvider(providerName);
     }
-
-    return missing;
   }
 
   /**
@@ -200,10 +201,10 @@ public class ProviderUtils {
    */
   public static void listInstalledProviders() {
     Provider[] providers = Security.getProviders();
-    log.info("Installed providers:");
+    System.out.println("Installed providers:");
     for (int i = 0; i < providers.length; i++) {
       Provider provider = providers[i];
-      log.info("{}. {} (version {})",
+      System.out.printf("%d. %s (version %s)\n",
           i + 1, provider.getName(), provider.getVersionStr());
     }
   }

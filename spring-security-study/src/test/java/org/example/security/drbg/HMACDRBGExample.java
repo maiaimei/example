@@ -1,4 +1,4 @@
-package org.example.drbg;
+package org.example.security.drbg;
 
 import java.util.HashMap;
 import java.util.Map;

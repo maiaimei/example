@@ -1,4 +1,4 @@
-package org.example.bc;
+package org.example.security.bc;
 
 public class BouncyCastleConstants {
 

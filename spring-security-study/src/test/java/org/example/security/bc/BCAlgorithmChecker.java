@@ -1,4 +1,4 @@
-package org.example.bc;
+package org.example.security.bc;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
