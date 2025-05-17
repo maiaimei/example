@@ -140,6 +140,7 @@ public class SecureRandomTest {
           "DRBG", // DRBG (Deterministic Random Bit Generator)  - Hash_DRBG
           "HMAC_DRBG", // DRBG (Deterministic Random Bit Generator)  - HMAC_DRBG
           "CTR_DRBG", // DRBG (Deterministic Random Bit Generator)  - CTR_DRBG
+          "DRBG-CTR", // DRBG (Deterministic Random Bit Generator)  - CTR_DRBG
           "Windows-PRNG"
       };
 
