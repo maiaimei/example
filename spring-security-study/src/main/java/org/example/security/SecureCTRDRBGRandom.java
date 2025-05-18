@@ -109,23 +109,6 @@ public class SecureCTRDRBGRandom extends SecureRandom {
     }
   }
 
-  private void reseedDRBG() {
-    try {
-      byte[] entropyInput = new byte[SECURITY_STRENGTH / 8];
-      SecureRandom.getInstanceStrong().nextBytes(entropyInput);
-
-      synchronized (drbgLock) {
-        drbg.reseed(entropyInput);
-        bytesGeneratedSinceReseed = 0;
-        isReseedRequired = false;
-        log.debug("DRBG successfully reseeded");
-      }
-    } catch (NoSuchAlgorithmException e) {
-      log.error("Failed to reseed DRBG", e);
-      throw new IllegalStateException("DRBG reseed failed", e);
-    }
-  }
-
   /**
    * 显式触发DRBG重新播种
    */
@@ -205,6 +188,23 @@ public class SecureCTRDRBGRandom extends SecureRandom {
         personalizationString,   // 个性化字符串
         null                    // 额外输入
     );
+  }
+
+  private void reseedDRBG() {
+    try {
+      byte[] entropyInput = new byte[SECURITY_STRENGTH / 8];
+      SecureRandom.getInstanceStrong().nextBytes(entropyInput);
+
+      synchronized (drbgLock) {
+        drbg.reseed(entropyInput);
+        bytesGeneratedSinceReseed = 0;
+        isReseedRequired = false;
+        log.debug("DRBG successfully reseeded");
+      }
+    } catch (NoSuchAlgorithmException e) {
+      log.error("Failed to reseed DRBG", e);
+      throw new IllegalStateException("DRBG reseed failed", e);
+    }
   }
 
   private SecureRandom getStrongEntropySource() {
