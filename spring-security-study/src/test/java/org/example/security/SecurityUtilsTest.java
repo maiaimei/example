@@ -5,7 +5,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.example.security.SecurityUtils.ProviderState;
-import org.example.security.bc.BouncyCastleConstants;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
@@ -32,7 +31,7 @@ public class SecurityUtilsTest {
     SecurityUtils.listInstalledProviders();
 
     // 获取 Provider 状态信息
-    final ProviderState providerState = SecurityUtils.getProviderState(BouncyCastleConstants.PROVIDER_NAME);
+    final ProviderState providerState = SecurityUtils.getProviderState("BC");
     System.out.println("Provider state: " + providerState);
     if (providerState.isInstalled()) {
       final Set<String> supportedAlgorithms = providerState.getSupportedAlgorithms();
@@ -43,7 +42,7 @@ public class SecurityUtilsTest {
     }
 
     // 安全地移除 Provider
-    SecurityUtils.removeProvider(BouncyCastleConstants.PROVIDER_NAME);
+    SecurityUtils.removeProvider("BC");
   }
 
   @Test
@@ -56,7 +55,7 @@ public class SecurityUtilsTest {
   public void testWithProvider_getProviderAlgorithms() {
     // 使用 Provider 执行操作，获取 Provider 支持的算法集合
     SecurityUtils.withProvider(new BouncyCastleProvider(), () -> {
-      final Provider provider = SecurityUtils.getProvider(BouncyCastleConstants.PROVIDER_NAME);
+      final Provider provider = SecurityUtils.getProvider("BC");
       final Set<String> supportedAlgorithms = SecurityUtils.getProviderAlgorithms(provider);
       System.out.println("Supported Algorithms: " + supportedAlgorithms.size());
       for (String supportedAlgorithm : supportedAlgorithms) {
@@ -69,8 +68,8 @@ public class SecurityUtilsTest {
   public void testPerformanceTest() {
     // 使用 Provider 执行操作，性能测试
     SecurityUtils.withProvider(new BouncyCastleProvider(), () -> SecurityUtils.performanceTest(
-        BouncyCastleConstants.PROVIDER_NAME,
-        BouncyCastleConstants.ALGORITHM_SHA_256,
+        "BC",
+        "SHA-256",
         1000));
   }
 
