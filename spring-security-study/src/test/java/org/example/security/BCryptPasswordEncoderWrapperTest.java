@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 @Slf4j
 public class BCryptPasswordEncoderWrapperTest {
 
-  private BCryptPasswordEncoderWrapperV3 encoder;
+  private BCryptPasswordEncoderWrapper encoder;
 
   @BeforeEach
   void setUp() {
-    encoder = new BCryptPasswordEncoderWrapperV3();
+    encoder = new BCryptPasswordEncoderWrapper();
   }
 
   @Test

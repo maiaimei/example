@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 
 @Slf4j
-public class BCryptPasswordEncoderWrapperV3 implements PasswordEncoder {
+public class BCryptPasswordEncoderWrapper implements PasswordEncoder {
 
   // Specify BouncyCastle DRBG configuration
   private static final int BCRYPT_STRENGTH = 14;
@@ -26,7 +26,7 @@ public class BCryptPasswordEncoderWrapperV3 implements PasswordEncoder {
 
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-  public BCryptPasswordEncoderWrapperV3() {
+  public BCryptPasswordEncoderWrapper() {
     log.debug("Initializing BCryptPasswordEncoderWrapper with strength: {}", BCRYPT_STRENGTH);
     this.bCryptPasswordEncoder = createBCryptPasswordEncoder();
   }
