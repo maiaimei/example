@@ -1,10 +1,13 @@
 package org.example.security;
 
 import java.io.Serial;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.engines.AESLightEngine;
 import org.bouncycastle.crypto.prng.BasicEntropySourceProvider;
@@ -27,6 +30,10 @@ public class SecureCTRDRBGRandom extends SecureRandom {
   private final CTRSP800DRBG drbg;
   private final int securityStrength;
 
+  private static final int VALIDATION_SAMPLES = 1000;
+  private static final double MIN_ENTROPY_BITS_PER_BYTE = 7.5;
+  private static final int MIN_UNIQUE_BYTES_PERCENTAGE = 95;
+
   static {
     // Register BouncyCastle provider if not already registered
     if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
@@ -37,21 +44,21 @@ public class SecureCTRDRBGRandom extends SecureRandom {
   /**
    * Constructor with default security strength (128 bits)
    */
-  public SecureCTRDRBGRandom() throws NoSuchAlgorithmException {
-    this(DEFAULT_SECURITY_STRENGTH);
+  public SecureCTRDRBGRandom(byte[] personalizationString) throws NoSuchAlgorithmException {
+    this(DEFAULT_SECURITY_STRENGTH, personalizationString);
   }
 
   /**
    * Constructor with configurable security strength
    */
-  public SecureCTRDRBGRandom(int requestedSecurityStrength) throws NoSuchAlgorithmException {
+  public SecureCTRDRBGRandom(int requestedSecurityStrength, byte[] personalizationString) throws NoSuchAlgorithmException {
     super(null, new BouncyCastleProvider());
 
     // Validate and adjust security strength
     this.securityStrength = validateAndAdjustSecurityStrength(requestedSecurityStrength);
 
     try {
-      this.drbg = initializeDRBG(this.securityStrength);
+      this.drbg = initializeDRBG(this.securityStrength, personalizationString);
     } catch (Exception e) {
       log.error("Failed to initialize DRBG", e);
       throw new NoSuchAlgorithmException("DRBG initialization failed", e);
@@ -88,7 +95,7 @@ public class SecureCTRDRBGRandom extends SecureRandom {
     return adjusted;
   }
 
-  private CTRSP800DRBG initializeDRBG(int strength) throws NoSuchAlgorithmException {
+  private CTRSP800DRBG initializeDRBG(int strength, byte[] personalizationString) throws NoSuchAlgorithmException {
     // Initialize base SecureRandom for entropy
     SecureRandom baseRandom = getStrongSecureRandomOrDefault();
 
@@ -108,7 +115,7 @@ public class SecureCTRDRBGRandom extends SecureRandom {
         strength,              // Security strength
         blockSize,             // Block size
         entropySource,         // Entropy source
-        null,                  // Personalization string
+        personalizationString, // Personalization string
         null                   // Additional input
     );
   }
@@ -122,18 +129,155 @@ public class SecureCTRDRBGRandom extends SecureRandom {
     }
   }
 
-  private void validateEntropySource(SecureRandom random) {
-    byte[] testEntropy = new byte[securityStrength / 8];
+  private void validateEntropySource(SecureRandom random) throws NoSuchAlgorithmException {
+    int sampleSize = securityStrength / 8;
+    byte[][] samples = new byte[VALIDATION_SAMPLES][sampleSize];
+
     try {
-      // Perform entropy source validation
-      random.nextBytes(testEntropy);
+      // Collect multiple samples for entropy analysis
+      for (int i = 0; i < VALIDATION_SAMPLES; i++) {
+        random.nextBytes(samples[i]);
+      }
+
+      // Perform entropy source validation checks
+      validateEntropyRate(samples, sampleSize);
+      validateUniqueness(samples, sampleSize);
+      validateDistribution(samples, sampleSize);
+      validateSequentialCorrelation(samples, sampleSize);
 
       // Log entropy source details
-      log.info("Using entropy source: algorithm={}, provider={}",
+      log.info("Entropy source validation successful: algorithm={}, provider={}, security strength={}",
           random.getAlgorithm(),
-          random.getProvider().getName());
+          random.getProvider().getName(),
+          securityStrength);
+
+    } catch (EntropyValidationException e) {
+      log.error("Entropy source validation failed", e);
+      throw new NoSuchAlgorithmException("Insufficient entropy source quality: " + e.getMessage());
     } finally {
-      Arrays.fill(testEntropy, (byte) 0);
+      // Secure cleanup of samples
+      for (byte[] sample : samples) {
+        Arrays.fill(sample, (byte) 0);
+      }
+    }
+  }
+
+  private void validateEntropyRate(byte[][] samples, int sampleSize) throws EntropyValidationException {
+    // Calculate empirical entropy using frequency analysis
+    int[] frequencies = new int[256];
+    long totalBytes = (long) samples.length * sampleSize;
+
+    for (byte[] sample : samples) {
+      for (byte b : sample) {
+        frequencies[b & 0xFF]++;
+      }
+    }
+
+    double empiricalEntropy = calculateShannonEntropy(frequencies, totalBytes);
+    double entropyBitsPerByte = empiricalEntropy / Math.log(2);
+
+    if (entropyBitsPerByte < MIN_ENTROPY_BITS_PER_BYTE) {
+      throw new EntropyValidationException(
+          String.format("Insufficient entropy rate: %.2f bits/byte (minimum required: %.2f)",
+              entropyBitsPerByte, MIN_ENTROPY_BITS_PER_BYTE));
+    }
+  }
+
+  private double calculateShannonEntropy(int[] frequencies, long totalBytes) {
+    double entropy = 0.0;
+    for (int frequency : frequencies) {
+      if (frequency > 0) {
+        double probability = (double) frequency / totalBytes;
+        entropy -= probability * Math.log(probability);
+      }
+    }
+    return entropy;
+  }
+
+  private void validateUniqueness(byte[][] samples, int sampleSize) throws EntropyValidationException {
+    Set<ByteBuffer> uniqueSamples = new HashSet<>();
+    for (byte[] sample : samples) {
+      uniqueSamples.add(ByteBuffer.wrap(sample.clone()));
+    }
+
+    int uniquePercentage = (uniqueSamples.size() * 100) / samples.length;
+    if (uniquePercentage < MIN_UNIQUE_BYTES_PERCENTAGE) {
+      throw new EntropyValidationException(
+          String.format("Insufficient uniqueness: %d%% unique samples (minimum required: %d%%)",
+              uniquePercentage, MIN_UNIQUE_BYTES_PERCENTAGE));
+    }
+  }
+
+  private void validateDistribution(byte[][] samples, int sampleSize) throws EntropyValidationException {
+    // Perform chi-square test for uniform distribution
+    int[] observed = new int[256];
+    long totalBytes = (long) samples.length * sampleSize;
+    double expectedFrequency = totalBytes / 256.0;
+
+    for (byte[] sample : samples) {
+      for (byte b : sample) {
+        observed[b & 0xFF]++;
+      }
+    }
+
+    double chiSquare = 0.0;
+    for (int frequency : observed) {
+      double difference = frequency - expectedFrequency;
+      chiSquare += (difference * difference) / expectedFrequency;
+    }
+
+    // Critical value for 255 degrees of freedom at 0.001 significance level
+    double criticalValue = 327.86;
+    if (chiSquare > criticalValue) {
+      throw new EntropyValidationException(
+          String.format("Distribution test failed: chi-square = %.2f (critical value: %.2f)",
+              chiSquare, criticalValue));
+    }
+  }
+
+  private void validateSequentialCorrelation(byte[][] samples, int sampleSize)
+      throws EntropyValidationException {
+    // Calculate serial correlation coefficient
+    double correlation = calculateSerialCorrelation(samples, sampleSize);
+    double maxAllowedCorrelation = 0.1; // Maximum allowed correlation coefficient
+
+    if (Math.abs(correlation) > maxAllowedCorrelation) {
+      throw new EntropyValidationException(
+          String.format("High sequential correlation detected: %.4f (maximum allowed: %.4f)",
+              Math.abs(correlation), maxAllowedCorrelation));
+    }
+  }
+
+  private double calculateSerialCorrelation(byte[][] samples, int sampleSize) {
+    long n = (long) samples.length * sampleSize;
+    double sum = 0.0;
+    double sumSquared = 0.0;
+    double sumProduct = 0.0;
+
+    for (byte[] sample : samples) {
+      for (int i = 0; i < sample.length - 1; i++) {
+        int current = sample[i] & 0xFF;
+        int next = sample[i + 1] & 0xFF;
+
+        sum += current;
+        sumSquared += current * current;
+        sumProduct += current * next;
+      }
+    }
+
+    double numerator = (n - 1) * sumProduct - sum * sum;
+    double denominator = (n - 1) * sumSquared - sum * sum;
+
+    return denominator == 0 ? 0 : numerator / denominator;
+  }
+
+  private static class EntropyValidationException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    public EntropyValidationException(String message) {
+      super(message);
     }
   }
 
