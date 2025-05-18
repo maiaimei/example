@@ -63,7 +63,7 @@ public class BCryptPasswordEncoderWrapper implements PasswordEncoder {
       // 4. 合并熵源
       byte[] combinedSeed = combineSeedSources(primarySeed, additionalEntropy);
 
-      // 5. 初始化DRBG。 setSeed 是用来添加额外的熵到随机数生成器的内部状态
+      // 5. 提供初始熵
       random.setSeed(combinedSeed);
       return random;
     } catch (NoSuchAlgorithmException e) {
