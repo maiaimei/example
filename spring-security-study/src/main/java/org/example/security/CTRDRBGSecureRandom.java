@@ -25,7 +25,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
   }
 
   public CTRDRBGSecureRandom() {
-    super(new CTRDRBGSpi(), new BouncyCastleProvider());
+      super(new CTRDRBGSecureRandomSpi(), new BouncyCastleProvider());
   }
 
   @Override
@@ -33,7 +33,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     return ALGORITHM;
   }
 
-  private static class CTRDRBGSpi extends SecureRandomSpi {
+    private static class CTRDRBGSecureRandomSpi extends SecureRandomSpi {
 
     private static final int SECURITY_STRENGTH = 256; // Security strength in bits
     private static final int BLOCK_SIZE = 128; // AES的块大小
@@ -42,9 +42,9 @@ public class CTRDRBGSecureRandom extends SecureRandom {
 
     private final CTRSP800DRBG drbg;
 
-    public CTRDRBGSpi() {
+        public CTRDRBGSecureRandomSpi() {
       // Create an entropy source provider
-      EntropySourceProvider entropySourceProvider = new DefaultEntropySourceProvider(new SecureRandom(), true);
+            EntropySourceProvider entropySourceProvider = new CTRDRBGEntropySourceProvider(new SecureRandom(), true);
 
       // Create an entropy source
       EntropySource entropySource = entropySourceProvider.get(ENTROPY_BITS);
@@ -81,12 +81,12 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     }
   }
 
-  private static class DefaultEntropySourceProvider implements EntropySourceProvider {
+    private static class CTRDRBGEntropySourceProvider implements EntropySourceProvider {
 
     private final SecureRandom secureRandom;
     private final boolean predictionResistant;
 
-    public DefaultEntropySourceProvider(SecureRandom secureRandom, boolean predictionResistant) {
+        public CTRDRBGEntropySourceProvider(SecureRandom secureRandom, boolean predictionResistant) {
       this.secureRandom = secureRandom;
       this.predictionResistant = predictionResistant;
     }
@@ -113,5 +113,5 @@ public class CTRDRBGSecureRandom extends SecureRandom {
       };
     }
   }
-  
+
 }
