@@ -8,6 +8,7 @@ import java.security.Security;
 import java.util.Arrays;
 import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
+import org.example.security.SecurityUtils;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
@@ -52,13 +53,14 @@ public class SecureRandomTest {
   public void choosingAnAlgorithm() throws NoSuchAlgorithmException, NoSuchProviderException {
     // 使用默认构造器，让系统选择最适合算法
     final SecureRandom secureRandom1 = new SecureRandom();
-    System.out.println(secureRandom1.getAlgorithm());
+    SecurityUtils.printSecureRandomDetails(secureRandom1);
 
     // 显式指定算法
     // SecureRandom secureRandom2 = SecureRandom.getInstance("NativePRNG");
 
     // 指定算法和提供者
     SecureRandom secureRandom3 = SecureRandom.getInstance("SHA1PRNG", "SUN");
+    SecurityUtils.printSecureRandomDetails(secureRandom3);
   }
 
   @Test

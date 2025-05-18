@@ -4,35 +4,35 @@ import java.security.Provider;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.example.security.ProviderUtils.ProviderState;
+import org.example.security.SecurityUtils.ProviderState;
 import org.example.security.bc.BouncyCastleConstants;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
-public class ProviderUtilsTest {
+public class SecurityUtilsTest {
 
   @Test
   public void testAddProvider() {
     // 安全地添加 Provider
-    ProviderUtils.addProvider(new BouncyCastleProvider());
+    SecurityUtils.addProvider(new BouncyCastleProvider());
   }
 
   @Test
   public void testListInstalledProviders() {
     // 打印所有已安装的 Provider 信息
-    ProviderUtils.listInstalledProviders();
+    SecurityUtils.listInstalledProviders();
   }
 
   @Test
   public void testProviderLifecycle() {
     // 安全地添加 Provider
-    ProviderUtils.addProvider(new BouncyCastleProvider());
+    SecurityUtils.addProvider(new BouncyCastleProvider());
 
     // 打印所有已安装的 Provider 信息
-    ProviderUtils.listInstalledProviders();
+    SecurityUtils.listInstalledProviders();
 
-    // 检查 Provider 状态
-    final ProviderState providerState = ProviderUtils.getProviderState(BouncyCastleConstants.PROVIDER_NAME);
+    // 获取 Provider 状态信息
+    final ProviderState providerState = SecurityUtils.getProviderState(BouncyCastleConstants.PROVIDER_NAME);
     System.out.println("Provider state: " + providerState);
     if (providerState.isInstalled()) {
       final Set<String> supportedAlgorithms = providerState.getSupportedAlgorithms();
@@ -43,19 +43,21 @@ public class ProviderUtilsTest {
     }
 
     // 安全地移除 Provider
-    ProviderUtils.removeProvider(BouncyCastleConstants.PROVIDER_NAME);
+    SecurityUtils.removeProvider(BouncyCastleConstants.PROVIDER_NAME);
   }
 
   @Test
   public void testWithProvider_listInstalledProviders() {
-    ProviderUtils.withProvider(new BouncyCastleProvider(), ProviderUtils::listInstalledProviders);
+    // 使用 Provider 执行操作，打印所有已安装的 Provider 信息
+    SecurityUtils.withProvider(new BouncyCastleProvider(), SecurityUtils::listInstalledProviders);
   }
 
   @Test
   public void testWithProvider_getProviderAlgorithms() {
-    ProviderUtils.withProvider(new BouncyCastleProvider(), () -> {
-      final Provider provider = ProviderUtils.getProvider(BouncyCastleConstants.PROVIDER_NAME);
-      final Set<String> supportedAlgorithms = ProviderUtils.getProviderAlgorithms(provider);
+    // 使用 Provider 执行操作，获取 Provider 支持的算法集合
+    SecurityUtils.withProvider(new BouncyCastleProvider(), () -> {
+      final Provider provider = SecurityUtils.getProvider(BouncyCastleConstants.PROVIDER_NAME);
+      final Set<String> supportedAlgorithms = SecurityUtils.getProviderAlgorithms(provider);
       System.out.println("Supported Algorithms: " + supportedAlgorithms.size());
       for (String supportedAlgorithm : supportedAlgorithms) {
         System.out.println(supportedAlgorithm);
@@ -65,7 +67,8 @@ public class ProviderUtilsTest {
 
   @Test
   public void testPerformanceTest() {
-    ProviderUtils.withProvider(new BouncyCastleProvider(), () -> ProviderUtils.performanceTest(
+    // 使用 Provider 执行操作，性能测试
+    SecurityUtils.withProvider(new BouncyCastleProvider(), () -> SecurityUtils.performanceTest(
         BouncyCastleConstants.PROVIDER_NAME,
         BouncyCastleConstants.ALGORITHM_SHA_256,
         1000));
