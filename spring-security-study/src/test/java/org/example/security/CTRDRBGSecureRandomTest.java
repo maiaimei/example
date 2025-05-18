@@ -7,14 +7,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class CTRDRBGSecureRandomTest {
 
+  private SecureRandom secureRandom;
+
+  @BeforeEach
+  public void setUp() {
+    secureRandom = new CTRDRBGSecureRandomV3();
+  }
+
   @Test
   public void testBasicUsage() {
-    SecureRandom secureRandom = new CTRDRBGSecureRandom();
     log.info("Algorithm: {}, Provider: {}", secureRandom.getAlgorithm(), secureRandom.getProvider());
     byte[] randomBytes = new byte[16];
     secureRandom.nextBytes(randomBytes);
@@ -23,9 +30,6 @@ public class CTRDRBGSecureRandomTest {
 
   @Test
   void testRandomBytesAreUnique() {
-    // Create an instance of CTRDRBGSecureRandom
-    CTRDRBGSecureRandom secureRandom = new CTRDRBGSecureRandom();
-
     // Generate two sets of random bytes
     byte[] randomBytes1 = new byte[32]; // 256 bits
     byte[] randomBytes2 = new byte[32]; // 256 bits
@@ -39,9 +43,6 @@ public class CTRDRBGSecureRandomTest {
 
   @Test
   void testRandomBytesLength() {
-    // Create an instance of CTRDRBGSecureRandom
-    CTRDRBGSecureRandom secureRandom = new CTRDRBGSecureRandom();
-
     // Generate random bytes of a specific length
     byte[] randomBytes = new byte[64]; // 512 bits
     secureRandom.nextBytes(randomBytes);
@@ -52,9 +53,6 @@ public class CTRDRBGSecureRandomTest {
 
   @Test
   void testRandomBytesAreConsistentAcrossCalls() {
-    // Create an instance of CTRDRBGSecureRandom
-    CTRDRBGSecureRandom secureRandom = new CTRDRBGSecureRandom();
-
     // Generate random bytes multiple times and ensure they are unique
     byte[] previousBytes = new byte[32];
     secureRandom.nextBytes(previousBytes);

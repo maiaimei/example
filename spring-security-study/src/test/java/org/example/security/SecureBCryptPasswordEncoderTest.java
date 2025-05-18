@@ -37,7 +37,7 @@ public class SecureBCryptPasswordEncoderTest {
 
   @Test
   public void testGenerateSaltWithCTRDRBGSecureRandom() {
-    final CTRDRBGSecureRandom random = new CTRDRBGSecureRandom();
+    final CTRDRBGSecureRandomV3 random = new CTRDRBGSecureRandomV3();
     for (int i = 0; i < 10000; i++) {
       System.out.println(BCrypt.gensalt(BCryptVersion.$2B.getVersion(), 14, random));
     }

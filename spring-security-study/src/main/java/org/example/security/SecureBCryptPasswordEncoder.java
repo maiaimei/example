@@ -110,7 +110,7 @@ public class SecureBCryptPasswordEncoder implements PasswordEncoder {
 
   private SecureRandom initializeSecureRandom() throws NoSuchAlgorithmException {
     // Create DRBG using BouncyCastle provider
-    SecureRandom secureRandom = new CTRDRBGSecureRandom();
+    SecureRandom secureRandom = new CTRDRBGSecureRandomV3();
 
     // Log provider and algorithm details
     logSecureRandomDetails(secureRandom);

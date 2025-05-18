@@ -16,12 +16,10 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  * cryptographic randomness.
  */
 @Slf4j
-public class CTRDRBGSecureRandom extends SecureRandom {
+public class CTRDRBGSecureRandomV3 extends SecureRandom {
 
   // Security strength in bits
   private static final int SECURITY_STRENGTH = 256;
-  private static final int MAX_BITS_PER_REQUEST = 262144; // 32KB
-  private static final int MAX_BYTES_PER_REQUEST = MAX_BITS_PER_REQUEST / 8;
 
   // The default personalization string.
   private static final byte[] DEFAULT_PERSONALIZATION_STRING = "CTR-DRBG-AES256".getBytes();
@@ -33,46 +31,21 @@ public class CTRDRBGSecureRandom extends SecureRandom {
       Security.addProvider(new BouncyCastleProvider());
     }
   }
+
   /**
-   * Default constructor that initializes the SecureRandom with a default
-   * personalization string.
+   * Default constructor that initializes the SecureRandom with a default personalization string.
    */
-  public CTRDRBGSecureRandom() {
+  public CTRDRBGSecureRandomV3() {
     this(null);
   }
 
   /**
    * Constructor that allows specifying a custom personalization string.
    *
-   * @param personalizationString A byte array used to personalize the DRBG
-   *                              instance.
+   * @param personalizationString A byte array used to personalize the DRBG instance.
    */
-  public CTRDRBGSecureRandom(byte[] personalizationString) {
+  public CTRDRBGSecureRandomV3(byte[] personalizationString) {
     super(new CTRDRBGSecureRandomSpi(personalizationString), new BouncyCastleProvider());
-  }
-
-  /**
-   * 重写nextBytes方法，处理大量数据请求
-   */
-  @Override
-  public void nextBytes(byte[] bytes) {
-    if (bytes == null) {
-      throw new IllegalArgumentException("Output buffer cannot be null");
-    }
-
-    // 如果请求的字节数超过限制，分批处理
-    if (bytes.length > MAX_BYTES_PER_REQUEST) {
-      int offset = 0;
-      while (offset < bytes.length) {
-        int length = Math.min(MAX_BYTES_PER_REQUEST, bytes.length - offset);
-        byte[] temp = new byte[length];
-        super.nextBytes(temp);
-        System.arraycopy(temp, 0, bytes, offset, length);
-        offset += length;
-      }
-    } else {
-      super.nextBytes(bytes);
-    }
   }
 
   /**
@@ -118,8 +91,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     /**
      * Constructor that initializes the DRBG with a custom personalization string.
      *
-     * @param personalizationString A byte array used to personalize the DRBG
-     *                              instance.
+     * @param personalizationString A byte array used to personalize the DRBG instance.
      */
     public CTRDRBGSecureRandomSpi(byte[] personalizationString) {
       // Create an entropy source provider
@@ -151,43 +123,27 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     }
 
     /**
-     * Generates the specified number of random bytes and fills the provided byte
-     * array.
+     * Generates the specified number of random bytes and fills the provided byte array.
      *
      * @param bytes The byte array to fill with random bytes.
      */
     @Override
     protected void engineNextBytes(byte[] bytes) {
       synchronized (lock) {
-        if (bytes.length > MAX_BYTES_PER_REQUEST) {
-          int offset = 0;
-          while (offset < bytes.length) {
-            int length = Math.min(MAX_BYTES_PER_REQUEST, bytes.length - offset);
-            byte[] temp = new byte[length];
-            generateNextBytes(temp);
-            System.arraycopy(temp, 0, bytes, offset, length);
-            offset += length;
-          }
-        } else {
-          generateNextBytes(bytes);
+        // Check if reseed is required
+        if (bytesGenerated >= MAX_BYTES_BEFORE_RESEED) {
+          reseed();
         }
-      }
-    }
 
-    private void generateNextBytes(byte[] bytes) {
-      // Check if reseed is required
-      if (bytesGenerated >= MAX_BYTES_BEFORE_RESEED) {
-        reseed();
-      }
+        // Generate random bytes
+        int result = drbg.generate(bytes, null, false);
+        if (result < 0) {
+          throw new IllegalStateException("CTR-DRBG failed to generate random bytes. Error code: " + result);
+        }
 
-      // Generate random bytes
-      int result = drbg.generate(bytes, null, false);
-      if (result < 0) {
-        throw new IllegalStateException("CTR-DRBG failed to generate random bytes. Error code: " + result);
+        // Update the counter
+        bytesGenerated += bytes.length;
       }
-
-      // Update the counter
-      bytesGenerated += bytes.length;
     }
 
     /**
@@ -209,8 +165,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     private void reseed() {
       log.info("Reseeding CTR-DRBG to ensure continued security and randomness.");
       // Create a new entropy source
-      EntropySourceProvider entropySourceProvider = new CTRDRBGEntropySourceProvider(
-          getStrongOrDefaultSecureRandom(),
+      EntropySourceProvider entropySourceProvider = new CTRDRBGEntropySourceProvider(getStrongOrDefaultSecureRandom(),
           true);
       EntropySource entropySource = entropySourceProvider.get(ENTROPY_BITS);
 
@@ -222,8 +177,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     }
 
     /**
-     * Returns a strong SecureRandom instance if available, otherwise falls back to
-     * the default implementation.
+     * Returns a strong SecureRandom instance if available, otherwise falls back to the default implementation.
      *
      * @return A SecureRandom instance.
      */
@@ -238,9 +192,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
   }
 
   /**
-   * A custom implementation of EntropySourceProvider that uses a SecureRandom
-   * instance
-   * to provide entropy for the DRBG.
+   * A custom implementation of EntropySourceProvider that uses a SecureRandom instance to provide entropy for the DRBG.
    */
   private static class CTRDRBGEntropySourceProvider implements EntropySourceProvider {
 
@@ -254,8 +206,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
      * Constructor for the entropy source provider.
      *
      * @param secureRandom        The SecureRandom instance to use for entropy.
-     * @param predictionResistant Whether the entropy source is
-     *                            prediction-resistant.
+     * @param predictionResistant Whether the entropy source is prediction-resistant.
      */
     public CTRDRBGEntropySourceProvider(SecureRandom secureRandom, boolean predictionResistant) {
       this.secureRandom = secureRandom;
