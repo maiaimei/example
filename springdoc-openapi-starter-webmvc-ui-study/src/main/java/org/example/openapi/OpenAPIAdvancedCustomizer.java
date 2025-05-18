@@ -167,8 +167,8 @@ public class OpenAPIAdvancedCustomizer {
           openAPIFileRelatedCustomizer.customise();
         } else {
           // 更新响应schema
-          createOrUpdateOperationSuccessResponse(operation, returnType, generator);
-          createOperationErrorResponse(operation);
+          createOrUpdateSuccessResponse(operation, returnType, generator);
+          createErrorResponse(operation);
         }
       }
     }
@@ -181,7 +181,7 @@ public class OpenAPIAdvancedCustomizer {
    * @param actualType The actual return type of the operation
    * @param generator  Schema generator for OpenAPI models
    */
-  private void createOrUpdateOperationSuccessResponse(Operation operation, Type actualType, OpenAPIModelSchemaGenerator generator) {
+  private void createOrUpdateSuccessResponse(Operation operation, Type actualType, OpenAPIModelSchemaGenerator generator) {
     ApiResponse successResponse = operation.getResponses().computeIfAbsent(SUCCESS_CODE, k -> new ApiResponse());
 
     Content content = new Content();
@@ -225,7 +225,7 @@ public class OpenAPIAdvancedCustomizer {
     successResponse.setContent(content);
   }
 
-  private void createOperationErrorResponse(Operation operation) {
+  private void createErrorResponse(Operation operation) {
     // 401 未授权
     createCustomErrorResponse(operation, HttpStatus.UNAUTHORIZED,
         "Invalid authentication credentials",

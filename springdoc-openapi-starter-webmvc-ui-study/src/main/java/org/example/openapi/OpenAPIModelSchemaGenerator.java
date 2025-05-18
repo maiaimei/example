@@ -80,6 +80,12 @@ public class OpenAPIModelSchemaGenerator {
     }
   }
 
+  public void processClass(List<Class<?>> modelClasses) {
+    for (Class<?> modelClass : modelClasses) {
+      processClass(modelClass);
+    }
+  }
+
   /**
    * Processes a single class to generate its OpenAPI schema. This method handles the class's fields, annotations, and
    * relationships.
