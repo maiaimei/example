@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 
 @Slf4j
-public class BCryptPasswordEncoderWrapper implements PasswordEncoder {
+public class SecureBCryptPasswordEncoder implements PasswordEncoder {
 
   // Specify BouncyCastle DRBG configuration
   private static final int BCRYPT_STRENGTH = 14;
@@ -26,7 +26,7 @@ public class BCryptPasswordEncoderWrapper implements PasswordEncoder {
 
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-  public BCryptPasswordEncoderWrapper() {
+  public SecureBCryptPasswordEncoder() {
     log.debug("Initializing BCryptPasswordEncoderWrapper with strength: {}", BCRYPT_STRENGTH);
     this.bCryptPasswordEncoder = createBCryptPasswordEncoder();
   }
@@ -110,7 +110,7 @@ public class BCryptPasswordEncoderWrapper implements PasswordEncoder {
 
   private SecureRandom initializeSecureRandom() throws NoSuchAlgorithmException {
     // Create DRBG using BouncyCastle provider
-    SecureRandom secureRandom = new SecureCTRDRBGRandom();
+    SecureRandom secureRandom = new CTRDRBGSecureRandomV2();
 
     // Log provider and algorithm details
     logSecureRandomDetails(secureRandom);

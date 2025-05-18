@@ -8,13 +8,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
-public class BCryptPasswordEncoderWrapperTest {
+public class SecureBCryptPasswordEncoderTest {
 
-  private BCryptPasswordEncoderWrapper encoder;
+  private SecureBCryptPasswordEncoder encoder;
 
   @BeforeEach
   void setUp() {
-    encoder = new BCryptPasswordEncoderWrapper();
+    encoder = new SecureBCryptPasswordEncoder();
   }
 
   @Test

@@ -16,7 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 
 @Slf4j
-public class BCryptPasswordEncoderWrapperV2 implements PasswordEncoder {
+public class SecureBCryptPasswordEncoderV2 implements PasswordEncoder {
 
   // 因为简单的"DRBG"可能在某些JVM中不被支持，建议使用更具体的算法名称。例如：DRBG-SHA-512
   private static final String DRBG_ALGORITHM = "DRBG";
@@ -26,7 +26,7 @@ public class BCryptPasswordEncoderWrapperV2 implements PasswordEncoder {
 
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-  public BCryptPasswordEncoderWrapperV2() {
+  public SecureBCryptPasswordEncoderV2() {
     log.debug("Initializing BCryptPasswordEncoderWrapper with strength: {}", BCRYPT_STRENGTH);
     this.bCryptPasswordEncoder = createBCryptPasswordEncoder();
   }
