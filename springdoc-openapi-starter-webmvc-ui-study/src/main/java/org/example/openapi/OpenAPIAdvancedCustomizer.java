@@ -49,10 +49,8 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.example.model.ApiResponse.BaseResponse;
-import org.example.model.ApiResponse.ErrorResponse;
 import org.example.model.ApiResponse.SuccessResponse;
 import org.example.model.Page;
-import org.example.utils.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
@@ -228,26 +226,80 @@ public class OpenAPIAdvancedCustomizer {
   }
 
   private void createOperationErrorResponse(Operation operation) {
-    createOperationErrorResponse(operation, HttpStatus.UNAUTHORIZED, "Unauthorized");
-    createOperationErrorResponse(operation, HttpStatus.FORBIDDEN, "Forbidden");
-    createOperationErrorResponse(operation, HttpStatus.INTERNAL_SERVER_ERROR, "Error");
+    // 401 未授权
+    createCustomErrorResponse(operation, HttpStatus.UNAUTHORIZED,
+        "Invalid authentication credentials",
+        "Missing or invalid Authorization header");
+
+    // 403 禁止访问
+    createCustomErrorResponse(operation, HttpStatus.FORBIDDEN,
+        "Access denied",
+        "User does not have permission to access this resource");
+
+    // 500 服务器错误
+    createCustomErrorResponse(operation, HttpStatus.INTERNAL_SERVER_ERROR,
+        "An unexpected error occurred",
+        "Unable to process request due to internal server error");
   }
 
-  private void createOperationErrorResponse(Operation operation, HttpStatus httpStatus, String message) {
-    final ErrorResponse<Object> resp = new ErrorResponse<>()
-        .setCode(httpStatus.value())
-        .setMessage(message)
-        .setError("example")
-        .setDetails("example")
-        .setTimestamp(LocalDateTime.now())
-        .setPath("/examples")
-        .setMethod("GET")
-        .setCorrelationId("2025051522504809400001");
-    final Map<String, Object> map = JsonUtils.toMap(resp);
-    operation.getResponses().addApiResponse(String.valueOf(httpStatus.value()), new ApiResponse()
-        .content(new Content().addMediaType(APPLICATION_JSON,
-            new MediaType().schema(new Schema<>().$ref(COMPONENTS_SCHEMAS_PATH + "ErrorResponse").example(map)))));
+  private void createCustomErrorResponse(Operation operation,
+      HttpStatus httpStatus,
+      String message,
+      String details) {
+    // 创建自定义错误响应 schema
+    final Schema<?> errorSchema = new ObjectSchema()
+        .addProperty("code", new IntegerSchema()
+            .example(httpStatus.value())
+            .description("HTTP status code"))
+        .addProperty("message", new StringSchema()
+            .example(message)
+            .description("Error message"))
+        .addProperty("error", new StringSchema()
+            .example(httpStatus.getReasonPhrase())
+            .description("Error type"))
+        .addProperty("details", new StringSchema()
+            .example(details)
+            .description("Detailed error description"))
+        .addProperty("timestamp", new StringSchema()
+            .example(LocalDateTime.now().toString())
+            .description("Error timestamp"))
+        .addProperty("path", new StringSchema()
+            .example("/examples")
+            .description("Request path"))
+        .addProperty("method", new StringSchema()
+            .example("GET")
+            .description("HTTP method"))
+        .addProperty("correlationId", new StringSchema()
+            .example("2025051522504809400001")
+            .description("Unique error correlation ID"));
+
+    // 设置 schema 描述
+    errorSchema.setDescription(httpStatus.getReasonPhrase() + " Error Response");
+
+    // 创建示例数据
+    Map<String, Object> errorExample = Map.of(
+        "code", httpStatus.value(),
+        "message", message,
+        "error", httpStatus.getReasonPhrase(),
+        "details", details,
+        "timestamp", LocalDateTime.now().toString(),
+        "path", "/examples",
+        "method", "GET",
+        "correlationId", "2025051522504809400001"
+    );
+
+    // 添加到响应中
+    operation.getResponses()
+        .addApiResponse(String.valueOf(httpStatus.value()),
+            new ApiResponse()
+                .description(httpStatus.getReasonPhrase())
+                .content(new Content()
+                    .addMediaType(APPLICATION_JSON,
+                        new MediaType()
+                            .schema(errorSchema)
+                            .example(errorExample))));
   }
+
 
   /**
    * Generates an example for the data field based on the schema and type.

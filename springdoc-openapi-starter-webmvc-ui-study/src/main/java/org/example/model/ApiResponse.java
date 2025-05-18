@@ -58,16 +58,16 @@ public class ApiResponse {
     @Schema(description = "The code of response", example = "500")
     private Integer code;
 
-    @Schema(description = "The message of response", example = "Error")
+    @Schema(description = "The message of response", example = "An unexpected error occurred")
     private String message;
 
     @Schema(description = "The data of response")
     private T data;
 
-    @Schema(description = "The error of response", example = "This is error")
+    @Schema(description = "The error of response", example = "Internal Server Error")
     private String error;
 
-    @Schema(description = "The details of response", example = "This is details")
+    @Schema(description = "The details of response", example = "Unable to process request due to internal server error")
     private String details;
 
     @Schema(description = "The timestamp of response", example = "2025-05-15T21:14:26.858234600")
