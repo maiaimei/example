@@ -4,6 +4,7 @@ import java.io.Serial;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.engines.AESLightEngine;
 import org.bouncycastle.crypto.prng.BasicEntropySourceProvider;
@@ -17,7 +18,7 @@ public class SecureCTRDRBGRandom extends SecureRandom {
 
   @Serial
   private static final long serialVersionUID = 1L;
-  private static final String ALGORITHM = "BouncyCastle-CTR-DRBG";
+  private static final String ALGORITHM = "CTR-DRBG-AES";
 
   // AES-based DRBG supports security strengths of 128, 192, and 256 bits
   private static final int[] SUPPORTED_SECURITY_STRENGTHS = {128, 192, 256};
@@ -89,7 +90,7 @@ public class SecureCTRDRBGRandom extends SecureRandom {
 
   private CTRSP800DRBG initializeDRBG(int strength) throws NoSuchAlgorithmException {
     // Initialize base SecureRandom for entropy
-    SecureRandom baseRandom = getEntropySource();
+    SecureRandom baseRandom = getStrongSecureRandomOrDefault();
 
     // Validate entropy source capabilities
     validateEntropySource(baseRandom);
@@ -112,7 +113,7 @@ public class SecureCTRDRBGRandom extends SecureRandom {
     );
   }
 
-  private SecureRandom getEntropySource() {
+  private SecureRandom getStrongSecureRandomOrDefault() {
     try {
       return SecureRandom.getInstanceStrong();
     } catch (NoSuchAlgorithmException e) {
@@ -122,20 +123,18 @@ public class SecureCTRDRBGRandom extends SecureRandom {
   }
 
   private void validateEntropySource(SecureRandom random) {
-    // Perform entropy source validation
     byte[] testEntropy = new byte[securityStrength / 8];
-    random.nextBytes(testEntropy);
+    try {
+      // Perform entropy source validation
+      random.nextBytes(testEntropy);
 
-    // Log entropy source details
-    log.info("Using entropy source: algorithm={}, provider={}",
-        random.getAlgorithm(),
-        random.getProvider().getName());
-  }
-
-  private int calculateBlockSize(int strength) {
-    // Calculate appropriate block size based on security strength
-    // As per NIST SP 800-90A, block size should be at least twice the security strength
-    return Math.max(256, strength * 2);
+      // Log entropy source details
+      log.info("Using entropy source: algorithm={}, provider={}",
+          random.getAlgorithm(),
+          random.getProvider().getName());
+    } finally {
+      Arrays.fill(testEntropy, (byte) 0);
+    }
   }
 
 }
