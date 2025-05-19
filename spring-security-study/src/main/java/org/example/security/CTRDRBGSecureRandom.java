@@ -4,6 +4,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SecureRandomSpi;
 import java.security.Security;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.prng.EntropySource;
@@ -23,7 +25,13 @@ public class CTRDRBGSecureRandom extends SecureRandom {
   private static final int MAX_BITS_PER_REQUEST = 262144; // 32KB
   private static final int MAX_BYTES_PER_REQUEST = MAX_BITS_PER_REQUEST / 8;
 
-  // The default personalization string.
+  /**
+   * The default personalization string.
+   * <p>
+   * 默认个性化字符串为 "CTR-DRBG-AES256"，可能在某些场景下不够独特，容易被预测。
+   * <p>
+   * 建议：允许用户在初始化时提供更随机的个性化字符串，或者动态生成默认值。
+   */
   private static final byte[] DEFAULT_PERSONALIZATION_STRING = "CTR-DRBG-AES256".getBytes();
 
   // Static block to register the BouncyCastle provider if not already registered
@@ -93,10 +101,21 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     // AES block size in bits
     private static final int BLOCK_SIZE = 128;
 
-    // Entropy bits (must be >= security strength)
+    /**
+     * Entropy bits (must be >= security strength)
+     * <p>熵位数的硬编码</p>
+     * <p>ENTROPY_BITS 设置为 384 位，虽然满足 AES-256 的安全需求，但硬编码可能限制灵活性。</p>
+     * <p>建议：将熵位数作为可配置参数，允许根据需求调整。</p>
+     */
     private static final int ENTROPY_BITS = 384;
 
-    // Maximum number of bytes that can be generated before requiring a reseed
+    /**
+     * Maximum number of bytes that can be generated before requiring a reseed
+     * <p>
+     * MAX_BYTES_BEFORE_RESEED 设置为 1,000,000 字节（约 1MB），可能过于宽松。在高安全性场景下，建议更频繁地重新播种。
+     * <p>
+     * 建议：根据实际需求调整重新播种的阈值。
+     */
     private static final long MAX_BYTES_BEFORE_RESEED = 1_000_000; // Example threshold
 
     // The DRBG instance
@@ -106,7 +125,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
     private long bytesGenerated = 0;
 
     // Lock for thread safety
-    private final Object lock = new Object();
+    private final Lock lock = new ReentrantLock();
 
     /**
      * Default constructor that initializes the DRBG with the default personalization string.
@@ -158,7 +177,8 @@ public class CTRDRBGSecureRandom extends SecureRandom {
      */
     @Override
     protected void engineNextBytes(byte[] bytes) {
-      synchronized (lock) {
+      lock.lock();
+      try {
         if (bytes.length > MAX_BYTES_PER_REQUEST) {
           int offset = 0;
           while (offset < bytes.length) {
@@ -171,6 +191,8 @@ public class CTRDRBGSecureRandom extends SecureRandom {
         } else {
           generateNextBytes(bytes);
         }
+      } finally {
+        lock.unlock();
       }
     }
 
@@ -183,6 +205,7 @@ public class CTRDRBGSecureRandom extends SecureRandom {
       // Generate random bytes
       int result = drbg.generate(bytes, null, false);
       if (result < 0) {
+        log.error("CTR-DRBG failed to generate random bytes. Error code: {}", result);
         throw new IllegalStateException("CTR-DRBG failed to generate random bytes. Error code: " + result);
       }
 
@@ -241,6 +264,9 @@ public class CTRDRBGSecureRandom extends SecureRandom {
    * A custom implementation of EntropySourceProvider that uses a SecureRandom
    * instance
    * to provide entropy for the DRBG.
+   *
+   * CTRDRBGEntropySourceProvider 使用了 SecureRandom 作为熵源，但 SecureRandom 的质量依赖于底层实现。如果底层实现的熵源质量较低，可能会影响 DRBG 的安全性。
+   * 建议：在生产环境中，确保使用高质量的熵源（如硬件随机数生成器）。
    */
   private static class CTRDRBGEntropySourceProvider implements EntropySourceProvider {
 
