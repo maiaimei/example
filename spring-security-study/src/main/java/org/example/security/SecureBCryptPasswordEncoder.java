@@ -1,17 +1,16 @@
 package org.example.security;
 
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.example.exception.EncoderInitializationException;
 import org.example.exception.InvalidPasswordFormatException;
 import org.example.exception.PasswordEncoderException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
@@ -19,16 +18,21 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class SecureBCryptPasswordEncoder implements PasswordEncoder {
 
-  // Specify BouncyCastle DRBG configuration
+  private final Pattern BCRYPT_PATTERN = Pattern.compile("\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
   private static final int BCRYPT_STRENGTH = 14;
   private static final int BYTES_LENGTH = 32;
   private static final int WARMUP_ROUNDS = 10;
 
-  private final BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final int strength;
+
+  private final BCryptVersion version;
+
+  private final SecureRandom random;
 
   public SecureBCryptPasswordEncoder() {
-    log.debug("Initializing BCryptPasswordEncoderWrapper with strength: {}", BCRYPT_STRENGTH);
-    this.bCryptPasswordEncoder = createBCryptPasswordEncoder();
+    this.strength = BCRYPT_STRENGTH;
+    this.version = BCryptVersion.$2B;
+    this.random = initializeSecureRandom();
   }
 
   @Override
@@ -36,8 +40,9 @@ public class SecureBCryptPasswordEncoder implements PasswordEncoder {
     validatePassword(rawPassword, "rawPassword");
     try {
       log.debug("Encoding password with BCrypt");
-      // 1. 使用BCrypt加密原始密码
-      final String encodedPassword = bCryptPasswordEncoder.encode(rawPassword);
+      // 1. 加密原始密码
+      String salt = getSalt();
+      final String encodedPassword = BCrypt.hashpw(rawPassword.toString(), salt);
       // 2. 使用Base64编码加密后的密码
       return Base64.getEncoder().encodeToString(
           encodedPassword.getBytes(StandardCharsets.UTF_8));
@@ -59,10 +64,14 @@ public class SecureBCryptPasswordEncoder implements PasswordEncoder {
 
     try {
       // 1. Base64解码存储的密码
-      byte[] decodedBytes = Base64.getDecoder().decode(encodedPassword);
-      String bcryptHash = new String(decodedBytes, StandardCharsets.UTF_8);
-      // 2. 使用BCrypt验证密码
-      return bCryptPasswordEncoder.matches(rawPassword, bcryptHash);
+      byte[] encodedPasswordBytes = Base64.getDecoder().decode(encodedPassword);
+      String actualEncodedPassword = new String(encodedPasswordBytes, StandardCharsets.UTF_8);
+      if (!this.BCRYPT_PATTERN.matcher(actualEncodedPassword).matches()) {
+        log.warn("Encoded password does not look like BCrypt");
+        return false;
+      }
+      // 2. 验证密码
+      return BCrypt.checkpw(rawPassword.toString(), actualEncodedPassword);
     } catch (IllegalArgumentException e) {
       String msg = String.format("Invalid Base64 encoded password: %s", e.getMessage());
       log.error(msg, e);
@@ -72,6 +81,10 @@ public class SecureBCryptPasswordEncoder implements PasswordEncoder {
       log.error(msg, e);
       throw new PasswordEncoderException(msg, e);
     }
+  }
+
+  private String getSalt() {
+    return BCrypt.gensalt(this.version.getVersion(), this.strength, this.random);
   }
 
   private void validatePassword(CharSequence password, String paramName) {
@@ -92,40 +105,12 @@ public class SecureBCryptPasswordEncoder implements PasswordEncoder {
     }
   }
 
-  private BCryptPasswordEncoder createBCryptPasswordEncoder() {
-    try {
-      final SecureRandom secureRandom = initializeSecureRandom();
-      final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(
-          BCryptVersion.$2B,
-          BCRYPT_STRENGTH,
-          secureRandom);
-      log.info("BCryptPasswordEncoder initialized successfully");
-      return encoder;
-    } catch (Exception e) {
-      String msg = "Failed to initialize BCryptPasswordEncoder";
-      log.error(msg, e);
-      throw new EncoderInitializationException(msg, e);
-    }
-  }
-
-  private SecureRandom initializeSecureRandom() throws NoSuchAlgorithmException {
+  private SecureRandom initializeSecureRandom() {
     // Create DRBG using BouncyCastle provider
     SecureRandom secureRandom = new CTRDRBGSecureRandomV3();
-
-    // Log provider and algorithm details
-    logSecureRandomDetails(secureRandom);
-
     // Perform warmup
     warmupSecureRandom(secureRandom);
-
     return secureRandom;
-  }
-
-  private void logSecureRandomDetails(SecureRandom secureRandom) {
-    Provider provider = secureRandom.getProvider();
-    String algorithm = secureRandom.getAlgorithm();
-    log.info("Initialized SecureRandom - Algorithm: {}, Provider: {} (Version: {})",
-        algorithm, provider.getName(), provider.getVersionStr());
   }
 
   private void warmupSecureRandom(SecureRandom secureRandom) {
