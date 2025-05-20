@@ -1,6 +1,7 @@
 package org.example.advice;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
 import org.example.constants.ResponseCode;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
@@ -30,39 +30,32 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
   public boolean supports(MethodParameter returnType,
       Class<? extends HttpMessageConverter<?>> converterType) {
     // 排除不需要处理的返回类型
-    return !shouldSkip(returnType);
+    return !isExcludedType(returnType) && !hasSkipResponseWrapperAnnotation(returnType);
   }
 
   /**
    * 排除不需要处理的返回类型
    */
-  private boolean shouldSkip(MethodParameter returnType) {
-    // 获取方法和类
-    Method method = returnType.getMethod();
-    if (method == null) {
-      return false;
-    }
-    Class<?> declaringClass = returnType.getDeclaringClass();
-
-    // 检查是否有跳过包装的注解
-    if (method.isAnnotationPresent(SkipResponseWrapper.class) ||
-        declaringClass.isAnnotationPresent(SkipResponseWrapper.class)) {
-      return true; // 跳过包装
-    }
-
+  private boolean isExcludedType(MethodParameter returnType) {
     // 不处理以下类型
     Class<?> parameterType = returnType.getParameterType();
-    return isExcludedType(parameterType);
+    return ResponseEntity.class.isAssignableFrom(parameterType) ||
+        Resource.class.isAssignableFrom(parameterType);
   }
 
   /**
-   * 检查是否为排除的类型
+   * 检查是否有跳过包装的注解
    */
-  private boolean isExcludedType(Class<?> clazz) {
-    return ResponseEntity.class.isAssignableFrom(clazz) ||
-        Resource.class.isAssignableFrom(clazz) ||
-        BindingResult.class.isAssignableFrom(clazz);
+  private boolean hasSkipResponseWrapperAnnotation(MethodParameter returnType) {
+    Method method = returnType.getMethod();
+    if (Objects.isNull(method)) {
+      return false;
+    }
+    Class<?> declaringClass = returnType.getDeclaringClass();
+    return method.isAnnotationPresent(SkipResponseWrapper.class) ||
+        declaringClass.isAnnotationPresent(SkipResponseWrapper.class);
   }
+
 
   @Override
   public Object beforeBodyWrite(Object body,
@@ -72,79 +65,58 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
       ServerHttpRequest request,
       ServerHttpResponse response) {
     try {
-      // 处理空值
-      if (body == null) {
-        return handleNullResponse(selectedContentType, request, response);
-      }
-
-      // 处理文件下载
-      if (isFileDownload(body, selectedContentType)) {
-        return body;
-      }
-
-      // 处理SSE响应
-      if (isSSEResponse(selectedContentType)) {
-        return body;
-      }
-
-      // 处理String类型
-      if (body instanceof String) {
-        return handleStringResponse(body, selectedContentType, request, response);
-      }
-
-      // 处理BasicResponse类型
-      if (body instanceof BasicResponse basicResponse) {
-        return basicResponse;
-      }
-
-      // 其他类型统一包装
-      return ApiResponse.success(body, request.getURI().getPath(), request.getMethod().name());
+      return processResponseBody(body, selectedContentType, request, response);
     } catch (Exception e) {
-      log.error("Error processing response body", e);
-      return ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, request.getURI().getPath(), request.getMethod().name());
+      return handleException(e, request);
     }
   }
 
   /**
-   * 处理空值返回
+   * 处理响应体
    */
-  private Object handleNullResponse(MediaType selectedContentType, ServerHttpRequest request, ServerHttpResponse response) {
-    if (MediaType.APPLICATION_JSON.includes(selectedContentType)) {
-      response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      return JsonUtils.toJsonString(ApiResponse.success(null, request.getURI().getPath(), request.getMethod().name()));
+  private Object processResponseBody(Object body, MediaType selectedContentType,
+      ServerHttpRequest request, ServerHttpResponse response) {
+    String requestPath = request.getURI().getPath();
+    String requestMethod = request.getMethod().name();
+
+    if (body == null || body instanceof String) {
+      return handleNullOrStringResponse(body, selectedContentType, response, requestPath, requestMethod);
     }
-    response.setStatusCode(HttpStatus.NO_CONTENT);
-    return null;
+
+    if (body instanceof BasicResponse) {
+      return body;
+    }
+
+    return ApiResponse.success(body, requestPath, requestMethod);
   }
 
   /**
-   * 处理String类型响应
+   * 处理空值或 String 类型响应
    */
-  private Object handleStringResponse(Object body, MediaType selectedContentType, ServerHttpRequest request,
-      ServerHttpResponse response) {
-    // 如果客户端期望JSON
+  private Object handleNullOrStringResponse(Object body, MediaType selectedContentType,
+      ServerHttpResponse response, String requestPath, String requestMethod) {
     if (MediaType.APPLICATION_JSON.includes(selectedContentType)) {
       response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      return JsonUtils.toJsonString(ApiResponse.success(body, request.getURI().getPath(), request.getMethod().name()));
+      return JsonUtils.toJsonString(ApiResponse.success(body, requestPath, requestMethod));
     }
-    // 如果是普通文本
+
+    if (body == null) {
+      response.setStatusCode(HttpStatus.NO_CONTENT);
+      return null;
+    }
+
     return body;
   }
 
   /**
-   * 判断是否为文件下载请求
+   * 统一异常处理
    */
-  private boolean isFileDownload(Object body, MediaType selectedContentType) {
-    return body instanceof Resource || body instanceof byte[] ||
-        (selectedContentType != null && selectedContentType.equals(MediaType.APPLICATION_OCTET_STREAM));
-  }
+  private Object handleException(Exception e, ServerHttpRequest request) {
+    String requestPath = request.getURI().getPath();
+    String requestMethod = request.getMethod().name();
 
-  /**
-   * 检查是否为SSE响应
-   */
-  private boolean isSSEResponse(MediaType mediaType) {
-    return mediaType != null && (mediaType.includes(MediaType.TEXT_EVENT_STREAM) ||
-        mediaType.includes(MediaType.APPLICATION_NDJSON));
+    log.error("Error processing response body for URI: {}, Method: {}", requestPath, requestMethod, e);
+    return ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, requestPath, requestMethod);
   }
 
 }
