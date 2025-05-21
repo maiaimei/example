@@ -7,7 +7,7 @@ First, add the dependency to your `pom.xml`
 <dependency>
   <groupId>org.springdoc</groupId>
   <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-  <version>2.3.0</version>
+  <version>2.8.4</version>
 </dependency>
 ```
 
@@ -16,7 +16,7 @@ Basic configuration in `application.properties` or `application.yml`:
 ```yaml
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
@@ -135,14 +135,14 @@ public class SecureController {
 After setting this up, you can access:
 
 - The Swagger UI at: http://localhost:8080/swagger-ui.html
-- The OpenAPI JSON at: http://localhost:8080/api-docs
-- The OpenAPI YAML at: http://localhost:8080/api-docs.yaml
+- The OpenAPI JSON at: http://localhost:8080/v3/api-docs
+- The OpenAPI YAML at: http://localhost:8080/v3/api-docs.yaml
 
 If you've set a context path (like `/api`), try accessing:
 
 - The Swagger UI at: http://localhost:8080/api/swagger-ui.html
-- The OpenAPI JSON at: http://localhost:8080/api/api-docs
-- The OpenAPI YAML at: http://localhost:8080/api/api-docs.yaml
+- The OpenAPI JSON at: http://localhost:8080/api/v3/api-docs
+- The OpenAPI YAML at: http://localhost:8080/api/v3/api-docs.yaml
 
 If you want to customize the path, you can set it in your configuration:
 

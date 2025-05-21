@@ -1,4 +1,4 @@
-package org.example.utils;
+package org.example.openapi;
 
 import static org.example.openapi.OpenAPIConstants.APPLICATION_JSON;
 import static org.example.openapi.OpenAPIConstants.COMPONENTS_SCHEMAS_PATH;
@@ -55,7 +55,6 @@ import java.util.Optional;
 import org.example.model.ApiResponse.BaseResponse;
 import org.example.model.ApiResponse.SuccessResponse;
 import org.example.model.Page;
-import org.example.openapi.OpenAPIModelSchemaGenerator;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -68,7 +67,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-public class OpenAPIGenerator {
+public class OpenAPIGeneratorV1 {
 
   private static OpenAPIModelSchemaGenerator modelSchemaGenerator;
 
