@@ -420,8 +420,10 @@ public class OpenAPIGenerator {
 
       // 添加泛型类型的schema
       String schemaName = generateGenericSchemaName(rawClass, typeArguments);
-      Schema<?> schema = createGenericTypeSchema(parameterizedType);
-      schemas.put(schemaName, schema);
+      if (!schemas.containsKey(schemaName)) {
+        Schema<?> schema = createGenericTypeSchema(parameterizedType);
+        schemas.put(schemaName, schema);
+      }
 
       // 添加泛型参数的schemas
       for (Type typeArg : typeArguments) {
@@ -432,6 +434,24 @@ public class OpenAPIGenerator {
       addTypeSchema(schemas, rawClass);
     } else if (type instanceof Class<?>) {
       addTypeSchema(schemas, type);
+    }
+  }
+
+  private void addTypeSchema(Map<String, Schema> schemas, Type type) {
+    if (type instanceof Class<?>) {
+      Class<?> clazz = (Class<?>) type;
+      if (!clazz.isPrimitive() && !clazz.getName().startsWith("java.lang")) {
+        ResolvedSchema resolvedSchema = ModelConverters.getInstance()
+            .resolveAsResolvedSchema(new AnnotatedType(type));
+        if (resolvedSchema != null) {
+          if (resolvedSchema.schema != null) {
+            schemas.putIfAbsent(clazz.getSimpleName(), resolvedSchema.schema);
+          }
+          if (resolvedSchema.referencedSchemas != null) {
+            resolvedSchema.referencedSchemas.forEach(schemas::putIfAbsent);
+          }
+        }
+      }
     }
   }
 
@@ -463,25 +483,9 @@ public class OpenAPIGenerator {
       return schema;
     }
 
-    return new Schema<>();
-  }
-
-  private void addTypeSchema(Map<String, Schema> schemas, Type type) {
-    if (type instanceof Class<?>) {
-      Class<?> clazz = (Class<?>) type;
-      if (!clazz.isPrimitive() && !clazz.getName().startsWith("java.lang")) {
-        ResolvedSchema resolvedSchema = ModelConverters.getInstance()
-            .resolveAsResolvedSchema(new AnnotatedType(type));
-        if (resolvedSchema != null) {
-          if (resolvedSchema.schema != null) {
-            schemas.put(clazz.getSimpleName(), resolvedSchema.schema);
-          }
-          if (resolvedSchema.referencedSchemas != null) {
-            schemas.putAll(resolvedSchema.referencedSchemas);
-          }
-        }
-      }
-    }
+    // 默认返回引用类型
+    String schemaName = generateGenericSchemaName(rawClass, typeArguments);
+    return new Schema<>().$ref("#/components/schemas/" + schemaName);
   }
 
   private io.swagger.v3.oas.models.parameters.RequestBody generateRequestBody(Method method) {
