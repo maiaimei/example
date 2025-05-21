@@ -20,6 +20,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.tags.Tag;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -30,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -69,6 +71,9 @@ public class OpenAPIGenerator {
             .email("support@example.com"));
     openAPI.setInfo(info);
 
+    // 添加控制器标签
+    addControllerTags(openAPI, controllerClass);
+
     // 获取基础路径
     RequestMapping classMapping = AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class);
     String basePath = "";
@@ -84,7 +89,7 @@ public class OpenAPIGenerator {
 
     // 生成路径
     Paths paths = new Paths();
-    PathItem pathItem = generatePathItem(targetMethod, basePath);
+    PathItem pathItem = generatePathItem(controllerClass, targetMethod);
     if (pathItem != null && pathItem.readOperations().size() > 0) {
       String fullPath = getFullPath(basePath, targetMethod);
       paths.addPathItem(fullPath, pathItem);
@@ -99,6 +104,26 @@ public class OpenAPIGenerator {
     return openAPI;
   }
 
+  private void addControllerTags(OpenAPI openAPI, Class<?> controllerClass) {
+    List<Tag> tags = new ArrayList<>();
+
+    // 处理控制器级别的@Tag注解
+    io.swagger.v3.oas.annotations.tags.Tag controllerTag = controllerClass.getAnnotation(
+        io.swagger.v3.oas.annotations.tags.Tag.class);
+    if (controllerTag != null) {
+      tags.add(new Tag()
+          .name(controllerTag.name())
+          .description(controllerTag.description()));
+    } else {
+      // 如果没有@Tag注解，使用类名作为标签
+      tags.add(new Tag()
+          .name(controllerClass.getSimpleName())
+          .description(controllerClass.getSimpleName() + " API"));
+    }
+
+    openAPI.setTags(tags);
+  }
+
   private Method findTargetMethod(Class<?> controllerClass, String methodName) {
     for (Method method : controllerClass.getDeclaredMethods()) {
       if (method.getName().equals(methodName)) {
@@ -108,34 +133,81 @@ public class OpenAPIGenerator {
     return null;
   }
 
-  private PathItem generatePathItem(Method method, String basePath) {
+  private PathItem generatePathItem(Class<?> controllerClass, Method method) {
     PathItem pathItem = new PathItem();
     Operation operation = new Operation();
 
-    // 处理方法级别的路径
-    String methodPath = "";
+    // 设置operationId
+    operation.setOperationId(method.getName());
+
+    // 设置操作的标签
+    io.swagger.v3.oas.annotations.tags.Tag controllerTag = controllerClass.getAnnotation(
+        io.swagger.v3.oas.annotations.tags.Tag.class);
+    if (controllerTag != null) {
+      operation.addTagsItem(controllerTag.name());
+    } else {
+      operation.addTagsItem(controllerClass.getSimpleName());
+    }
+
+    // 根据HTTP方法类型设置operation
     if (method.isAnnotationPresent(GetMapping.class)) {
-      methodPath = method.getAnnotation(GetMapping.class).value()[0];
       pathItem.get(operation);
     } else if (method.isAnnotationPresent(PostMapping.class)) {
-      methodPath = method.getAnnotation(PostMapping.class).value()[0];
       pathItem.post(operation);
     } else if (method.isAnnotationPresent(PutMapping.class)) {
-      methodPath = method.getAnnotation(PutMapping.class).value()[0];
       pathItem.put(operation);
+    } else if (method.isAnnotationPresent(PatchMapping.class)) {
+      pathItem.patch(operation);
     } else if (method.isAnnotationPresent(DeleteMapping.class)) {
-      methodPath = method.getAnnotation(DeleteMapping.class).value()[0];
       pathItem.delete(operation);
     }
 
-    // 设置完整路径
-    pathItem.set$ref(basePath + methodPath);
-
-    // 处理操作详情
-    operation.setOperationId(method.getName());
+    // 设置参数
     operation.setParameters(generateParameters(method));
-    operation.setRequestBody(generateRequestBody(method));
-    operation.setResponses(generateResponses(method));
+
+    // 设置请求体
+    io.swagger.v3.oas.models.parameters.RequestBody requestBody = generateRequestBody(method);
+    if (requestBody != null) {
+      operation.setRequestBody(requestBody);
+    }
+
+    // 处理方法级别的@Operation注解
+    io.swagger.v3.oas.annotations.Operation operationAnnotation =
+        method.getAnnotation(io.swagger.v3.oas.annotations.Operation.class);
+    if (operationAnnotation != null) {
+      operation.setSummary(operationAnnotation.summary());
+      operation.setDescription(operationAnnotation.description());
+      if (operationAnnotation.deprecated()) {
+        operation.setDeprecated(true);
+      }
+
+      // 处理方法级别的响应注解
+      ApiResponses responses = new ApiResponses();
+      for (io.swagger.v3.oas.annotations.responses.ApiResponse apiResponse : operationAnnotation.responses()) {
+        ApiResponse response = new ApiResponse()
+            .description(apiResponse.description());
+
+        // 处理响应内容
+        if (apiResponse.content().length > 0) {
+          Content content = new Content();
+          for (io.swagger.v3.oas.annotations.media.Content contentAnnotation : apiResponse.content()) {
+            MediaType mediaType = new MediaType();
+            if (contentAnnotation.schema().implementation() != Void.class) {
+              Schema<?> schema = createSchema(contentAnnotation.schema().implementation());
+              mediaType.setSchema(schema);
+            }
+            content.addMediaType(contentAnnotation.mediaType(), mediaType);
+          }
+          response.setContent(content);
+        }
+
+        responses.addApiResponse(apiResponse.responseCode(), response);
+      }
+      operation.setResponses(responses);
+    } else {
+      // 如果没有@Operation注解，设置默认响应
+      operation.setResponses(generateResponses(method));
+    }
 
     return pathItem;
   }
@@ -248,11 +320,18 @@ public class OpenAPIGenerator {
   private io.swagger.v3.oas.models.parameters.RequestBody generateRequestBody(Method method) {
     for (Parameter parameter : method.getParameters()) {
       if (parameter.isAnnotationPresent(RequestBody.class)) {
-        return new io.swagger.v3.oas.models.parameters.RequestBody()
+        io.swagger.v3.oas.models.parameters.RequestBody requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
             .required(true)
             .content(new Content()
                 .addMediaType("application/json",
-                    new MediaType().schema(new Schema().$ref(parameter.getType().getSimpleName()))));
+                    new MediaType().schema(createSchema(parameter.getType()))));
+        // 处理@RequestBody注解的描述
+        io.swagger.v3.oas.annotations.Parameter parameterAnnotation =
+            parameter.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class);
+        if (parameterAnnotation != null) {
+          requestBody.setDescription(parameterAnnotation.description());
+        }
+        return requestBody;
       }
     }
     return null;
