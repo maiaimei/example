@@ -9,7 +9,7 @@ public class OpenAPIGeneratorTest {
   @Test
   public void generateAPI() {
     final OpenAPIGenerator openAPIGenerator = new OpenAPIGenerator();
-    final OpenAPI openAPI = openAPIGenerator.generateAPI(ExampleController.class, "get");
+    final OpenAPI openAPI = openAPIGenerator.generateAPI(ExampleController.class, "create");
     openAPIGenerator.printOpenAPI(openAPI);
   }
 }

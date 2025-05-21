@@ -15,6 +15,7 @@ import io.swagger.v3.oas.models.SpecVersion;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
@@ -24,7 +25,11 @@ import io.swagger.v3.oas.models.tags.Tag;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -298,23 +303,185 @@ public class OpenAPIGenerator {
     return openApiParameter;
   }
 
-  private Schema<?> createSchema(Class<?> type) {
-    // 使用 PrimitiveType 处理基本类型
-    PrimitiveType primitiveType = PrimitiveType.fromType(type);
+  private Map<String, Schema> generateSchemas(Method method) {
+    Map<String, Schema> schemas = new HashMap<>();
+
+    // 处理返回类型（包括泛型）
+    Type returnType = method.getGenericReturnType();
+    addSchemas(schemas, returnType);
+
+    // 处理参数类型（包括泛型）
+    for (java.lang.reflect.Parameter parameter : method.getParameters()) {
+      Type parameterType = parameter.getParameterizedType();
+      addSchemas(schemas, parameterType);
+    }
+
+    return schemas;
+  }
+  
+  private Schema<?> createSchema(Type type) {
+    // 处理原始类型
+    if (type instanceof Class<?>) {
+      Class<?> clazz = (Class<?>) type;
+      return createSchemaFromClass(clazz);
+    }
+
+    // 处理泛型类型
+    if (type instanceof ParameterizedType) {
+      return createSchemaFromParameterizedType((ParameterizedType) type);
+    }
+
+    return new Schema<>();
+  }
+
+  private Schema<?> createSchemaFromClass(Class<?> clazz) {
+    // 处理基本类型
+    PrimitiveType primitiveType = PrimitiveType.fromType(clazz);
     if (primitiveType != null) {
       return primitiveType.createProperty();
     }
 
-    // 使用 ModelConverters 处理复杂类型
+    // 处理复杂类型
     ResolvedSchema resolvedSchema = ModelConverters.getInstance()
-        .resolveAsResolvedSchema(new AnnotatedType(type));
-
+        .resolveAsResolvedSchema(new AnnotatedType(clazz));
     if (resolvedSchema != null && resolvedSchema.schema != null) {
       return resolvedSchema.schema;
     }
 
-    // fallback 处理
-    return new Schema<>().$ref("#/components/schemas/" + type.getSimpleName());
+    // 默认返回引用类型
+    return new Schema<>().$ref("#/components/schemas/" + clazz.getSimpleName());
+  }
+
+  private Schema<?> createSchemaFromParameterizedType(ParameterizedType parameterizedType) {
+    Type rawType = parameterizedType.getRawType();
+    Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+    // 处理集合类型
+    if (rawType instanceof Class<?> && Collection.class.isAssignableFrom((Class<?>) rawType)) {
+      return createArraySchema(typeArguments[0]);
+    }
+
+    // 处理Map类型
+    if (rawType instanceof Class<?> && Map.class.isAssignableFrom((Class<?>) rawType)) {
+      return createMapSchema(typeArguments[1]);
+    }
+
+    // 处理其他泛型类型（如Page<T>）
+    return createGenericSchema(parameterizedType);
+  }
+
+  private Schema<?> createArraySchema(Type elementType) {
+    ArraySchema arraySchema = new ArraySchema();
+    arraySchema.setItems(createSchema(elementType));
+    return arraySchema;
+  }
+
+  private Schema<?> createMapSchema(Type valueType) {
+    Schema<?> schema = new Schema<>();
+    schema.setType("object");
+    schema.setAdditionalProperties(createSchema(valueType));
+    return schema;
+  }
+
+  private Schema<?> createGenericSchema(ParameterizedType parameterizedType) {
+    Class<?> rawClass = (Class<?>) parameterizedType.getRawType();
+    Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+    // 创建泛型类型的schema
+    String schemaName = generateGenericSchemaName(rawClass, typeArguments);
+    return new Schema<>().$ref("#/components/schemas/" + schemaName);
+  }
+
+  private String generateGenericSchemaName(Class<?> rawClass, Type[] typeArguments) {
+    StringBuilder name = new StringBuilder(rawClass.getSimpleName());
+
+    if (typeArguments != null && typeArguments.length > 0) {
+      name.append("_");
+      for (Type arg : typeArguments) {
+        if (arg instanceof Class) {
+          name.append(((Class<?>) arg).getSimpleName());
+        } else if (arg instanceof ParameterizedType) {
+          name.append(generateGenericSchemaName(
+              (Class<?>) ((ParameterizedType) arg).getRawType(),
+              ((ParameterizedType) arg).getActualTypeArguments()
+          ));
+        }
+      }
+    }
+
+    return name.toString();
+  }
+
+  private void addSchemas(Map<String, Schema> schemas, Type type) {
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      Class<?> rawClass = (Class<?>) parameterizedType.getRawType();
+      Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+      // 添加泛型类型的schema
+      String schemaName = generateGenericSchemaName(rawClass, typeArguments);
+      Schema<?> schema = createGenericTypeSchema(parameterizedType);
+      schemas.put(schemaName, schema);
+
+      // 添加泛型参数的schemas
+      for (Type typeArg : typeArguments) {
+        addSchemas(schemas, typeArg);
+      }
+
+      // 添加原始类型的schema
+      addTypeSchema(schemas, rawClass);
+    } else if (type instanceof Class<?>) {
+      addTypeSchema(schemas, type);
+    }
+  }
+
+  private Schema<?> createGenericTypeSchema(ParameterizedType parameterizedType) {
+    Class<?> rawClass = (Class<?>) parameterizedType.getRawType();
+    Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+    // 获取原始类型的schema
+    ResolvedSchema resolvedSchema = ModelConverters.getInstance()
+        .resolveAsResolvedSchema(new AnnotatedType(rawClass));
+
+    if (resolvedSchema != null && resolvedSchema.schema != null) {
+      Schema<?> schema = resolvedSchema.schema;
+
+      // 处理泛型属性
+      Map<String, Schema> properties = schema.getProperties();
+      if (properties != null) {
+        for (Map.Entry<String, Schema> entry : properties.entrySet()) {
+          // 如果属性是泛型类型，使用实际类型替换
+          if (entry.getValue() instanceof ArraySchema) {
+            ArraySchema arraySchema = (ArraySchema) entry.getValue();
+            arraySchema.setItems(createSchema(typeArguments[0]));
+          } else if ("object".equals(entry.getValue().getType())) {
+            entry.setValue(createSchema(typeArguments[0]));
+          }
+        }
+      }
+
+      return schema;
+    }
+
+    return new Schema<>();
+  }
+
+  private void addTypeSchema(Map<String, Schema> schemas, Type type) {
+    if (type instanceof Class<?>) {
+      Class<?> clazz = (Class<?>) type;
+      if (!clazz.isPrimitive() && !clazz.getName().startsWith("java.lang")) {
+        ResolvedSchema resolvedSchema = ModelConverters.getInstance()
+            .resolveAsResolvedSchema(new AnnotatedType(type));
+        if (resolvedSchema != null) {
+          if (resolvedSchema.schema != null) {
+            schemas.put(clazz.getSimpleName(), resolvedSchema.schema);
+          }
+          if (resolvedSchema.referencedSchemas != null) {
+            schemas.putAll(resolvedSchema.referencedSchemas);
+          }
+        }
+      }
+    }
   }
 
   private io.swagger.v3.oas.models.parameters.RequestBody generateRequestBody(Method method) {
@@ -349,36 +516,6 @@ public class OpenAPIGenerator {
 
     responses.addApiResponse("200", response);
     return responses;
-  }
-
-  private Map<String, Schema> generateSchemas(Method method) {
-    ModelConverters converters = ModelConverters.getInstance();
-    Map<String, Schema> schemas = converters.read(method.getReturnType());
-
-    // 处理返回类型
-    ResolvedSchema resolvedSchema = ModelConverters.getInstance()
-        .resolveAsResolvedSchema(new AnnotatedType(method.getReturnType()));
-    if (resolvedSchema != null && resolvedSchema.referencedSchemas != null) {
-      schemas.putAll(resolvedSchema.referencedSchemas);
-    }
-
-    // 处理参数类型
-    for (java.lang.reflect.Parameter parameter : method.getParameters()) {
-      resolvedSchema = ModelConverters.getInstance()
-          .resolveAsResolvedSchema(new AnnotatedType(parameter.getType()));
-      if (resolvedSchema != null && resolvedSchema.referencedSchemas != null) {
-        schemas.putAll(resolvedSchema.referencedSchemas);
-      }
-    }
-
-    // 添加请求体的Schema
-    for (Parameter parameter : method.getParameters()) {
-      if (parameter.isAnnotationPresent(RequestBody.class)) {
-        schemas.putAll(converters.read(parameter.getType()));
-      }
-    }
-
-    return schemas;
   }
 
   // 输出到控制台
