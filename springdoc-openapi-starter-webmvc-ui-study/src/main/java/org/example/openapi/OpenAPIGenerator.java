@@ -318,7 +318,7 @@ public class OpenAPIGenerator {
 
     return schemas;
   }
-  
+
   private Schema<?> createSchema(Type type) {
     // 处理原始类型
     if (type instanceof Class<?>) {
