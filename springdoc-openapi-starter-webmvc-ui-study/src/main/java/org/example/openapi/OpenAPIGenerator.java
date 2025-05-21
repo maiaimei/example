@@ -69,9 +69,12 @@ public class OpenAPIGenerator {
             .email("support@example.com"));
     openAPI.setInfo(info);
 
-    // 处理Controller类
+    // 获取基础路径
     RequestMapping classMapping = AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class);
-    String basePath = classMapping != null ? classMapping.value()[0] : "";
+    String basePath = "";
+    if (classMapping != null && classMapping.value().length > 0) {
+      basePath = classMapping.value()[0];
+    }
 
     // 查找指定方法
     Method targetMethod = findTargetMethod(controllerClass, methodName);
@@ -79,10 +82,13 @@ public class OpenAPIGenerator {
       throw new IllegalArgumentException("Method " + methodName + " not found in " + controllerClass.getName());
     }
 
-    // 生成路径和操作
+    // 生成路径
     Paths paths = new Paths();
     PathItem pathItem = generatePathItem(targetMethod, basePath);
-    paths.addPathItem(pathItem.get$ref(), pathItem);
+    if (pathItem != null && pathItem.readOperations().size() > 0) {
+      String fullPath = getFullPath(basePath, targetMethod);
+      paths.addPathItem(fullPath, pathItem);
+    }
     openAPI.setPaths(paths);
 
     // 生成组件
@@ -132,6 +138,34 @@ public class OpenAPIGenerator {
     operation.setResponses(generateResponses(method));
 
     return pathItem;
+  }
+
+  private String getFullPath(String basePath, Method method) {
+    String methodPath = "";
+
+    if (method.isAnnotationPresent(GetMapping.class)) {
+      GetMapping mapping = method.getAnnotation(GetMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    } else if (method.isAnnotationPresent(PostMapping.class)) {
+      PostMapping mapping = method.getAnnotation(PostMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    } else if (method.isAnnotationPresent(PutMapping.class)) {
+      PutMapping mapping = method.getAnnotation(PutMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    } else if (method.isAnnotationPresent(DeleteMapping.class)) {
+      DeleteMapping mapping = method.getAnnotation(DeleteMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    }
+
+    // 确保路径以/开头
+    if (!basePath.startsWith("/")) {
+      basePath = "/" + basePath;
+    }
+    if (!methodPath.startsWith("/")) {
+      methodPath = "/" + methodPath;
+    }
+
+    return (basePath + methodPath).replaceAll("//", "/");
   }
 
   private List<io.swagger.v3.oas.models.parameters.Parameter> generateParameters(Method method) {
@@ -203,7 +237,7 @@ public class OpenAPIGenerator {
     ResolvedSchema resolvedSchema = ModelConverters.getInstance()
         .resolveAsResolvedSchema(new AnnotatedType(type));
 
-    if (resolvedSchema != null) {
+    if (resolvedSchema != null && resolvedSchema.schema != null) {
       return resolvedSchema.schema;
     }
 
@@ -232,7 +266,7 @@ public class OpenAPIGenerator {
         .description("Successful Operation")
         .content(new Content()
             .addMediaType("application/json",
-                new MediaType().schema(new Schema().$ref(returnType.getSimpleName()))));
+                new MediaType().schema(createSchema(method.getReturnType()))));
 
     responses.addApiResponse("200", response);
     return responses;
@@ -241,6 +275,22 @@ public class OpenAPIGenerator {
   private Map<String, Schema> generateSchemas(Method method) {
     ModelConverters converters = ModelConverters.getInstance();
     Map<String, Schema> schemas = converters.read(method.getReturnType());
+
+    // 处理返回类型
+    ResolvedSchema resolvedSchema = ModelConverters.getInstance()
+        .resolveAsResolvedSchema(new AnnotatedType(method.getReturnType()));
+    if (resolvedSchema != null && resolvedSchema.referencedSchemas != null) {
+      schemas.putAll(resolvedSchema.referencedSchemas);
+    }
+
+    // 处理参数类型
+    for (java.lang.reflect.Parameter parameter : method.getParameters()) {
+      resolvedSchema = ModelConverters.getInstance()
+          .resolveAsResolvedSchema(new AnnotatedType(parameter.getType()));
+      if (resolvedSchema != null && resolvedSchema.referencedSchemas != null) {
+        schemas.putAll(resolvedSchema.referencedSchemas);
+      }
+    }
 
     // 添加请求体的Schema
     for (Parameter parameter : method.getParameters()) {
