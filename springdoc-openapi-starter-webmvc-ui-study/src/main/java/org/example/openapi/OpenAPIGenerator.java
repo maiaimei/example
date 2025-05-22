@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.example.model.ApiRequest;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -491,21 +492,68 @@ public class OpenAPIGenerator {
   private io.swagger.v3.oas.models.parameters.RequestBody generateRequestBody(Method method) {
     for (Parameter parameter : method.getParameters()) {
       if (parameter.isAnnotationPresent(RequestBody.class)) {
+        // 创建 RequestBody 的 schema
+        Schema<?> schema;
+        // 获取参数的类型
+        Type parameterType = parameter.getParameterizedType();
+        if (parameterType instanceof ParameterizedType) {
+          // 参数类型是泛型类型
+          ParameterizedType parameterizedType = (ParameterizedType) parameterType;
+          // 检查是否是 ApiRequest
+          if (ApiRequest.class.equals(getRawType(parameterizedType))) {
+            // 获取泛型参数类型
+            Type[] typeArguments = parameterizedType.getActualTypeArguments();
+            if (typeArguments.length > 0) {
+              // 创建 ApiRequest 的 schema
+              Schema<?> apiRequestSchema = createSchemaFromClass(ApiRequest.class);
+
+              // 创建泛型参数的 schema
+              Schema<?> dataSchema = createSchema(typeArguments[0]);
+
+              // 添加属性到 ApiRequest schema
+              apiRequestSchema.addProperties("data", dataSchema);
+
+              schema = apiRequestSchema;
+            } else {
+              schema = createSchema(ApiRequest.class);
+            }
+          } else {
+            // 处理其他泛型类型
+            schema = createSchema(parameterType);
+          }
+        } else {
+          // 参数类型是非泛型类型
+          schema = createSchema(parameterType);
+        }
+
         io.swagger.v3.oas.models.parameters.RequestBody requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
             .required(true)
             .content(new Content()
                 .addMediaType("application/json",
-                    new MediaType().schema(createSchema(parameter.getType()))));
-        // 处理@RequestBody注解的描述
+                    new MediaType().schema(schema)));
+
+        // 处理 @Parameter 注解的描述
         io.swagger.v3.oas.annotations.Parameter parameterAnnotation =
             parameter.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class);
         if (parameterAnnotation != null) {
           requestBody.setDescription(parameterAnnotation.description());
         }
+
         return requestBody;
       }
     }
     return null;
+  }
+
+  // 辅助方法：获取原始类型
+  private Class<?> getRawType(Type type) {
+    if (type instanceof Class<?>) {
+      return (Class<?>) type;
+    }
+    if (type instanceof ParameterizedType) {
+      return (Class<?>) ((ParameterizedType) type).getRawType();
+    }
+    throw new IllegalArgumentException("Unexpected type: " + type);
   }
 
   private ApiResponses generateResponses(Method method) {
