@@ -55,12 +55,12 @@ public class OpenAPIGenerator {
     this.objectMapper = Json.mapper();
   }
 
+  // 生成 OpenAPI 文档
   public OpenAPI generateAPI(Class<?> controllerClass, String methodName) {
-    // 创建OpenAPI对象
+    // 创建 OpenAPI 对象
     OpenAPI openAPI = new OpenAPI();
-    // 设置为 OpenAPI 3.1
+    // 设置 OpenAPI 版本
     openAPI.specVersion(SpecVersion.V31);
-    // 强制设置 openapi 版本为 3.1.0
     openAPI.openapi("3.1.0");
 
     // 设置基本信息
@@ -77,85 +77,76 @@ public class OpenAPIGenerator {
             .email("support@example.com"));
     openAPI.setInfo(info);
 
-    // 添加控制器标签
-    addControllerTags(openAPI, controllerClass);
-
-    // 获取基础路径
-    RequestMapping classMapping = AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class);
-    String basePath = "";
-    if (classMapping != null && classMapping.value().length > 0) {
-      basePath = classMapping.value()[0];
-    }
+    // 设置控制器标签
+    openAPI.setTags(generateControllerTags(controllerClass));
 
     // 查找指定方法
     Method targetMethod = findTargetMethod(controllerClass, methodName);
-    if (targetMethod == null) {
-      throw new IllegalArgumentException("Method " + methodName + " not found in " + controllerClass.getName());
-    }
 
     // 生成路径
     Paths paths = new Paths();
+    // 生成路径项
     PathItem pathItem = generatePathItem(controllerClass, targetMethod);
+    // 添加路径项到路径
     if (pathItem != null && pathItem.readOperations().size() > 0) {
-      String fullPath = getFullPath(basePath, targetMethod);
+      String fullPath = getFullPath(controllerClass, targetMethod);
       paths.addPathItem(fullPath, pathItem);
     }
+    // 设置路径
     openAPI.setPaths(paths);
 
     // 生成组件
     Components components = new Components();
+    // 生成模式并设置到组件
     components.setSchemas(generateSchemas(targetMethod));
+    // 设置组件
     openAPI.setComponents(components);
 
     return openAPI;
   }
 
-  private void addControllerTags(OpenAPI openAPI, Class<?> controllerClass) {
+  // 生成控制器标签
+  private List<Tag> generateControllerTags(Class<?> controllerClass) {
     List<Tag> tags = new ArrayList<>();
 
-    // 处理控制器级别的@Tag注解
+    // 获取类级别的@Tag注解
     io.swagger.v3.oas.annotations.tags.Tag controllerTag = controllerClass.getAnnotation(
         io.swagger.v3.oas.annotations.tags.Tag.class);
+    // 如果有@Tag注解，使用注解中的名称和描述
     if (controllerTag != null) {
       tags.add(new Tag()
           .name(controllerTag.name())
           .description(controllerTag.description()));
     } else {
-      // 如果没有@Tag注解，使用类名作为标签
+      // 如果没有@Tag注解，使用类名作为标签的名称和描述
       tags.add(new Tag()
           .name(controllerClass.getSimpleName())
           .description(controllerClass.getSimpleName() + " API"));
     }
 
-    openAPI.setTags(tags);
-  }
-
-  private Method findTargetMethod(Class<?> controllerClass, String methodName) {
-    for (Method method : controllerClass.getDeclaredMethods()) {
-      if (method.getName().equals(methodName)) {
-        return method;
-      }
-    }
-    return null;
+    return tags;
   }
 
   private PathItem generatePathItem(Class<?> controllerClass, Method method) {
     PathItem pathItem = new PathItem();
     Operation operation = new Operation();
 
-    // 设置operationId
+    // 设置操作ID
     operation.setOperationId(method.getName());
 
-    // 设置操作的标签
+    // 设置操作标签
+    // 获取类级别的@Tag注解
     io.swagger.v3.oas.annotations.tags.Tag controllerTag = controllerClass.getAnnotation(
         io.swagger.v3.oas.annotations.tags.Tag.class);
     if (controllerTag != null) {
+      // 如果有@Tag注解，将注解的名称添加到operation的标签中
       operation.addTagsItem(controllerTag.name());
     } else {
+      // 如果没有@Tag注解，将类名添加到operation的标签中
       operation.addTagsItem(controllerClass.getSimpleName());
     }
 
-    // 根据HTTP方法类型设置operation
+    // 设置操作类型
     if (method.isAnnotationPresent(GetMapping.class)) {
       pathItem.get(operation);
     } else if (method.isAnnotationPresent(PostMapping.class)) {
@@ -178,8 +169,8 @@ public class OpenAPIGenerator {
     }
 
     // 处理方法级别的@Operation注解
-    io.swagger.v3.oas.annotations.Operation operationAnnotation =
-        method.getAnnotation(io.swagger.v3.oas.annotations.Operation.class);
+    io.swagger.v3.oas.annotations.Operation operationAnnotation = method
+        .getAnnotation(io.swagger.v3.oas.annotations.Operation.class);
     if (operationAnnotation != null) {
       operation.setSummary(operationAnnotation.summary());
       operation.setDescription(operationAnnotation.description());
@@ -218,90 +209,113 @@ public class OpenAPIGenerator {
     return pathItem;
   }
 
-  private String getFullPath(String basePath, Method method) {
-    String methodPath = "";
-
-    if (method.isAnnotationPresent(GetMapping.class)) {
-      GetMapping mapping = method.getAnnotation(GetMapping.class);
-      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
-    } else if (method.isAnnotationPresent(PostMapping.class)) {
-      PostMapping mapping = method.getAnnotation(PostMapping.class);
-      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
-    } else if (method.isAnnotationPresent(PutMapping.class)) {
-      PutMapping mapping = method.getAnnotation(PutMapping.class);
-      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
-    } else if (method.isAnnotationPresent(DeleteMapping.class)) {
-      DeleteMapping mapping = method.getAnnotation(DeleteMapping.class);
-      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
-    }
-
-    // 确保路径以/开头
-    if (!basePath.startsWith("/")) {
-      basePath = "/" + basePath;
-    }
-    if (!methodPath.startsWith("/")) {
-      methodPath = "/" + methodPath;
-    }
-
-    return (basePath + methodPath).replaceAll("//", "/");
-  }
-
+  // 生成参数
   private List<io.swagger.v3.oas.models.parameters.Parameter> generateParameters(Method method) {
     List<io.swagger.v3.oas.models.parameters.Parameter> parameters = new ArrayList<>();
 
+    // 遍历方法参数
     for (Parameter parameter : method.getParameters()) {
-      if (parameter.isAnnotationPresent(PathVariable.class)) {
+      if (parameter.isAnnotationPresent(PathVariable.class)) { // 检查参数是否有 @PathVariable 注解
+        // 获取 @PathVariable 注解
         PathVariable pathVariable = parameter.getAnnotation(PathVariable.class);
+        // 创建参数
         parameters.add(createParameter(
-            pathVariable.value().isEmpty() ? parameter.getName() : pathVariable.value(),
-            "path",
-            true,
-            parameter.getType(),
-            parameter
-        ));
-      } else if (parameter.isAnnotationPresent(RequestParam.class)) {
+            pathVariable.value().isEmpty() ? parameter.getName() : pathVariable.value(), // 获取参数名称
+            "path", // 参数位置
+            true, // 是否必需
+            parameter.getType(), // 参数类型
+            parameter)); // 获取参数
+      } else if (parameter.isAnnotationPresent(RequestParam.class)) { // 检查参数是否有 @RequestParam 注解
+        // 获取 @RequestParam 注解
         RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
+        // 创建参数
         parameters.add(createParameter(
-            requestParam.value().isEmpty() ? parameter.getName() : requestParam.value(),
-            "query",
-            requestParam.required(),
-            parameter.getType(),
-            parameter
-        ));
+            requestParam.value().isEmpty() ? parameter.getName() : requestParam.value(), // 获取参数名称
+            "query", // 参数位置
+            requestParam.required(), // 是否必需
+            parameter.getType(), // 参数类型
+            parameter)); // 获取参数
       }
     }
 
     return parameters;
   }
 
-  private io.swagger.v3.oas.models.parameters.Parameter createParameter(
-      String name,
-      String in,
-      boolean required,
-      Class<?> type,
-      Parameter parameter) {
+  // 生成请求体
+  private io.swagger.v3.oas.models.parameters.RequestBody generateRequestBody(Method method) {
+    // 遍历方法参数
+    for (Parameter parameter : method.getParameters()) {
+      // 检查参数是否有 @RequestBody 注解
+      if (parameter.isAnnotationPresent(RequestBody.class)) {
+        Schema<?> schema;
+        // 获取参数类型
+        Type parameterType = parameter.getParameterizedType();
+        // 检查参数类型是否是泛型类型
+        if (parameterType instanceof ParameterizedType parameterizedType) {
+          // 检查是否是 ApiRequest
+          if (ApiRequest.class.equals(getRawType(parameterizedType))) {
+            // 获取实际类型参数
+            Type[] typeArguments = parameterizedType.getActualTypeArguments();
+            // 检查实际类型参数的数量
+            if (typeArguments.length > 0) {
+              // 创建 ApiRequest 的 schema
+              Schema<?> apiRequestSchema = createSchemaFromClass(ApiRequest.class);
 
-    io.swagger.v3.oas.models.parameters.Parameter openApiParameter =
-        new io.swagger.v3.oas.models.parameters.Parameter()
-            .name(name)
-            .in(in)
-            .required(required);
+              // 创建实际类型的 schema
+              Schema<?> dataSchema = createSchema(typeArguments[0]);
 
-    // 使用 OpenAPI 内置工具创建 Schema
-    Schema<?> schema = createSchema(type);
+              // 添加属性到 ApiRequest schema
+              apiRequestSchema.addProperties("data", dataSchema);
 
-    // 处理参数描述
-    io.swagger.v3.oas.annotations.Parameter parameterAnnotation =
-        parameter.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class);
-    if (parameterAnnotation != null) {
-      openApiParameter.setDescription(parameterAnnotation.description());
-      if (!parameterAnnotation.example().isEmpty()) {
-        schema.example(parameterAnnotation.example());
+              // 设置 ApiRequest 的 schema
+              schema = apiRequestSchema;
+            } else {
+              // 如果没有实际类型参数，使用 ApiRequest 的 schema
+              schema = createSchemaFromClass(ApiRequest.class);
+            }
+          } else {
+            // 参数类型是其他泛型类型
+            schema = createSchema(parameterType);
+          }
+        } else {
+          // 参数类型是非泛型类型
+          schema = createSchema(parameterType);
+        }
+
+        // 创建请求体
+        io.swagger.v3.oas.models.parameters.RequestBody requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
+            .required(true) // 设置请求体为必需
+            .content(new Content() // 设置请求体内容
+                .addMediaType("application/json", // 设置媒体类型
+                    new MediaType().schema(schema))); // 设置请求体的 schema
+
+        // 处理 @Parameter 注解的描述
+        io.swagger.v3.oas.annotations.Parameter parameterAnnotation = parameter
+            .getAnnotation(io.swagger.v3.oas.annotations.Parameter.class);
+        if (parameterAnnotation != null) {
+          requestBody.setDescription(parameterAnnotation.description());
+        }
+
+        // 返回请求体
+        return requestBody;
       }
     }
+    // 如果没有找到 @RequestBody 注解，返回 null
+    return null;
+  }
 
-    openApiParameter.setSchema(schema);
-    return openApiParameter;
+  private ApiResponses generateResponses(Method method) {
+    ApiResponses responses = new ApiResponses();
+    Class<?> returnType = method.getReturnType();
+
+    ApiResponse response = new ApiResponse()
+        .description("Successful Operation")
+        .content(new Content()
+            .addMediaType("application/json",
+                new MediaType().schema(createSchema(method.getReturnType()))));
+
+    responses.addApiResponse("200", response);
+    return responses;
   }
 
   private Map<String, Schema> generateSchemas(Method method) {
@@ -320,16 +334,44 @@ public class OpenAPIGenerator {
     return schemas;
   }
 
+  private io.swagger.v3.oas.models.parameters.Parameter createParameter(
+      String name,
+      String in,
+      boolean required,
+      Class<?> type,
+      Parameter parameter) {
+
+    io.swagger.v3.oas.models.parameters.Parameter openApiParameter = new io.swagger.v3.oas.models.parameters.Parameter()
+        .name(name)
+        .in(in)
+        .required(required);
+
+    // 使用 OpenAPI 内置工具创建 Schema
+    Schema<?> schema = createSchema(type);
+
+    // 处理参数描述
+    io.swagger.v3.oas.annotations.Parameter parameterAnnotation = parameter
+        .getAnnotation(io.swagger.v3.oas.annotations.Parameter.class);
+    if (parameterAnnotation != null) {
+      openApiParameter.setDescription(parameterAnnotation.description());
+      if (!parameterAnnotation.example().isEmpty()) {
+        schema.example(parameterAnnotation.example());
+      }
+    }
+
+    openApiParameter.setSchema(schema);
+    return openApiParameter;
+  }
+
   private Schema<?> createSchema(Type type) {
     // 处理原始类型
-    if (type instanceof Class<?>) {
-      Class<?> clazz = (Class<?>) type;
+    if (type instanceof Class<?> clazz) {
       return createSchemaFromClass(clazz);
     }
 
     // 处理泛型类型
-    if (type instanceof ParameterizedType) {
-      return createSchemaFromParameterizedType((ParameterizedType) type);
+    if (type instanceof ParameterizedType parameterizedType) {
+      return createSchemaFromParameterizedType(parameterizedType);
     }
 
     return new Schema<>();
@@ -404,8 +446,7 @@ public class OpenAPIGenerator {
         } else if (arg instanceof ParameterizedType) {
           name.append(generateGenericSchemaName(
               (Class<?>) ((ParameterizedType) arg).getRawType(),
-              ((ParameterizedType) arg).getActualTypeArguments()
-          ));
+              ((ParameterizedType) arg).getActualTypeArguments()));
         }
       }
     }
@@ -489,62 +530,6 @@ public class OpenAPIGenerator {
     return new Schema<>().$ref("#/components/schemas/" + schemaName);
   }
 
-  private io.swagger.v3.oas.models.parameters.RequestBody generateRequestBody(Method method) {
-    for (Parameter parameter : method.getParameters()) {
-      if (parameter.isAnnotationPresent(RequestBody.class)) {
-        // 创建 RequestBody 的 schema
-        Schema<?> schema;
-        // 获取参数的类型
-        Type parameterType = parameter.getParameterizedType();
-        if (parameterType instanceof ParameterizedType) {
-          // 参数类型是泛型类型
-          ParameterizedType parameterizedType = (ParameterizedType) parameterType;
-          // 检查是否是 ApiRequest
-          if (ApiRequest.class.equals(getRawType(parameterizedType))) {
-            // 获取泛型参数类型
-            Type[] typeArguments = parameterizedType.getActualTypeArguments();
-            if (typeArguments.length > 0) {
-              // 创建 ApiRequest 的 schema
-              Schema<?> apiRequestSchema = createSchemaFromClass(ApiRequest.class);
-
-              // 创建泛型参数的 schema
-              Schema<?> dataSchema = createSchema(typeArguments[0]);
-
-              // 添加属性到 ApiRequest schema
-              apiRequestSchema.addProperties("data", dataSchema);
-
-              schema = apiRequestSchema;
-            } else {
-              schema = createSchema(ApiRequest.class);
-            }
-          } else {
-            // 处理其他泛型类型
-            schema = createSchema(parameterType);
-          }
-        } else {
-          // 参数类型是非泛型类型
-          schema = createSchema(parameterType);
-        }
-
-        io.swagger.v3.oas.models.parameters.RequestBody requestBody = new io.swagger.v3.oas.models.parameters.RequestBody()
-            .required(true)
-            .content(new Content()
-                .addMediaType("application/json",
-                    new MediaType().schema(schema)));
-
-        // 处理 @Parameter 注解的描述
-        io.swagger.v3.oas.annotations.Parameter parameterAnnotation =
-            parameter.getAnnotation(io.swagger.v3.oas.annotations.Parameter.class);
-        if (parameterAnnotation != null) {
-          requestBody.setDescription(parameterAnnotation.description());
-        }
-
-        return requestBody;
-      }
-    }
-    return null;
-  }
-
   // 辅助方法：获取原始类型
   private Class<?> getRawType(Type type) {
     if (type instanceof Class<?>) {
@@ -556,18 +541,57 @@ public class OpenAPIGenerator {
     throw new IllegalArgumentException("Unexpected type: " + type);
   }
 
-  private ApiResponses generateResponses(Method method) {
-    ApiResponses responses = new ApiResponses();
-    Class<?> returnType = method.getReturnType();
+  // 查找指定方法
+  private Method findTargetMethod(Class<?> controllerClass, String methodName) {
+    // 查找指定方法
+    for (Method method : controllerClass.getDeclaredMethods()) {
+      // 检查方法名是否匹配
+      if (method.getName().equals(methodName)) {
+        // 如果方法名匹配，返回该方法
+        return method;
+      }
+    }
+    // 如果没有找到指定方法，抛出异常
+    throw new IllegalArgumentException("Method " + methodName + " not found in " + controllerClass.getName());
+  }
 
-    ApiResponse response = new ApiResponse()
-        .description("Successful Operation")
-        .content(new Content()
-            .addMediaType("application/json",
-                new MediaType().schema(createSchema(method.getReturnType()))));
+  // 辅助方法：获取完整路径
+  private String getFullPath(Class<?> controllerClass, Method method) {
+    String classPath = "";
+    String methodPath = "";
 
-    responses.addApiResponse("200", response);
-    return responses;
+    // 获取类级别的@RequestMapping注解
+    RequestMapping classMapping = AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class);
+    if (classMapping != null && classMapping.value().length > 0) {
+      // 获取类级别的路径
+      classPath = classMapping.value()[0];
+    }
+
+    // 获取方法级别的@RequestMapping注解
+    if (method.isAnnotationPresent(GetMapping.class)) {
+      GetMapping mapping = method.getAnnotation(GetMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    } else if (method.isAnnotationPresent(PostMapping.class)) {
+      PostMapping mapping = method.getAnnotation(PostMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    } else if (method.isAnnotationPresent(PutMapping.class)) {
+      PutMapping mapping = method.getAnnotation(PutMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    } else if (method.isAnnotationPresent(DeleteMapping.class)) {
+      DeleteMapping mapping = method.getAnnotation(DeleteMapping.class);
+      methodPath = mapping.value().length > 0 ? mapping.value()[0] : "";
+    }
+
+    // 确保路径以/开头
+    if (!classPath.startsWith("/")) {
+      classPath = "/" + classPath;
+    }
+    if (!methodPath.startsWith("/")) {
+      methodPath = "/" + methodPath;
+    }
+
+    // 拼接路径
+    return (classPath + methodPath).replaceAll("//", "/");
   }
 
   // 输出到控制台
