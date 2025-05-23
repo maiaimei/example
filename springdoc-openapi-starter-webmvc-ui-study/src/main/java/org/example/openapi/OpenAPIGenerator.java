@@ -35,6 +35,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.example.model.ApiRequest;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -179,28 +180,34 @@ public class OpenAPIGenerator {
       }
 
       // 处理方法级别的响应注解
-      ApiResponses responses = new ApiResponses();
-      for (io.swagger.v3.oas.annotations.responses.ApiResponse apiResponse : operationAnnotation.responses()) {
-        ApiResponse response = new ApiResponse()
-            .description(apiResponse.description());
+      final io.swagger.v3.oas.annotations.responses.ApiResponse[] operationResponses = operationAnnotation.responses();
+      if (operationResponses != null && operationResponses.length > 0) {
+        ApiResponses responses = new ApiResponses();
+        for (io.swagger.v3.oas.annotations.responses.ApiResponse apiResponse : operationResponses) {
+          ApiResponse response = new ApiResponse()
+              .description(apiResponse.description());
 
-        // 处理响应内容
-        if (apiResponse.content().length > 0) {
-          Content content = new Content();
-          for (io.swagger.v3.oas.annotations.media.Content contentAnnotation : apiResponse.content()) {
-            MediaType mediaType = new MediaType();
-            if (contentAnnotation.schema().implementation() != Void.class) {
-              Schema<?> schema = createSchema(contentAnnotation.schema().implementation());
-              mediaType.setSchema(schema);
+          // 处理响应内容
+          if (apiResponse.content().length > 0) {
+            Content content = new Content();
+            for (io.swagger.v3.oas.annotations.media.Content contentAnnotation : apiResponse.content()) {
+              MediaType mediaType = new MediaType();
+              if (contentAnnotation.schema().implementation() != Void.class) {
+                Schema<?> schema = createSchema(contentAnnotation.schema().implementation());
+                mediaType.setSchema(schema);
+              }
+              content.addMediaType(contentAnnotation.mediaType(), mediaType);
             }
-            content.addMediaType(contentAnnotation.mediaType(), mediaType);
+            response.setContent(content);
           }
-          response.setContent(content);
-        }
 
-        responses.addApiResponse(apiResponse.responseCode(), response);
+          responses.addApiResponse(apiResponse.responseCode(), response);
+        }
+        operation.setResponses(responses);
+      } else {
+        // 如果方法级别的响应注解，设置默认响应
+        operation.setResponses(generateResponses(method));
       }
-      operation.setResponses(responses);
     } else {
       // 如果没有@Operation注解，设置默认响应
       operation.setResponses(generateResponses(method));
@@ -306,15 +313,15 @@ public class OpenAPIGenerator {
 
   private ApiResponses generateResponses(Method method) {
     ApiResponses responses = new ApiResponses();
-    Class<?> returnType = method.getReturnType();
+    Type returnType = method.getGenericReturnType();
 
-    ApiResponse response = new ApiResponse()
-        .description("Successful Operation")
+    ApiResponse successResponse = new ApiResponse()
+        .description(HttpStatus.OK.getReasonPhrase())
         .content(new Content()
             .addMediaType("application/json",
-                new MediaType().schema(createSchema(method.getReturnType()))));
+                new MediaType().schema(createSchema(returnType))));
 
-    responses.addApiResponse("200", response);
+    responses.addApiResponse(String.valueOf(HttpStatus.OK.value()), successResponse);
     return responses;
   }
 
