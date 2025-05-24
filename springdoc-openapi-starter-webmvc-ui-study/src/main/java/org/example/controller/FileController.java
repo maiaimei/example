@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/files")
 public class FileController {
 
   @GetMapping(value = "/download", produces = "application/octet-stream")

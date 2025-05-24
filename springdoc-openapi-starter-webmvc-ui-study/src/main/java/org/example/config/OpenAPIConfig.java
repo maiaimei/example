@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenAPIConfig {
 
   @Autowired
-  private OpenAPIAdvancedCustomizer openApiAdvancedCustomizer;
+  private OpenAPIAdvancedCustomizer openAPIAdvancedCustomizer;
 
   @Bean
   public OpenAPI openAPI() {
@@ -62,10 +62,10 @@ public class OpenAPIConfig {
             .url("https://example.com/docs"));
   }
 
-  //@Bean
+  @Bean
   public OpenApiCustomizer openApiCustomizer() {
     return openAPI -> {
-      openApiAdvancedCustomizer.customise(openAPI);
+      openAPIAdvancedCustomizer.customise(openAPI);
     };
   }
 
@@ -77,7 +77,7 @@ public class OpenAPIConfig {
         .pathsToMatch("/**")
         .packagesToScan("org.example")
         // 添加这一行，关联 OpenApiCustomizer
-        //.addOpenApiCustomizer(openApiCustomizer())
+        .addOpenApiCustomizer(openApiCustomizer())
         .addOpenApiCustomizer(openApi -> {
           // 设置为 OpenAPI 3.0
           openApi.specVersion(SpecVersion.V30);
@@ -95,7 +95,7 @@ public class OpenAPIConfig {
         .pathsToMatch("/**")
         .packagesToScan("org.example")
         // 添加这一行，关联 OpenApiCustomizer
-        //.addOpenApiCustomizer(openApiCustomizer())
+        .addOpenApiCustomizer(openApiCustomizer())
         .addOpenApiCustomizer(openApi -> {
           // 设置为 OpenAPI 3.1
           openApi.specVersion(SpecVersion.V31);
