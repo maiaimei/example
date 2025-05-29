@@ -12,7 +12,16 @@ spring:
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 300000
 
+logging:
+  level:
+    org.example.repository: debug # 你的项目包路径
+    org.springframework: info
+    org.mybatis: debug
+    java.sql: debug # SQL语句和参数
+    org.apache.ibatis: debug
+
 mybatis:
   type-aliases-package: org.example.domain # 实体类包路径
   configuration:
     map-underscore-to-camel-case: true # 开启驼峰命名转换
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 添加日志配置
