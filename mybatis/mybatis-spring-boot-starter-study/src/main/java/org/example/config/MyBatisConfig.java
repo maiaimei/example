@@ -10,8 +10,6 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -41,8 +39,8 @@ public class MyBatisConfig {
     factoryBean.setTypeAliasesPackage("com.example.domain");
 
     // 设置mapper.xml文件位置
-    ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-    factoryBean.setMapperLocations(resolver.getResources("classpath:mapper/*.xml"));
+//    ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+//    factoryBean.setMapperLocations(resolver.getResources("classpath:mapper/*.xml"));
 
     // 配置分页插件
     Properties properties = new Properties();

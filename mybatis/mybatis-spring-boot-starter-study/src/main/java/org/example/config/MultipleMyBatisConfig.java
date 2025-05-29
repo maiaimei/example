@@ -9,7 +9,6 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @EnableTransactionManagement
@@ -44,8 +43,8 @@ public class MultipleMyBatisConfig {
     factoryBean.setConfiguration(configuration);
 
     // 设置mapper位置
-    factoryBean.setMapperLocations(new PathMatchingResourcePatternResolver()
-        .getResources("classpath:mapper/" + mapperPackage.substring(mapperPackage.lastIndexOf(".") + 1) + "/*.xml"));
+//    factoryBean.setMapperLocations(new PathMatchingResourcePatternResolver()
+//        .getResources("classpath:mapper/" + mapperPackage.substring(mapperPackage.lastIndexOf(".") + 1) + "/*.xml"));
 
     return factoryBean.getObject();
   }
