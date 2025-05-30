@@ -8,8 +8,11 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.example.datasource.DataSource;
 import org.example.datasource.DataSourceContextHolder;
-import org.example.entity.User;
+import org.example.model.domain.User;
+import org.example.mybatis.SQLOperator;
+import org.example.mybatis.query.BaseQuery;
 import org.example.repository.UserRepository;
+import org.example.repository.advanced.AdvancedUserRepository;
 import org.example.repository.master.MasterUserRepository;
 import org.example.repository.simple.SimpleUserRepository;
 import org.example.repository.slave1.Slave1UserRepository;
@@ -30,6 +33,9 @@ public class UserService {
 
   @Autowired(required = false)
   private Slave1UserRepository slave1UserRepository;
+
+  @Autowired
+  private AdvancedUserRepository advancedUserRepository;
 
   private UserRepository getBasicUserRepository() {
     final String databaseName = Optional.ofNullable(DataSourceContextHolder.getDataSourceName()).orElse("");
@@ -52,6 +58,22 @@ public class UserService {
         }
       }
     };
+  }
+
+  public List<User> searchUsers() {
+    // 添加查询条件
+    BaseQuery query = new BaseQuery();
+    query.addCondition("username", SQLOperator.LIKE, "maiam");
+
+    // 添加排序
+    query.setSortField("gmt_create");
+    query.setSortOrder("DESC");
+
+    // 设置分页
+    query.setPageNum(1);
+    query.setPageSize(2);
+
+    return advancedUserRepository.selectByConditions(new User(), query);
   }
 
   /**

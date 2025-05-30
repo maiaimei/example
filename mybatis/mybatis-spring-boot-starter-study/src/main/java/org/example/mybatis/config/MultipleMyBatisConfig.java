@@ -17,7 +17,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @MapperScan(value = {
     "org.example.repository.master",
-    "org.example.repository.slave1"
+    "org.example.repository.slave1",
+    "org.example.repository.advanced"
 })
 @ConditionalOnProperty(name = "spring.datasources.enabled", havingValue = "true", matchIfMissing = false)
 public class MultipleMyBatisConfig extends AbstractMyBatisConfig {

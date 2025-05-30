@@ -25,14 +25,6 @@ public class DataSourceProperties {
   private String name;
 
   /**
-   * The type for the database connection.
-   * <p>
-   * 数据库的类型
-   * </p>
-   */
-  private String type;
-
-  /**
    * The URL of the database to connect to.
    * <p>
    * 数据库连接的URL

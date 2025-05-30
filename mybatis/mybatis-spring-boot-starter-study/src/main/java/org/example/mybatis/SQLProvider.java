@@ -6,10 +6,14 @@ import static org.example.mybatis.SQLHelper.validateDomain;
 import static org.example.mybatis.SQLHelper.validateDomainField;
 
 import java.util.List;
+import java.util.function.Consumer;
+import org.apache.ibatis.jdbc.SQL;
+import org.example.mybatis.query.BaseQuery;
+import org.example.mybatis.query.QueryCondition;
 
 public class SQLProvider {
 
-  public String insert(final Object domain) {
+  public String insert(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
@@ -17,7 +21,7 @@ public class SQLProvider {
     return SQLBuilder.builder().insert(tableName, notNullFieldValues).build();
   }
 
-  public String update(final Object domain) {
+  public String update(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
@@ -25,16 +29,71 @@ public class SQLProvider {
     return SQLBuilder.builder().update(tableName, notNullFieldValues).build();
   }
 
-  public String delete(final Object domain) {
+  public String delete(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder().delete(tableName).build();
   }
 
-  public String select(final Object domain) {
+  public String select(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     return SQLBuilder.builder().select(tableName, notNullFieldValues).build();
+  }
+
+  public String selectByConditions(Object domain, BaseQuery query) {
+    validateDomain(domain);
+    final String tableName = getTableName(domain.getClass());
+    return SQLBuilder.builder()
+        .select(tableName)
+        .whereConditions(buildWhereConditions(query.getConditions()))
+        .orderBy(query.getSortField(), query.getSortOrder())
+        .build();
+  }
+
+  private Consumer<SQL> buildWhereConditions(List<QueryCondition> conditions) {
+    return sql -> {
+      if (conditions == null || conditions.isEmpty()) {
+        return;
+      }
+
+      for (int i = 0; i < conditions.size(); i++) {
+        QueryCondition condition = conditions.get(i);
+        String paramName = condition.getColumn() + i;
+
+        switch (condition.getOperator()) {
+          case EQ:
+            sql.WHERE(String.format("%s = #{query.conditions[%d].value}",
+                condition.getColumn(), i));
+            break;
+          case NE:
+            sql.WHERE(String.format("%s <> #{query.conditions[%d].value}",
+                condition.getColumn(), i));
+            break;
+          case LIKE:
+            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{query.conditions[%d].value}, '%%')",
+                condition.getColumn(), i));
+            break;
+          case IN:
+            sql.WHERE(String.format("%s IN " +
+                "<foreach collection='query.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
+                "#{item}" +
+                "</foreach>", condition.getColumn(), i));
+            break;
+          case BETWEEN:
+            sql.WHERE(String.format("%s BETWEEN #{query.conditions[%d].value} AND #{query.conditions[%d].secondValue}",
+                condition.getColumn(), i, i));
+            break;
+          case IS_NULL:
+            sql.WHERE(String.format("%s IS NULL", condition.getColumn()));
+            break;
+          case IS_NOT_NULL:
+            sql.WHERE(String.format("%s IS NOT NULL", condition.getColumn()));
+            break;
+          // ... 其他操作符的处理
+        }
+      }
+    };
   }
 }

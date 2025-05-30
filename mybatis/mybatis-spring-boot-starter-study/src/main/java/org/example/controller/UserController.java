@@ -2,7 +2,7 @@ package org.example.controller;
 
 import java.math.BigDecimal;
 import java.util.List;
-import org.example.entity.User;
+import org.example.model.domain.User;
 import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +24,12 @@ public class UserController {
 
   @Autowired
   private UserService userService;
+
+  @GetMapping("/search")
+  public ResponseEntity<List<User>> searchUsers() {
+    List<User> users = userService.searchUsers();
+    return ResponseEntity.ok(users);
+  }
 
   /**
    * 获取所有用户

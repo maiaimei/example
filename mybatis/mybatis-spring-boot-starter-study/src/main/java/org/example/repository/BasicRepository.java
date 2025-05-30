@@ -1,10 +1,13 @@
 package org.example.repository;
 
+import com.github.pagehelper.Page;
+import java.util.List;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.example.mybatis.SQLProvider;
+import org.example.mybatis.query.BaseQuery;
 
 public interface BasicRepository<T> {
 
@@ -19,4 +22,10 @@ public interface BasicRepository<T> {
 
   @SelectProvider(type = SQLProvider.class, method = "select")
   void select(T domain);
+
+  @SelectProvider(type = SQLProvider.class, method = "selectByConditions")
+  List<T> selectByConditions(T domain, BaseQuery query);
+
+  @SelectProvider(type = SQLProvider.class, method = "selectByConditions")
+  Page<T> selectByConditionsWithPage(T domain, BaseQuery query);
 }

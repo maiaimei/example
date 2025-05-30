@@ -3,7 +3,6 @@ spring:
   datasource:
     enabled: true # 是否启用数据源配置
     name: master # 数据源名称
-    type: mysql # 数据源类型
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
     username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
     password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
@@ -25,7 +24,6 @@ spring:
     enabled: false # 是否启用多数据源
     shard:
       - name: master # 数据源名称
-        type: mysql
         url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
         username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
         password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
@@ -39,7 +37,6 @@ spring:
           idle-connection-check-interval-ms: 60000 # 闲置连接检查间隔
           connection-idle-timeout-ms: 300000 # 连接闲置超时时间
       - name: slave1 # 数据源名称
-        type: mysql
         url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
         username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
         password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
@@ -53,7 +50,6 @@ spring:
           idle-connection-check-interval-ms: 60000 # 闲置连接检查间隔
           connection-idle-timeout-ms: 300000 # 连接闲置超时时间
       - name: slave2 # 数据源名称
-        type: mysql
         url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
         username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
         password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取

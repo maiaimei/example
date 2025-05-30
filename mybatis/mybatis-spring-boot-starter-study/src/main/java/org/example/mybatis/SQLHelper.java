@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +53,7 @@ public class SQLHelper {
     // 查找当前类及其父类的@TableName注解
     TableName tableName = findTableNameAnnotation(clazz);
     if (Objects.nonNull(tableName)) {
-      return tableName.value();
+      return tableName.value().toUpperCase(Locale.US);
     }
 
     // 如果没有注解，则将类名转换为下划线格式
@@ -151,6 +152,6 @@ public class SQLHelper {
 
   // 驼峰转下划线
   public static String camelToUnderscore(String camelCase) {
-    return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase(Locale.US);
   }
 }
