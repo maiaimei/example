@@ -32,7 +32,7 @@ public class UserService {
   private Slave1UserRepository slave1UserRepository;
 
   private UserRepository getBasicUserRepository() {
-    final String databaseName = Optional.ofNullable(DataSourceContextHolder.get()).orElse("");
+    final String databaseName = Optional.ofNullable(DataSourceContextHolder.getDataSourceName()).orElse("");
     return switch (databaseName) {
       case "master" -> {
         log.info("Using MasterUserRepository");

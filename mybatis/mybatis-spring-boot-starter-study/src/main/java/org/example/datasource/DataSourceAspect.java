@@ -13,12 +13,15 @@ public class DataSourceAspect {
 
   @Around("@annotation(dataSource)")
   public Object around(ProceedingJoinPoint point, DataSource dataSource) throws Throwable {
+    String type = dataSource.type();
     String value = dataSource.value();
-    DataSourceContextHolder.set(value);
+    DataSourceContextHolder.setDataSourceType(type);
+    DataSourceContextHolder.setDataSourceName(value);
     try {
       return point.proceed();
     } finally {
-      DataSourceContextHolder.clear();
+      DataSourceContextHolder.clearDataSourceType();
+      DataSourceContextHolder.clearDataSourceName();
     }
   }
 }
