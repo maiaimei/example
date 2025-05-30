@@ -32,6 +32,9 @@ public class SQLProvider {
   }
 
   public String select(final Object domain) {
-    return null;
+    validateDomain(domain);
+    final String tableName = getTableName(domain.getClass());
+    final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
+    return SQLBuilder.builder().select(tableName, notNullFieldValues).build();
   }
 }
