@@ -2,7 +2,7 @@ package org.example.controller;
 
 import java.math.BigDecimal;
 import java.util.List;
-import org.example.domain.User;
+import org.example.entity.User;
 import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

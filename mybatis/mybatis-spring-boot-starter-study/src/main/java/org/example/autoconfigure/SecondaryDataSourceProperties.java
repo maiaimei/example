@@ -1,4 +1,4 @@
-package org.example.config.datasource.properties;
+package org.example.autoconfigure;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

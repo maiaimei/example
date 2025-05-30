@@ -1,4 +1,4 @@
-package org.example.config.datasource;
+package org.example.config;
 
 public class MultipleDataSourceConfig {
 

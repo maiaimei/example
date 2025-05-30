@@ -3,7 +3,7 @@ package org.example.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.example.domain.User;
+import org.example.entity.User;
 import org.example.repository.UserRepository;
 import org.example.utils.IdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
