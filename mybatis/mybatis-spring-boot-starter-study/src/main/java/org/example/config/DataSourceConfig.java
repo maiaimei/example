@@ -26,10 +26,11 @@ public class DataSourceConfig {
 
     // 设置连接池配置
     DataSourceProperties.Pool pool = properties.getPool();
-    config.setMaximumPoolSize(pool.getMaxActive());
-    config.setMinimumIdle(pool.getMinIdle());
-    config.setConnectionTimeout(pool.getMaxWait());
-    config.setIdleTimeout(pool.getMinEvictableIdleTimeMillis());
+    config.setPoolName(pool.getPoolName());
+    config.setMaximumPoolSize(pool.getMaximumPoolSize());
+    config.setMinimumIdle(pool.getMinimumPoolSize());
+    config.setConnectionTimeout(pool.getConnectionTimeoutMs());
+    config.setIdleTimeout(pool.getConnectionIdleTimeoutMs());
 
     return new HikariDataSource(config);
   }
@@ -37,23 +38,24 @@ public class DataSourceConfig {
   //@Bean
   public DataSource druidDataSource(SimpleDataSourceProperties properties) {
     // 使用Druid数据源
-    DruidDataSource dataSource = new DruidDataSource();
+    DruidDataSource druidDataSource = new DruidDataSource();
 
     // 设置数据库连接信息
-    dataSource.setUrl(properties.getUrl());
-    dataSource.setUsername(properties.getUsername());
-    dataSource.setPassword(properties.getPassword());
-    dataSource.setDriverClassName(properties.getDriverClassName());
+    druidDataSource.setUrl(properties.getUrl());
+    druidDataSource.setUsername(properties.getUsername());
+    druidDataSource.setPassword(properties.getPassword());
+    druidDataSource.setDriverClassName(properties.getDriverClassName());
 
     // 设置连接池配置
     DataSourceProperties.Pool pool = properties.getPool();
-    dataSource.setInitialSize(pool.getInitialSize());
-    dataSource.setMinIdle(pool.getMinIdle());
-    dataSource.setMaxActive(pool.getMaxActive());
-    dataSource.setMaxWait(pool.getMaxWait());
-    dataSource.setTimeBetweenEvictionRunsMillis(pool.getTimeBetweenEvictionRunsMillis());
-    dataSource.setMinEvictableIdleTimeMillis(pool.getMinEvictableIdleTimeMillis());
+    druidDataSource.setName(pool.getPoolName());
+    druidDataSource.setInitialSize(pool.getInitialPoolSize());
+    druidDataSource.setMinIdle(pool.getMinimumPoolSize());
+    druidDataSource.setMaxActive(pool.getMaximumPoolSize());
+    druidDataSource.setMaxWait(pool.getConnectionTimeoutMs());
+    druidDataSource.setTimeBetweenEvictionRunsMillis(pool.getIdleConnectionCheckIntervalMs());
+    druidDataSource.setMinEvictableIdleTimeMillis(pool.getConnectionIdleTimeoutMs());
 
-    return dataSource;
+    return druidDataSource;
   }
 }

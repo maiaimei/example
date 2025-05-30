@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@MapperScan("org.example.repository")  // 指定Mapper接口包路径
-@EnableTransactionManagement // 启用注解事务管理
 @Configuration
+@EnableTransactionManagement // 启用注解事务管理
+@MapperScan("org.example.repository")  // 指定Mapper接口包路径
 public class MyBatisConfig extends AbstractMyBatisConfig {
 
   /**
