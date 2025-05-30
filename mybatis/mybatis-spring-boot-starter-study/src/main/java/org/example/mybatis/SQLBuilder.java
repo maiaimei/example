@@ -12,6 +12,10 @@ public class SQLBuilder {
     this.sql = new SQL();
   }
 
+  public static SQLBuilder builder() {
+    return new SQLBuilder();
+  }
+
   public SQLBuilder insert(String tableName, List<FieldValue> fieldValues) {
     sql.INSERT_INTO(tableName);
     fieldValues.forEach(field ->
@@ -25,18 +29,17 @@ public class SQLBuilder {
         .filter(field -> !field.fieldName().equals("id"))
         .forEach(field ->
             sql.SET("%s = #{%s}".formatted(field.columnName(), field.fieldName())));
+    sql.WHERE("id = #{id}");
     return this;
   }
 
   public SQLBuilder delete(String tableName) {
-    sql.DELETE_FROM(tableName);
+    sql.DELETE_FROM(tableName).WHERE("id = #{id}");
     return this;
   }
 
-  public SQLBuilder select(String tableName, List<FieldValue> fieldValues) {
+  public SQLBuilder select(String tableName) {
     sql.SELECT("*").FROM(tableName);
-    fieldValues.forEach(field ->
-        sql.WHERE("%s = #{%s}".formatted(field.columnName(), field.fieldName())));
     return this;
   }
 

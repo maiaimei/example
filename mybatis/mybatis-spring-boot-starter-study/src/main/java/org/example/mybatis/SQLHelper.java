@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.example.mybatis.annotation.TableName;
+import org.springframework.util.CollectionUtils;
 
 public class SQLHelper {
 
@@ -22,6 +23,12 @@ public class SQLHelper {
   public static void validateDomain(Object domain) {
     if (Objects.isNull(domain)) {
       throw new IllegalArgumentException("Domain object cannot be null");
+    }
+  }
+
+  public static void validateDomainField(List<FieldValue> fieldValueList) {
+    if (CollectionUtils.isEmpty(fieldValueList)) {
+      throw new IllegalArgumentException("Domain fields cannot be null or empty");
     }
   }
 
