@@ -20,13 +20,13 @@ public class MultipleMyBatisConfig extends AbstractMyBatisConfig {
   @Primary
   @Bean
   public SqlSessionFactory primarySqlSessionFactory(
-      @Qualifier("primaryDataSource") DataSource dataSource) throws Exception {
+      @Qualifier("master") DataSource dataSource) throws Exception {
     return createSqlSessionFactory(dataSource, "com.example.domain", "org.example.repository.primary");
   }
 
   @Bean
   public SqlSessionFactory secondarySqlSessionFactory(
-      @Qualifier("secondaryDataSource") DataSource dataSource) throws Exception {
+      @Qualifier("slave1") DataSource dataSource) throws Exception {
     return createSqlSessionFactory(dataSource, "com.example.domain", "org.example.repository.secondary");
   }
 
@@ -66,12 +66,12 @@ public class MultipleMyBatisConfig extends AbstractMyBatisConfig {
    */
   @Primary
   @Bean
-  public DataSourceTransactionManager primaryTransactionManager(@Qualifier("primaryDataSource") DataSource dataSource) {
+  public DataSourceTransactionManager primaryTransactionManager(@Qualifier("master") DataSource dataSource) {
     return new DataSourceTransactionManager(dataSource);
   }
 
   @Bean
-  public DataSourceTransactionManager secondaryTransactionManager(@Qualifier("secondaryDataSource") DataSource dataSource) {
+  public DataSourceTransactionManager secondaryTransactionManager(@Qualifier("slave1") DataSource dataSource) {
     return new DataSourceTransactionManager(dataSource);
   }
 
