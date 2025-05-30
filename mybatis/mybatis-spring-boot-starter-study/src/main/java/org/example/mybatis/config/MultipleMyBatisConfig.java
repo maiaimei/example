@@ -1,4 +1,4 @@
-package org.example.config;
+package org.example.mybatis.config;
 
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;

@@ -1,4 +1,4 @@
-package org.example.autoconfigure;
+package org.example.dataSource.autoconfigure;
 
 import java.util.List;
 import lombok.Data;
@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MultipleDataSourceProperties {
 
   private boolean enabled;
-  private List<DataSourceProperties> shard;
+  private List<org.example.dataSource.autoconfigure.DataSourceProperties> shard;
   private Hikari hikari = new Hikari();
   private Druid druid = new Druid();
 

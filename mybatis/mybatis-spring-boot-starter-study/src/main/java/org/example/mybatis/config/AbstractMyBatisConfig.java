@@ -1,4 +1,4 @@
-package org.example.config;
+package org.example.mybatis.config;
 
 import com.github.pagehelper.PageInterceptor;
 import java.util.Properties;

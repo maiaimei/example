@@ -1,4 +1,4 @@
-package org.example.autoconfigure;
+package org.example.dataSource.autoconfigure;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ConfigurationProperties(prefix = "spring.datasource")
-public class SimpleDataSourceProperties extends DataSourceProperties {
+public class SimpleDataSourceProperties extends org.example.dataSource.autoconfigure.DataSourceProperties {
 
   private boolean enabled;
   private Hikari hikari = new Hikari();

@@ -1,15 +1,61 @@
-package org.example.config;
+package org.example.dataSource.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.example.autoconfigure.DataSourceProperties;
+import java.util.HashMap;
+import java.util.Map;
+import javax.sql.DataSource;
+import org.example.dataSource.DataSourceProperties;
+import org.example.dataSource.DynamicRoutingDataSource;
+import org.example.dataSource.MultipleDataSourceProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(MultipleDataSourceProperties.class)
 @ConditionalOnProperty(name = "spring.datasources.enabled", havingValue = "true", matchIfMissing = false)
 public class MultipleDataSourceConfig {
+
+  @Bean
+  @ConditionalOnProperty(name = "spring.datasources.hikari.enabled", havingValue = "true", matchIfMissing = false)
+  public DataSource routingHikariDataSource(MultipleDataSourceProperties properties) {
+    Map<Object, Object> targetDataSources = new HashMap<>();
+
+    // 创建所有配置的数据源
+    properties.getShard().forEach(prop -> {
+      DataSource ds = createHikariDataSource(prop);
+      targetDataSources.put(prop.getName(), ds);
+    });
+
+    // 创建动态数据源
+    DynamicRoutingDataSource dynamicDataSource = new DynamicRoutingDataSource();
+    dynamicDataSource.setTargetDataSources(targetDataSources);
+    dynamicDataSource.setDefaultTargetDataSource(targetDataSources.get("master"));
+
+    return dynamicDataSource;
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "spring.datasources.druid.enabled", havingValue = "true", matchIfMissing = false)
+  public DataSource routingDruidDataSource(MultipleDataSourceProperties properties) {
+    Map<Object, Object> targetDataSources = new HashMap<>();
+
+    // 创建所有配置的数据源
+    properties.getShard().forEach(prop -> {
+      DataSource ds = createDruidDataSource(prop);
+      targetDataSources.put(prop.getName(), ds);
+    });
+
+    // 创建动态数据源
+    DynamicRoutingDataSource dynamicDataSource = new DynamicRoutingDataSource();
+    dynamicDataSource.setTargetDataSources(targetDataSources);
+    dynamicDataSource.setDefaultTargetDataSource(targetDataSources.get("master"));
+
+    return dynamicDataSource;
+  }
 
   private HikariDataSource createHikariDataSource(DataSourceProperties properties) {
     HikariConfig config = new HikariConfig();
