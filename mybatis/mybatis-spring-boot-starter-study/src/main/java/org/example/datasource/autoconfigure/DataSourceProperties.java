@@ -17,12 +17,20 @@ import lombok.Data;
 public class DataSourceProperties {
 
   /**
-   * The name of the data source.
+   * The name of the database connection.
    * <p>
-   * 数据源的名称
+   * 数据库的名称
    * </p>
    */
   private String name;
+
+  /**
+   * The type for the database connection.
+   * <p>
+   * 数据库的类型
+   * </p>
+   */
+  private String type;
 
   /**
    * The URL of the database to connect to.
@@ -55,14 +63,6 @@ public class DataSourceProperties {
    * </p>
    */
   private String driverClassName;
-
-  /**
-   * The type of the connection pool.
-   * <p>
-   * 连接池类型的全限定类名
-   * </p>
-   */
-  private String type;
 
   /**
    * The connection pool configuration.
