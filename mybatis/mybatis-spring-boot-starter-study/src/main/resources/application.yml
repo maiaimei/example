@@ -1,7 +1,7 @@
 spring:
   # 默认数据源配置
   datasource:
-    enabled: false # 是否启用数据源配置
+    enabled: true # 是否启用数据源配置
     name: master # 数据源名称
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
     username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
@@ -22,7 +22,7 @@ spring:
       enabled: false # 启用Druid连接池
   # 多数据源配置
   datasources:
-    enabled: true # 是否启用多数据源
+    enabled: false # 是否启用多数据源
     shard:
       - name: master # 数据源名称
         url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取

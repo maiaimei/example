@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.example.datasource.DataSource;
+import org.example.datasource.DataSourceContextHolder;
 import org.example.entity.User;
 import org.example.repository.BasicUserRepository;
 import org.example.repository.UserRepository;
@@ -29,24 +32,32 @@ public class UserService {
   private Slave1UserRepository slave1UserRepository;
 
   private BasicUserRepository getBasicUserRepository() {
-    if (Objects.nonNull(userRepository)) {
-      log.info("Using UserRepository");
-      return userRepository;
-    }
-    if (Objects.nonNull(masterUserRepository)) {
-      log.info("Using MasterUserRepository");
-      return masterUserRepository;
-    }
-    if (Objects.nonNull(slave1UserRepository)) {
-      log.info("Using Slave1UserRepository");
-      return slave1UserRepository;
-    }
-    throw new IllegalArgumentException("Invalid user repository");
+    final String databaseName = Optional.ofNullable(DataSourceContextHolder.get()).orElse("");
+    return switch (databaseName) {
+      case "master" -> {
+        log.info("Using MasterUserRepository");
+        yield masterUserRepository;
+      }
+      case "slave1" -> {
+        log.info("Using Slave1UserRepository");
+        yield slave1UserRepository;
+      }
+      default -> {
+        if (Objects.isNull(userRepository)) {
+          log.info("Using MasterUserRepository");
+          yield masterUserRepository;
+        } else {
+          log.info("Using UserRepository");
+          yield userRepository;
+        }
+      }
+    };
   }
 
   /**
    * 查询所有用户
    */
+  @DataSource("slave1")
   public List<User> findAll() {
     return getBasicUserRepository().findAll();
   }
