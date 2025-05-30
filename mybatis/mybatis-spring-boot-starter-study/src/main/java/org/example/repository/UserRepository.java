@@ -16,27 +16,27 @@ public interface UserRepository {
   List<User> findAll();
 
   // 根据ID查询用户
-  @Select("SELECT * FROM sys_user WHERE user_id = #{id}")
+  @Select("SELECT * FROM sys_user WHERE id = #{id}")
   User findById(@Param("id") BigDecimal id);
 
   // 插入新用户
-  @Insert("INSERT INTO sys_user(user_id, nickname, username, password, gmt_create, gmt_modified) VALUES(#{userId}, #{nickname}, "
+  @Insert("INSERT INTO sys_user(id, nickname, username, password, gmt_create, gmt_modified) VALUES(#{id}, #{nickname}, "
       + "#{username}, #{password}, #{gmtCreate}, #{gmtModified})")
   void insert(User user);
 
   // 更新用户信息
-  @Update("UPDATE sys_user SET gmt_modified = #{user.gmtModified} WHERE user_id = #{id}")
+  @Update("UPDATE sys_user SET gmt_modified = #{user.gmtModified} WHERE id = #{id}")
   void update(User user);
 
   // 删除用户
-  @Delete("DELETE FROM sys_user WHERE user_id = #{id}")
+  @Delete("DELETE FROM sys_user WHERE id = #{id}")
   void deleteById(@Param("id") BigDecimal id);
 
   // 批量插入用户
   @Insert({"<script>",
-      "INSERT INTO sys_user(user_id, nickname, username, password, gmt_create, gmt_modified) VALUES",
+      "INSERT INTO sys_user(id, nickname, username, password, gmt_create, gmt_modified) VALUES",
       "<foreach collection='users' item='user' separator=','>",
-      "(#{userId}, #{nickname}, #{username}, #{password}, #{gmtCreate}, #{gmtModified})",
+      "(#{id}, #{nickname}, #{username}, #{password}, #{gmtCreate}, #{gmtModified})",
       "</foreach>",
       "</script>"})
   void batchInsert(@Param("users") List<User> users);
@@ -46,7 +46,7 @@ public interface UserRepository {
       "<foreach collection='users' item='user' separator=';'>",
       "UPDATE sys_user",
       "SET gmt_modified = #{user.gmtModified}",
-      "WHERE user_id = #{user.userId}",
+      "WHERE id = #{user.id}",
       "</foreach>",
       "</script>"})
   void batchUpdate(@Param("users") List<User> users);
@@ -58,29 +58,29 @@ public interface UserRepository {
       "    <if test='updatePassword'>",
       "        password = CASE user_id",
       "        <foreach collection='users' item='user'>",
-      "            WHEN #{user.userId} THEN #{user.password}",
+      "            WHEN #{user.id} THEN #{user.password}",
       "        </foreach>",
       "        END,",
       "    </if>",
       "    nickname = CASE user_id",
       "    <foreach collection='users' item='user'>",
-      "        WHEN #{user.userId} THEN #{user.nickname}",
+      "        WHEN #{user.id} THEN #{user.nickname}",
       "    </foreach>",
       "    END,",
       "    username = CASE user_id",
       "    <foreach collection='users' item='user'>",
-      "        WHEN #{user.userId} THEN #{user.username}",
+      "        WHEN #{user.id} THEN #{user.username}",
       "    </foreach>",
       "    END,",
       "    gmt_modified = CASE user_id",
       "    <foreach collection='users' item='user'>",
-      "        WHEN #{user.userId} THEN #{user.gmtModified}",
+      "        WHEN #{user.id} THEN #{user.gmtModified}",
       "    </foreach>",
       "    END",
       "</set>",
       "WHERE user_id IN",
       "<foreach collection='users' item='user' open='(' separator=',' close=')'>",
-      "    #{user.userId}",
+      "    #{user.id}",
       "</foreach>",
       "</script>"})
   void batchUpdateByCaseWhen(@Param("users") List<User> users, @Param("updatePassword") boolean updatePassword);

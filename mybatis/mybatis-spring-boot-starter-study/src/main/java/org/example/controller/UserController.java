@@ -72,7 +72,7 @@ public class UserController {
   public ResponseEntity<Void> updateUser(@PathVariable BigDecimal id,
       @Validated @RequestBody User user) {
     try {
-      user.setUserId(id);
+      user.setId(id);
       userService.updateUser(user);
       return ResponseEntity.ok().build();
     } catch (IllegalArgumentException e) {

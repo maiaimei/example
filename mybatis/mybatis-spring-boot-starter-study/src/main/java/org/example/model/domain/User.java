@@ -9,8 +9,8 @@ import org.example.mybatis.annotation.TableName;
 @TableName("SYS_USER")
 public class User {
 
-  private BigDecimal userId;
-  private String nickname;
+  private BigDecimal id;
+  private String fullname;
   private String username;
   private String password;
   private LocalDateTime gmtCreate;

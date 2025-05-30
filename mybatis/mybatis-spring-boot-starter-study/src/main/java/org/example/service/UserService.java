@@ -95,7 +95,7 @@ public class UserService {
    * 创建新用户
    */
   public void createUser(User user) {
-    user.setUserId(IdGenerator.nextId());
+    user.setId(IdGenerator.nextId());
     user.setGmtCreate(LocalDateTime.now());
     user.setGmtModified(LocalDateTime.now());
     getBasicUserRepository().insert(user);
@@ -122,7 +122,7 @@ public class UserService {
   @Transactional
   public void batchInsertUsers(List<User> users, int batchSize) {
     users.forEach(user -> {
-      user.setUserId(IdGenerator.nextId());
+      user.setId(IdGenerator.nextId());
       user.setGmtCreate(LocalDateTime.now());
       user.setGmtModified(LocalDateTime.now());
     });
