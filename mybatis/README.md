@@ -1,4 +1,4 @@
-# 基本概念
+# Basic concepts
 
 MyBatis 和 Spring 集成中的核心组件之间的关系图：
 
