@@ -5,6 +5,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import javax.sql.DataSource;
 import org.example.datasource.DynamicRoutingDataSource;
 import org.example.datasource.autoconfigure.DataSourceProperties;
@@ -13,46 +15,55 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.CollectionUtils;
 
 @Configuration
 @EnableConfigurationProperties(MultipleDataSourceProperties.class)
 @ConditionalOnProperty(name = "spring.datasources.enabled", havingValue = "true", matchIfMissing = false)
 public class MultipleDataSourceConfig {
 
-  @Bean
+  @Bean("masterDataSource")
   @ConditionalOnProperty(name = "spring.datasources.hikari.enabled", havingValue = "true", matchIfMissing = false)
-  public DataSource routingHikariDataSource(MultipleDataSourceProperties properties) {
-    Map<Object, Object> targetDataSources = new HashMap<>();
+  public DataSource masterHikariDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("master", properties);
+    return createHikariDataSource(dataSourceProperties);
+  }
 
-    // 创建所有配置的数据源
-    properties.getShard().forEach(prop -> {
-      DataSource ds = createHikariDataSource(prop);
-      targetDataSources.put(prop.getName(), ds);
-    });
+  @Bean("slave1DataSource")
+  @ConditionalOnProperty(name = "spring.datasources.hikari.enabled", havingValue = "true", matchIfMissing = false)
+  public DataSource slave1HikariDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("slave1", properties);
+    return createHikariDataSource(dataSourceProperties);
+  }
 
-    // 创建动态数据源
-    DynamicRoutingDataSource dynamicDataSource = new DynamicRoutingDataSource();
-    dynamicDataSource.setTargetDataSources(targetDataSources);
-    dynamicDataSource.setDefaultTargetDataSource(targetDataSources.get("master"));
+  @Bean("masterDataSource")
+  @ConditionalOnProperty(name = "spring.datasources.druid.enabled", havingValue = "true", matchIfMissing = false)
+  public DataSource masterDruidDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("master", properties);
+    return createDruidDataSource(dataSourceProperties);
+  }
 
-    return dynamicDataSource;
+  @Bean("slave1DataSource")
+  @ConditionalOnProperty(name = "spring.datasources.druid.enabled", havingValue = "true", matchIfMissing = false)
+  public DataSource slave1DruidDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("slave1", properties);
+    return createDruidDataSource(dataSourceProperties);
   }
 
   @Bean
-  @ConditionalOnProperty(name = "spring.datasources.druid.enabled", havingValue = "true", matchIfMissing = false)
-  public DataSource routingDruidDataSource(MultipleDataSourceProperties properties) {
-    Map<Object, Object> targetDataSources = new HashMap<>();
-
-    // 创建所有配置的数据源
-    properties.getShard().forEach(prop -> {
-      DataSource ds = createDruidDataSource(prop);
-      targetDataSources.put(prop.getName(), ds);
-    });
-
-    // 创建动态数据源
+  public DataSource routingDataSource(DataSource masterDataSource, DataSource slave1DataSource) {
     DynamicRoutingDataSource dynamicDataSource = new DynamicRoutingDataSource();
-    dynamicDataSource.setTargetDataSources(targetDataSources);
-    dynamicDataSource.setDefaultTargetDataSource(targetDataSources.get("master"));
+
+    // 配置数据源
+    Map<Object, Object> dataSourceMap = new HashMap<>(2);
+    dataSourceMap.put("master", masterDataSource);
+    dataSourceMap.put("slave1", slave1DataSource);
+
+    // 设置数据源映射
+    dynamicDataSource.setTargetDataSources(dataSourceMap);
+
+    // 设置默认数据源
+    dynamicDataSource.setDefaultTargetDataSource(masterDataSource);
 
     return dynamicDataSource;
   }
@@ -98,5 +109,17 @@ public class MultipleDataSourceConfig {
     druidDataSource.setMinEvictableIdleTimeMillis(pool.getConnectionIdleTimeoutMs());
 
     return druidDataSource;
+  }
+
+  private DataSourceProperties getDataSourceProperties(String dataSourceName, MultipleDataSourceProperties properties) {
+    if (Objects.isNull(properties) || CollectionUtils.isEmpty(properties.getShard())) {
+      throw new IllegalArgumentException("Invalid data source");
+    }
+    final Optional<DataSourceProperties> optional = properties.getShard().stream()
+        .filter(prop -> dataSourceName.equals(prop.getName())).findFirst();
+    if (optional.isPresent()) {
+      return optional.get();
+    }
+    throw new IllegalArgumentException("No data source found, name: " + dataSourceName);
   }
 }

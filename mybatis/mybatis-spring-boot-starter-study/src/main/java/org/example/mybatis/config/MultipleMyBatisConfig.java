@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -14,20 +15,24 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
+@MapperScan(value = {
+    "org.example.repository.master",
+    "org.example.repository.slave1"
+})
 @ConditionalOnProperty(name = "spring.datasources.enabled", havingValue = "true", matchIfMissing = false)
 public class MultipleMyBatisConfig extends AbstractMyBatisConfig {
 
   @Primary
   @Bean
-  public SqlSessionFactory primarySqlSessionFactory(
-      @Qualifier("master") DataSource dataSource) throws Exception {
-    return createSqlSessionFactory(dataSource, "com.example.domain", "org.example.repository.primary");
+  public SqlSessionFactory masterSqlSessionFactory(
+      @Qualifier("masterDataSource") DataSource dataSource) throws Exception {
+    return createSqlSessionFactory(dataSource, "com.example.domain", "org.example.repository.master");
   }
 
   @Bean
-  public SqlSessionFactory secondarySqlSessionFactory(
-      @Qualifier("slave1") DataSource dataSource) throws Exception {
-    return createSqlSessionFactory(dataSource, "com.example.domain", "org.example.repository.secondary");
+  public SqlSessionFactory slave1SqlSessionFactory(
+      @Qualifier("slave1DataSource") DataSource dataSource) throws Exception {
+    return createSqlSessionFactory(dataSource, "com.example.domain", "org.example.repository.slave1");
   }
 
   private SqlSessionFactory createSqlSessionFactory(DataSource dataSource,
@@ -50,14 +55,14 @@ public class MultipleMyBatisConfig extends AbstractMyBatisConfig {
 
   @Primary
   @Bean
-  public SqlSessionTemplate primarySqlSessionTemplate(
-      @Qualifier("primarySqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
+  public SqlSessionTemplate masterSqlSessionTemplate(
+      @Qualifier("masterSqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
     return new SqlSessionTemplate(sqlSessionFactory);
   }
 
   @Bean
-  public SqlSessionTemplate secondarySqlSessionTemplate(
-      @Qualifier("secondarySqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
+  public SqlSessionTemplate slave1SqlSessionTemplate(
+      @Qualifier("slave1SqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
     return new SqlSessionTemplate(sqlSessionFactory);
   }
 
@@ -66,12 +71,12 @@ public class MultipleMyBatisConfig extends AbstractMyBatisConfig {
    */
   @Primary
   @Bean
-  public DataSourceTransactionManager primaryTransactionManager(@Qualifier("master") DataSource dataSource) {
+  public DataSourceTransactionManager masterTransactionManager(@Qualifier("masterDataSource") DataSource dataSource) {
     return new DataSourceTransactionManager(dataSource);
   }
 
   @Bean
-  public DataSourceTransactionManager secondaryTransactionManager(@Qualifier("slave1") DataSource dataSource) {
+  public DataSourceTransactionManager slave1TransactionManager(@Qualifier("slave1DataSource") DataSource dataSource) {
     return new DataSourceTransactionManager(dataSource);
   }
 
