@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.datasource.DataSource;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.entity.User;
-import org.example.repository.BasicUserRepository;
 import org.example.repository.UserRepository;
 import org.example.repository.master.MasterUserRepository;
+import org.example.repository.simple.SimpleUserRepository;
 import org.example.repository.slave1.Slave1UserRepository;
 import org.example.utils.IdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
   @Autowired(required = false)
-  private UserRepository userRepository;
+  private SimpleUserRepository simpleUserRepository;
 
   @Autowired(required = false)
   private MasterUserRepository masterUserRepository;
@@ -31,7 +31,7 @@ public class UserService {
   @Autowired(required = false)
   private Slave1UserRepository slave1UserRepository;
 
-  private BasicUserRepository getBasicUserRepository() {
+  private UserRepository getBasicUserRepository() {
     final String databaseName = Optional.ofNullable(DataSourceContextHolder.get()).orElse("");
     return switch (databaseName) {
       case "master" -> {
@@ -43,12 +43,12 @@ public class UserService {
         yield slave1UserRepository;
       }
       default -> {
-        if (Objects.isNull(userRepository)) {
+        if (Objects.isNull(simpleUserRepository)) {
           log.info("Using MasterUserRepository");
           yield masterUserRepository;
         } else {
           log.info("Using UserRepository");
-          yield userRepository;
+          yield simpleUserRepository;
         }
       }
     };
