@@ -9,9 +9,8 @@ import lombok.Data;
  * </p>
  *
  * <p>
- * This class contains properties for the data source, including the name, URL,
- * username, password, driver class name, type, and connection pool
- * configuration.
+ * This class contains properties for the data source, including the name, URL, username, password, driver class name, type, and
+ * connection pool configuration.
  * </p>
  */
 @Data
@@ -93,8 +92,7 @@ public class DataSourceProperties {
     private int initialPoolSize = 5;
 
     /**
-     * The minimum number of idle connections that maintain in the pool, including
-     * both idle and in-use connections.
+     * The minimum number of idle connections that maintain in the pool, including both idle and in-use connections.
      * <p>
      * 连接池维持的最小连接数，包括空闲和正在使用的连接。
      * <p>
@@ -103,10 +101,8 @@ public class DataSourceProperties {
     private int minimumPoolSize = 5; // Default: 5 connections 默认值：5个连接
 
     /**
-     * The maximum size that the pool is allowed to reach, including both idle and
-     * in-use connections. When the pool reaches this
-     * size, and no idle connections are available, calls to getConnection() will
-     * block until a connection is available or the
+     * The maximum size that the pool is allowed to reach, including both idle and in-use connections. When the pool reaches this
+     * size, and no idle connections are available, calls to getConnection() will block until a connection is available or the
      * connectionTimeoutMs is reached.
      * <p>
      * 连接池允许达到的最大连接数，包括空闲和正在使用的连接。
@@ -116,8 +112,7 @@ public class DataSourceProperties {
     private int maximumPoolSize = 20; // Default: 20 connections 默认值：20个连接
 
     /**
-     * The maximum number of milliseconds that a client will wait for a connection
-     * from the pool. If this time is exceeded without a
+     * The maximum number of milliseconds that a client will wait for a connection from the pool. If this time is exceeded without a
      * connection becoming available, a SQLException will be thrown.
      * <p>
      * 客户端从连接池获取连接的最大等待时间（毫秒）。
@@ -127,8 +122,7 @@ public class DataSourceProperties {
     private long connectionTimeoutMs = 60000; // Default: 60 seconds 默认值：60秒
 
     /**
-     * The maximum amount of time (in milliseconds) that a connection is allowed to
-     * sit idle in the pool. Connections that are idle
+     * The maximum amount of time (in milliseconds) that a connection is allowed to sit idle in the pool. Connections that are idle
      * for longer than this period will be removed by the idle connection checker.
      * <p>
      * 连接池中连接允许空闲的最大时间（毫秒）。
@@ -138,8 +132,7 @@ public class DataSourceProperties {
     private long connectionIdleTimeoutMs = 300000; // Default: 5 minutes 默认值：5分钟
 
     /**
-     * The time interval in milliseconds between two consecutive runs of the idle
-     * connection checker. This checker removes idle
+     * The time interval in milliseconds between two consecutive runs of the idle connection checker. This checker removes idle
      * connections that exceed the configured idle timeout.
      * <p>
      * 空闲连接检测线程运行的时间间隔（毫秒）。
