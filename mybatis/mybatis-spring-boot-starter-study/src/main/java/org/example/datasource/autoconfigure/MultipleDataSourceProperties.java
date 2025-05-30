@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MultipleDataSourceProperties {
 
   private boolean enabled;
-  private List<org.example.datasource.autoconfigure.DataSourceProperties> shard;
+  private List<DataSourceProperties> shard;
   private Hikari hikari = new Hikari();
   private Druid druid = new Druid();
 

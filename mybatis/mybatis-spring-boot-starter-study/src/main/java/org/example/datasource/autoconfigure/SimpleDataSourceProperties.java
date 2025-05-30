@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ConfigurationProperties(prefix = "spring.datasource")
-public class SimpleDataSourceProperties extends org.example.datasource.autoconfigure.DataSourceProperties {
+public class SimpleDataSourceProperties extends DataSourceProperties {
 
   private boolean enabled;
   private Hikari hikari = new Hikari();
