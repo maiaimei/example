@@ -4,7 +4,11 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.example.autoconfigure.DataSourceProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
+@ConditionalOnProperty(name = "spring.datasources.enabled", havingValue = "true", matchIfMissing = false)
 public class MultipleDataSourceConfig {
 
   private HikariDataSource createHikariDataSource(DataSourceProperties properties) {

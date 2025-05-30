@@ -32,6 +32,7 @@ log
 *.classpath
 
 # maven & gradle
+.mvn
 .gradle
 build
 out

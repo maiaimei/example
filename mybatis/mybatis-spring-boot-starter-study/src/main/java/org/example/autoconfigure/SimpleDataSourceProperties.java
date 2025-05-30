@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(prefix = "spring.datasource")
+@ConfigurationProperties(prefix = "spring.datasource.primary")
 public class SimpleDataSourceProperties extends DataSourceProperties {
 
 }

@@ -6,15 +6,18 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import org.example.autoconfigure.DataSourceProperties;
 import org.example.autoconfigure.SimpleDataSourceProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(SimpleDataSourceProperties.class)
+@ConditionalOnProperty(name = "spring.datasource.enabled", havingValue = "true", matchIfMissing = false)
 public class DataSourceConfig {
 
   @Bean
+  @ConditionalOnProperty(name = "spring.datasource.hikari.enabled", havingValue = "true", matchIfMissing = false)
   public DataSource hikariDataSource(SimpleDataSourceProperties properties) {
     HikariConfig config = new HikariConfig();
 
@@ -35,7 +38,8 @@ public class DataSourceConfig {
     return new HikariDataSource(config);
   }
 
-  //@Bean
+  @Bean
+  @ConditionalOnProperty(name = "spring.datasource.druid.enabled", havingValue = "true", matchIfMissing = false)
   public DataSource druidDataSource(SimpleDataSourceProperties properties) {
     // 使用Druid数据源
     DruidDataSource druidDataSource = new DruidDataSource();

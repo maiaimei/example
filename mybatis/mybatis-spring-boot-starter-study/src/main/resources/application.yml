@@ -1,30 +1,36 @@
 spring:
-  datasource:
-    name: test_db
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    type: com.zaxxer.hikari.HikariDataSource
-    pool:
-      pool-name: TestDBHikariCP
-      initial-pool-size: 5
-      minimum-pool-size: 5
-      maximum-pool-size: 20
-      connection-timeout-ms: 60000
-      idle-connection-check-interval-ms: 60000
-      connection-idle-timeout-ms: 300000
+  datasource: # 数据源配置
+    enabled: true # 是否启用单数据源
+    hikari:
+      enabled: true # 启用HikariCP连接池
+    druid:
+      enabled: false # 启用Druid连接池
+    primary:
+      name: master # 主数据源名称
+      url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 主数据源URL，从环境变量获取
+      username: ${MYSQL_USERNAME} # 主数据源用户名，从环境变量获取
+      password: ${MYSQL_PASSWORD} # 主数据源密码，从环境变量获取
+      driver-class-name: com.mysql.cj.jdbc.Driver # 主数据源驱动类
+      type: com.zaxxer.hikari.HikariDataSource # 主数据源连接池类型
+      pool: # 主数据源连接池配置
+        pool-name: MasterHikariCP # 主数据源连接池名称
+        initial-pool-size: 5 # 初始连接池大小
+        minimum-pool-size: 5 # 最小连接池大小
+        maximum-pool-size: 20 # 最大连接池大小
+        connection-timeout-ms: 60000 # 连接超时时间
+        idle-connection-check-interval-ms: 60000 # 闲置连接检查间隔
+        connection-idle-timeout-ms: 300000 # 连接闲置超时时间
+  datasources: # 多数据源配置
+    enabled: false # 是否启用多数据源
+    hikari:
+      enabled: true # 启用HikariCP连接池
+    druid:
+      enabled: false # 启用Druid连接池
 
 logging:
   level:
-    org.example.repository: debug # 你的项目包路径
+    org.example.repository: debug # Your mapper package
     org.springframework: info
     org.mybatis: debug
     java.sql: debug # SQL语句和参数
     org.apache.ibatis: debug
-
-mybatis:
-  type-aliases-package: org.example.domain # 实体类包路径
-  configuration:
-    map-underscore-to-camel-case: true # 开启驼峰命名转换
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 添加日志配置
