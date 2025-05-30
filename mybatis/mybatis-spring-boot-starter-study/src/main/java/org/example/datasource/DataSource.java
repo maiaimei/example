@@ -1,4 +1,4 @@
-package org.example.dataSource;
+package org.example.datasource;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

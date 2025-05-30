@@ -1,4 +1,4 @@
-package org.example.dataSource;
+package org.example.datasource;
 
 public class DataSourceContextHolder {
 

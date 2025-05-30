@@ -1,15 +1,16 @@
-package org.example.dataSource.autoconfigure;
+package org.example.datasource.autoconfigure;
 
+import java.util.List;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(prefix = "spring.datasource")
-public class SimpleDataSourceProperties extends org.example.dataSource.autoconfigure.DataSourceProperties {
+@ConfigurationProperties(prefix = "spring.datasources")
+public class MultipleDataSourceProperties {
 
   private boolean enabled;
+  private List<org.example.datasource.autoconfigure.DataSourceProperties> shard;
   private Hikari hikari = new Hikari();
   private Druid druid = new Druid();
 
@@ -25,4 +26,3 @@ public class SimpleDataSourceProperties extends org.example.dataSource.autoconfi
     private boolean enabled;
   }
 }
-

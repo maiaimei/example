@@ -1,4 +1,4 @@
-package org.example.dataSource.config;
+package org.example.datasource.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.zaxxer.hikari.HikariConfig;
@@ -6,9 +6,9 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
-import org.example.dataSource.DataSourceProperties;
-import org.example.dataSource.DynamicRoutingDataSource;
-import org.example.dataSource.MultipleDataSourceProperties;
+import org.example.datasource.DynamicRoutingDataSource;
+import org.example.datasource.autoconfigure.DataSourceProperties;
+import org.example.datasource.autoconfigure.MultipleDataSourceProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

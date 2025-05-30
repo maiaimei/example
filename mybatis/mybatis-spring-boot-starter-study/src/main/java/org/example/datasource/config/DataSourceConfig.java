@@ -1,11 +1,11 @@
-package org.example.dataSource.config;
+package org.example.datasource.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
-import org.example.dataSource.DataSourceProperties;
-import org.example.dataSource.SimpleDataSourceProperties;
+import org.example.datasource.autoconfigure.DataSourceProperties;
+import org.example.datasource.autoconfigure.SimpleDataSourceProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

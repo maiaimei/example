@@ -1,4 +1,4 @@
-package org.example.dataSource.autoconfigure;
+package org.example.datasource.autoconfigure;
 
 import lombok.Data;
 
