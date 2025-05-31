@@ -2,13 +2,13 @@ spring:
   # 默认数据源配置
   datasource:
     enabled: true # 是否启用数据源配置
-    name: master # 数据源名称
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
+    name: core # 数据源名称
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_SCHEMA_CORE} # 数据源URL，从环境变量获取
     username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
     password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
     driver-class-name: com.mysql.cj.jdbc.Driver # 数据源驱动类
     pool: # 数据源连接池配置
-      pool-name: MasterHikariCP # 数据源连接池名称
+      pool-name: CoreHikariCP # 数据源连接池名称
       initial-pool-size: 5 # 初始连接池大小
       minimum-pool-size: 5 # 最小连接池大小
       maximum-pool-size: 20 # 最大连接池大小

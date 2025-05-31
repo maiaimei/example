@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,18 +25,9 @@ public class UserController {
   @Autowired
   private UserService userService;
 
-  @GetMapping("/search")
-  public ResponseEntity<List<User>> searchUsers(UserQueryRequest userQueryRequest) {
-    List<User> users = userService.searchUsers(userQueryRequest);
-    return ResponseEntity.ok(users);
-  }
-
-  /**
-   * 获取所有用户
-   */
-  @GetMapping
-  public ResponseEntity<List<User>> getAllUsers() {
-    List<User> users = userService.findAll();
+  @GetMapping("/list")
+  public ResponseEntity<List<User>> getUsersByConditions(UserQueryRequest userQueryRequest) {
+    List<User> users = userService.selectByConditions(userQueryRequest);
     return ResponseEntity.ok(users);
   }
 
@@ -46,7 +36,7 @@ public class UserController {
    */
   @GetMapping("/{id}")
   public ResponseEntity<User> getUserById(@PathVariable BigDecimal id) {
-    User user = userService.findById(id);
+    User user = userService.selectById(id);
     if (user == null) {
       return ResponseEntity.notFound().build();
     }
@@ -59,7 +49,7 @@ public class UserController {
   @PostMapping
   public ResponseEntity<User> createUser(@Validated @RequestBody User user) {
     try {
-      userService.createUser(user);
+      userService.create(user);
       return new ResponseEntity<>(user, HttpStatus.CREATED);
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().build();
@@ -69,12 +59,10 @@ public class UserController {
   /**
    * 更新用户信息
    */
-  @PutMapping("/{id}")
-  public ResponseEntity<Void> updateUser(@PathVariable BigDecimal id,
-      @Validated @RequestBody User user) {
+  @PutMapping
+  public ResponseEntity<Void> updateUser(@Validated @RequestBody User user) {
     try {
-      user.setId(id);
-      userService.updateUser(user);
+      userService.update(user);
       return ResponseEntity.ok().build();
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().build();
@@ -87,51 +75,11 @@ public class UserController {
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteUser(@PathVariable BigDecimal id) {
     try {
-      userService.deleteUser(id);
+      userService.deleteById(id);
       return ResponseEntity.ok().build();
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().build();
     }
   }
 
-  /**
-   * 批量创建用户
-   */
-  @PostMapping("/batch")
-  public ResponseEntity<Void> batchCreateUsers(@Validated @RequestBody List<User> users) {
-    try {
-      userService.batchInsertUsers(users, 2);
-      return new ResponseEntity<>(HttpStatus.CREATED);
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
-  }
-
-  /**
-   * 批量更新用户
-   */
-  @PutMapping("/batch")
-  public ResponseEntity<Void> batchUpdateUsers(@Validated @RequestBody List<User> users) {
-    try {
-      userService.batchUpdateUsers(users);
-      return ResponseEntity.ok().build();
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
-  }
-
-  /**
-   * 批量更新用户（使用CASE WHEN方式）
-   */
-  @PutMapping("/batch/case-when")
-  public ResponseEntity<Void> batchUpdateUsersByCaseWhen(
-      @Validated @RequestBody List<User> users,
-      @RequestParam(defaultValue = "false") boolean updatePassword) {
-    try {
-      userService.batchUpdateUsersByCaseWhen(users, updatePassword);
-      return ResponseEntity.ok().build();
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
-  }
 }

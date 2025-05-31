@@ -21,11 +21,15 @@ public interface BasicRepository<T> {
   void delete(T domain);
 
   @SelectProvider(type = SQLProvider.class, method = "select")
-  void select(T domain);
+  T select(T domain);
 
   @SelectProvider(type = SQLProvider.class, method = "selectByConditions")
   List<T> selectByConditions(T domain, Filterable filterable);
 
   @SelectProvider(type = SQLProvider.class, method = "selectByConditions")
   Page<T> selectByConditionsWithPage(T domain, Filterable filterable);
+
+  void batchInsert(List<T> domains);
+
+  void batchUpdate(List<T> domains);
 }
