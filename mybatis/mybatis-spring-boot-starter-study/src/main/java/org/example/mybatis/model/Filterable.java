@@ -8,18 +8,16 @@ public interface Filterable {
 
   List<FilterableItem> getConditions();
 
-  default FilterableItem getCondition(String column, SQLOperator operator, Object value) {
+  default void addCondition(List<FilterableItem> conditions, String column, SQLOperator operator, Object value) {
     if (Objects.nonNull(value)) {
-      return new FilterableItem(column, operator, value);
+      conditions.add(new FilterableItem(column, operator, value));
     }
-    return null;
   }
 
-  default FilterableItem getBetweenCondition(String column, Object firstValue, Object secondValue) {
+  default void getBetweenCondition(List<FilterableItem> conditions, String column, Object firstValue, Object secondValue) {
     if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
-      return new FilterableItem(column, SQLOperator.BETWEEN, firstValue, secondValue);
+      conditions.add(new FilterableItem(column, SQLOperator.BETWEEN, firstValue, secondValue));
     }
-    return null;
   }
 
 }

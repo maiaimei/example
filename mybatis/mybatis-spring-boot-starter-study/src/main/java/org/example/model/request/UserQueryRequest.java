@@ -1,5 +1,6 @@
 package org.example.model.request;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.example.mybatis.SQLOperator;
@@ -16,8 +17,8 @@ public class UserQueryRequest implements Filterable, Sortable {
 
   @Override
   public List<FilterableItem> getConditions() {
-    return List.of(
-        getCondition("username", SQLOperator.LIKE, username)
-    );
+    List<FilterableItem> conditions = new ArrayList<>();
+    addCondition(conditions, "username", SQLOperator.LIKE, username);
+    return conditions;
   }
 }
