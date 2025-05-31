@@ -14,7 +14,7 @@ public interface Filterable {
     }
   }
 
-  default void getBetweenCondition(List<FilterableItem> conditions, String column, Object firstValue, Object secondValue) {
+  default void addBetweenCondition(List<FilterableItem> conditions, String column, Object firstValue, Object secondValue) {
     if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
       conditions.add(new FilterableItem(column, SQLOperator.BETWEEN, firstValue, secondValue));
     }
