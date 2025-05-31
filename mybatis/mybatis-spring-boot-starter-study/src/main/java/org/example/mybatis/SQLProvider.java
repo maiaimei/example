@@ -43,6 +43,7 @@ public class SQLProvider {
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     return SQLBuilder.builder()
         .select(tableName, notNullFieldValues)
+        .whereConditions(buildWhereConditions(getConditions(domain)))
         .orderBy(getSorting(domain))
         .build();
   }
@@ -52,10 +53,18 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
         .select(tableName)
+        .whereConditions(buildWhereConditions(getConditions(domain)))
         .whereConditions(buildWhereConditions(filterable.getConditions()))
         .orderBy(getSorting(domain))
         .orderBy(getSorting(filterable))
         .build();
+  }
+
+  private List<FilterableItem> getConditions(Object object) {
+    if (object instanceof Filterable filterable) {
+      return filterable.getConditions();
+    }
+    return null;
   }
 
   private List<SortableItem> getSorting(Object object) {
@@ -77,25 +86,25 @@ public class SQLProvider {
 
         switch (condition.getOperator()) {
           case EQ:
-            sql.WHERE(String.format("%s = #{query.conditions[%d].value}",
+            sql.WHERE(String.format("%s = #{filterable.conditions[%d].value}",
                 condition.getColumn(), i));
             break;
           case NE:
-            sql.WHERE(String.format("%s <> #{query.conditions[%d].value}",
+            sql.WHERE(String.format("%s <> #{filterable.conditions[%d].value}",
                 condition.getColumn(), i));
             break;
           case LIKE:
-            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{query.conditions[%d].value}, '%%')",
+            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{filterable.conditions[%d].value}, '%%')",
                 condition.getColumn(), i));
             break;
           case IN:
             sql.WHERE(String.format("%s IN " +
-                "<foreach collection='query.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
+                "<foreach collection='filterable.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
                 "#{item}" +
                 "</foreach>", condition.getColumn(), i));
             break;
           case BETWEEN:
-            sql.WHERE(String.format("%s BETWEEN #{query.conditions[%d].value} AND #{query.conditions[%d].secondValue}",
+            sql.WHERE(String.format("%s BETWEEN #{filterable.conditions[%d].value} AND #{filterable.conditions[%d].secondValue}",
                 condition.getColumn(), i, i));
             break;
           case IS_NULL:

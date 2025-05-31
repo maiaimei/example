@@ -3,11 +3,21 @@
 # 用户管理 API 文档
 
 ### 获取用户列表
-GET {{host}}/users/list
-    ?page=1
-    &size=10
-    &sorting.0.field=createAt
-    &sorting.0.sort=desc
+POST {{host}}/users/list
+Content-Type: application/json
+
+{
+    "username": "chen",
+    "sorting": [
+        {
+            "field": "createAt",
+            "sort": "desc"
+        }
+    ],
+    "current": 1,
+    "size": 5
+}
+
 
 
 ### 获取用户详情
@@ -19,7 +29,7 @@ POST {{host}}/users
 Content-Type: application/json
 
 {
-    "username": "tracy",
+    "username": "tracychen",
     "firstName": "tracy",
     "lastName": "Chen",
     "password": "encrypted_password"
