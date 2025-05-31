@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 import org.example.mybatis.query.filter.Filterable;
 import org.example.mybatis.query.filter.FilterableItem;
-import org.example.mybatis.query.filter.SQLOperator;
+import org.example.mybatis.query.operator.SQLOperator;
 import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.select.FieldSelectable;
 import org.example.mybatis.query.sort.Sortable;

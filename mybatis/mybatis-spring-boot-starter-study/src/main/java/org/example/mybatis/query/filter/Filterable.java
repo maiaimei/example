@@ -3,6 +3,7 @@ package org.example.mybatis.query.filter;
 import java.util.List;
 import java.util.Objects;
 import org.example.mybatis.query.Queryable;
+import org.example.mybatis.query.operator.SQLOperator;
 
 /**
  * 过滤能力接口

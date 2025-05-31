@@ -1,6 +1,7 @@
 package org.example.mybatis.query.filter;
 
 import lombok.Data;
+import org.example.mybatis.query.operator.SQLOperator;
 
 // 定义查询条件类
 @Data

@@ -60,6 +60,16 @@ public class SQLProvider {
         .build();
   }
 
+  public String selectByConditions2(Object domain, Queryable queryable) {
+    validateDomain(domain);
+    final String tableName = getTableName(domain.getClass());
+    return SQLBuilder.builder()
+        .selectSpecificColumns(tableName, getSelectFields(queryable))
+        .where(getConditions(queryable))
+        .orderBy(getSorting(queryable))
+        .build();
+  }
+
   private List<String> getSelectFields(Queryable queryable) {
     if (queryable instanceof FieldSelectable fieldSelectable) {
       final List<String> selectFields = fieldSelectable.getSelectFields();

@@ -5,10 +5,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
-import org.example.datasource.DataSourceType;
 import org.example.mybatis.model.FieldValue;
+import org.example.mybatis.query.condition.Condition;
 import org.example.mybatis.query.filter.FilterableItem;
-import org.example.mybatis.query.filter.SQLOperator;
+import org.example.mybatis.query.operator.SQLOperator;
 import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -18,6 +18,7 @@ public class SQLBuilder {
 
   private final SQL sql;
   private final String dataSourceType;
+  private int parameterIndex = 0;
 
   public SQLBuilder() {
     this.sql = new SQL();
@@ -85,6 +86,21 @@ public class SQLBuilder {
     return this;
   }
 
+  /**
+   * 构建WHERE子句
+   */
+  public SQLBuilder where2(List<Condition> conditions) {
+    if (!CollectionUtils.isEmpty(conditions)) {
+      conditions.forEach(condition -> {
+        String whereSql = condition.build(dataSourceType, parameterIndex++);
+        if (StringUtils.hasText(whereSql)) {
+          sql.WHERE(whereSql);
+        }
+      });
+    }
+    return this;
+  }
+
   // 添加排序功能
   public SQLBuilder orderBy(List<SortableItem> sorting) {
     if (!CollectionUtils.isEmpty(sorting)) {
@@ -104,10 +120,6 @@ public class SQLBuilder {
   }
 
   private String formatName(String name) {
-    if (DataSourceType.POSTGRESQL.getType().equals(dataSourceType)) {
-      // 保持原有大小写，使用双引号
-      return "\"" + name + "\"";
-    }
-    return name;
+    return SQLHelper.formatName(dataSourceType, name);
   }
 }

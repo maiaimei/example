@@ -1,4 +1,4 @@
-package org.example.mybatis.query.filter;
+package org.example.mybatis.query.operator;
 
 import lombok.Getter;
 

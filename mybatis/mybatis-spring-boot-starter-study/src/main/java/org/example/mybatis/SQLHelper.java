@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.example.datasource.DataSourceType;
 import org.example.mybatis.annotation.ColumnName;
 import org.example.mybatis.annotation.TableName;
 import org.example.mybatis.model.FieldValue;
@@ -156,5 +157,13 @@ public class SQLHelper {
   // 驼峰转下划线
   public static String camelToUnderscore(String camelCase) {
     return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase(Locale.US);
+  }
+
+  public static String formatName(String dataSourceType, String name) {
+    if (DataSourceType.POSTGRESQL.getType().equals(dataSourceType)) {
+      // 保持原有大小写，使用双引号
+      return "\"" + name + "\"";
+    }
+    return name;
   }
 }

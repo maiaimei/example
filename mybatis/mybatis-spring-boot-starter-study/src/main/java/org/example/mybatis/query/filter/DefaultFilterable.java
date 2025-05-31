@@ -3,6 +3,7 @@ package org.example.mybatis.query.filter;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import org.example.mybatis.query.operator.SQLOperator;
 
 @Getter
 public class DefaultFilterable implements Filterable {
