@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.example.mybatis.SQLProvider;
-import org.example.mybatis.model.Queryable;
+import org.example.mybatis.query.Queryable;
 
 public interface BasicRepository<T> {
 

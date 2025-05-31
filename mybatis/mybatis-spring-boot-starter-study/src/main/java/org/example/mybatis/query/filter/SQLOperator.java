@@ -1,4 +1,4 @@
-package org.example.mybatis;
+package org.example.mybatis.query.filter;
 
 public enum SQLOperator {
   EQ("="),

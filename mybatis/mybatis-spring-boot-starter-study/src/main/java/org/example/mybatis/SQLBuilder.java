@@ -6,8 +6,8 @@ import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DataSourceType;
 import org.example.mybatis.model.FieldValue;
-import org.example.mybatis.model.FilterableItem;
-import org.example.mybatis.model.SortableItem;
+import org.example.mybatis.query.filter.FilterableItem;
+import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
 
 // SQL构建器类

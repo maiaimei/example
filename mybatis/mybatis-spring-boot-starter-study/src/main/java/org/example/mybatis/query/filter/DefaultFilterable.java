@@ -1,16 +1,13 @@
-package org.example.mybatis.model;
+package org.example.mybatis.query.filter;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.example.mybatis.SQLOperator;
+import lombok.Getter;
 
+@Getter
 public class DefaultFilterable implements Filterable {
 
-  private final List<FilterableItem> conditions;
-
-  private DefaultFilterable() {
-    this.conditions = new ArrayList<>();
-  }
+  private final List<FilterableItem> conditions = new ArrayList<>();
 
   public void addCondition(String column, SQLOperator operator, Object value) {
     addCondition(conditions, column, operator, value);
@@ -18,14 +15,5 @@ public class DefaultFilterable implements Filterable {
 
   public void getBetweenCondition(List<FilterableItem> conditions, String column, Object firstValue, Object secondValue) {
     addBetweenCondition(conditions, column, firstValue, secondValue);
-  }
-
-  @Override
-  public List<FilterableItem> getConditions() {
-    return conditions;
-  }
-
-  public static DefaultFilterable newInstance() {
-    return new DefaultFilterable();
   }
 }

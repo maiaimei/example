@@ -1,4 +1,6 @@
-package org.example.mybatis.model;
+package org.example.mybatis.query.page;
+
+import org.example.mybatis.query.Queryable;
 
 /**
  * 分页能力接口

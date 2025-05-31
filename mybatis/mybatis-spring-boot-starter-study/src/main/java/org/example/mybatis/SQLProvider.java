@@ -8,11 +8,11 @@ import static org.example.mybatis.SQLHelper.validateDomainField;
 
 import java.util.List;
 import org.example.mybatis.model.FieldValue;
-import org.example.mybatis.model.Filterable;
-import org.example.mybatis.model.FilterableItem;
-import org.example.mybatis.model.Queryable;
-import org.example.mybatis.model.Sortable;
-import org.example.mybatis.model.SortableItem;
+import org.example.mybatis.query.Queryable;
+import org.example.mybatis.query.filter.Filterable;
+import org.example.mybatis.query.filter.FilterableItem;
+import org.example.mybatis.query.sort.Sortable;
+import org.example.mybatis.query.sort.SortableItem;
 
 public class SQLProvider {
 

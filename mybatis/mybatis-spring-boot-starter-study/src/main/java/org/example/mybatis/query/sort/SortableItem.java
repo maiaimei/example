@@ -1,4 +1,4 @@
-package org.example.mybatis.model;
+package org.example.mybatis.query.sort;
 
 import lombok.Data;
 

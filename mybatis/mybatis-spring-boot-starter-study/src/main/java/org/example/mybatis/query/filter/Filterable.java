@@ -1,8 +1,8 @@
-package org.example.mybatis.model;
+package org.example.mybatis.query.filter;
 
 import java.util.List;
 import java.util.Objects;
-import org.example.mybatis.SQLOperator;
+import org.example.mybatis.query.Queryable;
 
 /**
  * 过滤能力接口

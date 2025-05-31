@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import lombok.Getter;
 import org.example.mybatis.annotation.Id;
-import org.example.mybatis.model.Filterable;
+import org.example.mybatis.query.filter.Filterable;
 import org.example.repository.BasicRepository;
 
 @Getter
