@@ -1,10 +1,12 @@
 package org.example.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.example.model.domain.User;
 import org.example.model.request.UserQueryRequest;
 import org.example.service.UserService;
+import org.example.utils.IdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +51,11 @@ public class UserController {
   @PostMapping
   public ResponseEntity<User> createUser(@Validated @RequestBody User user) {
     try {
+      user.setId(IdGenerator.nextId());
+      user.setCreateBy("system");
+      user.setCreateAt(LocalDateTime.now());
+      user.setUpdatedBy("system");
+      user.setUpdatedAt(LocalDateTime.now());
       userService.create(user);
       return new ResponseEntity<>(user, HttpStatus.CREATED);
     } catch (IllegalArgumentException e) {
