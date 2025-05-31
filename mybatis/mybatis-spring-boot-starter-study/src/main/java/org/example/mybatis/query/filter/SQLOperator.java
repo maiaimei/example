@@ -1,21 +1,24 @@
 package org.example.mybatis.query.filter;
 
+import lombok.Getter;
+
+@Getter
 public enum SQLOperator {
   EQ("=", "%s = #{queryable.conditions[%d].value}"),
 
   NE("<>", "%s <> #{queryable.conditions[%d].value}"),
 
-  GT(">", ""),
+  GT(">", "%s > #{queryable.conditions[%d].value}"),
 
-  GE(">=", ""),
+  GE(">=", "%s >= #{queryable.conditions[%d].value}"),
 
-  LT("<", ""),
+  LT("<", "%s < #{queryable.conditions[%d].value}"),
 
-  LE("<=", ""),
+  LE("<=", "%s <= #{queryable.conditions[%d].value}"),
 
   LIKE("LIKE", "%s LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')"),
 
-  NOT_LIKE("NOT LIKE", ""),
+  NOT_LIKE("NOT LIKE", "%s NOT LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')"),
 
   IN("IN", """
       %s IN\s
@@ -23,7 +26,11 @@ public enum SQLOperator {
       #{item}
       </foreach>"""),
 
-  NOT_IN("NOT IN", ""),
+  NOT_IN("NOT IN", """
+      %s NOT IN\s
+      <foreach collection='queryable.conditions[%d].value' item='item' open='(' separator=',' close=')'>
+      #{item}
+      </foreach>"""),
 
   BETWEEN("BETWEEN", "%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}"),
 
@@ -40,12 +47,5 @@ public enum SQLOperator {
     this.format = format;
   }
 
-  public String getOperator() {
-    return operator;
-  }
-
-  public String getFormat() {
-    return format;
-  }
 }
 
