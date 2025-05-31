@@ -67,34 +67,32 @@ public class SQLBuilder {
     if (!CollectionUtils.isEmpty(conditions)) {
       for (int i = 0; i < conditions.size(); i++) {
         FilterableItem condition = conditions.get(i);
+        final String column = formatName(condition.getColumn());
         switch (condition.getOperator()) {
           case EQ:
-            sql.WHERE(String.format("%s = #{queryable.conditions[%d].value}",
-                condition.getColumn(), i));
+            sql.WHERE(String.format("%s = #{queryable.conditions[%d].value}", column, i));
             break;
           case NE:
-            sql.WHERE(String.format("%s <> #{queryable.conditions[%d].value}",
-                condition.getColumn(), i));
+            sql.WHERE(String.format("%s <> #{queryable.conditions[%d].value}", column, i));
             break;
           case LIKE:
-            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')",
-                condition.getColumn(), i));
+            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')", column, i));
             break;
           case IN:
             sql.WHERE(String.format("%s IN " +
                 "<foreach collection='queryable.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
                 "#{item}" +
-                "</foreach>", condition.getColumn(), i));
+                "</foreach>", column, i));
             break;
           case BETWEEN:
             sql.WHERE(String.format("%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}",
-                condition.getColumn(), i, i));
+                column, i, i));
             break;
           case IS_NULL:
-            sql.WHERE(String.format("%s IS NULL", condition.getColumn()));
+            sql.WHERE(String.format("%s IS NULL", column));
             break;
           case IS_NOT_NULL:
-            sql.WHERE(String.format("%s IS NOT NULL", condition.getColumn()));
+            sql.WHERE(String.format("%s IS NOT NULL", column));
             break;
           // ... 其他操作符的处理
         }

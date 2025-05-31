@@ -59,7 +59,11 @@ public class SQLProvider {
 
   private List<FilterableItem> getConditions(Queryable queryable) {
     if (queryable instanceof Filterable filterable) {
-      return filterable.getConditions();
+      final List<FilterableItem> conditions = filterable.getConditions();
+      for (FilterableItem condition : conditions) {
+        condition.setColumn(camelToUnderscore(condition.getColumn()));
+      }
+      return conditions;
     }
     return null;
   }
