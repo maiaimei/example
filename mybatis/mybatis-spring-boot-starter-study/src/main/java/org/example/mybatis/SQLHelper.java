@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.example.mybatis.annotation.ColumnName;
 import org.example.mybatis.annotation.TableName;
 import org.example.mybatis.model.FieldValue;
 import org.springframework.util.CollectionUtils;
@@ -139,9 +140,10 @@ public class SQLHelper {
       try {
         Object value = field.get(domain);
         if (Objects.nonNull(value)) {
+          final ColumnName columnName = field.getAnnotation(ColumnName.class);
           fieldValues.add(new FieldValue(
               field.getName(),
-              camelToUnderscore(field.getName()),
+              Objects.nonNull(columnName) ? columnName.value() : camelToUnderscore(field.getName()),
               value));
         }
       } catch (IllegalAccessException e) {
