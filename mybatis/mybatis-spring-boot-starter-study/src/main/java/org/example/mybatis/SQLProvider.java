@@ -8,8 +8,10 @@ import static org.example.mybatis.SQLHelper.validateDomainField;
 import java.util.List;
 import java.util.function.Consumer;
 import org.apache.ibatis.jdbc.SQL;
-import org.example.mybatis.query.BaseQuery;
-import org.example.mybatis.query.QueryCondition;
+import org.example.mybatis.model.Filterable;
+import org.example.mybatis.model.FilterableItem;
+import org.example.mybatis.model.Sortable;
+import org.example.mybatis.model.SortableItem;
 
 public class SQLProvider {
 
@@ -39,27 +41,37 @@ public class SQLProvider {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
-    return SQLBuilder.builder().select(tableName, notNullFieldValues).build();
+    return SQLBuilder.builder()
+        .select(tableName, notNullFieldValues)
+        .orderBy(getSorting(domain))
+        .build();
   }
 
-  public String selectByConditions(Object domain, BaseQuery query) {
+  public String selectByConditions(Object domain, Filterable filterable) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
         .select(tableName)
-        .whereConditions(buildWhereConditions(query.getConditions()))
-        .orderBy(query.getSortField(), query.getSortOrder())
+        .whereConditions(buildWhereConditions(filterable.getConditions()))
+        .orderBy(getSorting(domain))
         .build();
   }
 
-  private Consumer<SQL> buildWhereConditions(List<QueryCondition> conditions) {
+  private List<SortableItem> getSorting(Object domain) {
+    if (domain instanceof Sortable sortable) {
+      return sortable.getSorting();
+    }
+    return null;
+  }
+
+  private Consumer<SQL> buildWhereConditions(List<FilterableItem> conditions) {
     return sql -> {
       if (conditions == null || conditions.isEmpty()) {
         return;
       }
 
       for (int i = 0; i < conditions.size(); i++) {
-        QueryCondition condition = conditions.get(i);
+        FilterableItem condition = conditions.get(i);
         String paramName = condition.getColumn() + i;
 
         switch (condition.getOperator()) {

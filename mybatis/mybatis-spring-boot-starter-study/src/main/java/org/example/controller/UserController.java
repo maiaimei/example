@@ -3,6 +3,7 @@ package org.example.controller;
 import java.math.BigDecimal;
 import java.util.List;
 import org.example.model.domain.User;
+import org.example.model.request.UserQueryRequest;
 import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,8 +27,8 @@ public class UserController {
   private UserService userService;
 
   @GetMapping("/search")
-  public ResponseEntity<List<User>> searchUsers() {
-    List<User> users = userService.searchUsers();
+  public ResponseEntity<List<User>> searchUsers(UserQueryRequest userQueryRequest) {
+    List<User> users = userService.searchUsers(userQueryRequest);
     return ResponseEntity.ok(users);
   }
 

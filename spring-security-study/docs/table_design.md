@@ -6,10 +6,11 @@ Stores basic user information.
 
 | Column                | Type          | Nullable | Default Value     | Primary Key | Index | Description                                  |
 | --------------------- | ------------- | -------- | ----------------- | ----------- | ----- | -------------------------------------------- |
-| USER_ID               | NUMBER        | NOT NULL |                   | Y           |       | Unique identifier for the user               |
-| FULL_NAME             | VARCHAR2(255) | NOT NULL |                   |             |       | Full name of the user                        |
+| ID                    | NUMBER        | NOT NULL |                   | Y           |       | Unique identifier for the user               |
+| FIRST_NAME            | VARCHAR2(255) | NOT NULL |                   |             |       | First name of the user                       |
+| LAST_NAME             | VARCHAR2(255) | NOT NULL |                   |             |       | Last name of the user                        |
 | PASSWORD_HASH         | VARCHAR2(255) | NOT NULL |                   |             |       | Hashed user password                         |
-| PASSWORD_SALT         | VARCHAR2(255) | NOT NULL |                   |             |       | Salt for password hashing                    |
+| PASSWORD_SALT         | VARCHAR2(255) |          |                   |             |       | Salt for password hashing                    |
 | EMAIL                 | VARCHAR2(255) |          |                   |             | Y     | User email address                           |
 | PHONE_NUMBER          | VARCHAR2(20)  |          |                   |             |       | User phone number                            |
 | USER_TYPE             | VARCHAR2(50)  | NOT NULL |                   |             |       | User type (e.g., internal, external)         |

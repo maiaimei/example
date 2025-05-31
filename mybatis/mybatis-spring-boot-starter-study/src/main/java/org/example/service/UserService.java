@@ -9,8 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.datasource.DataSource;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.model.domain.User;
-import org.example.mybatis.SQLOperator;
-import org.example.mybatis.query.BaseQuery;
+import org.example.model.request.UserQueryRequest;
 import org.example.repository.UserRepository;
 import org.example.repository.advanced.AdvancedUserRepository;
 import org.example.repository.master.MasterUserRepository;
@@ -60,20 +59,8 @@ public class UserService {
     };
   }
 
-  public List<User> searchUsers() {
-    // 添加查询条件
-    BaseQuery query = new BaseQuery();
-    query.addCondition("username", SQLOperator.LIKE, "maiam");
-
-    // 添加排序
-    query.setSortField("gmt_create");
-    query.setSortOrder("DESC");
-
-    // 设置分页
-    query.setPageNum(1);
-    query.setPageSize(2);
-
-    return advancedUserRepository.selectByConditions(new User(), query);
+  public List<User> searchUsers(UserQueryRequest userQueryRequest) {
+    return advancedUserRepository.selectByConditions(new User(), userQueryRequest);
   }
 
   /**
@@ -96,8 +83,8 @@ public class UserService {
    */
   public void createUser(User user) {
     user.setId(IdGenerator.nextId());
-    user.setGmtCreate(LocalDateTime.now());
-    user.setGmtModified(LocalDateTime.now());
+    user.setCreateAt(LocalDateTime.now());
+    user.setUpdatedAt(LocalDateTime.now());
     getBasicUserRepository().insert(user);
   }
 
@@ -105,7 +92,7 @@ public class UserService {
    * 更新用户信息
    */
   public void updateUser(User user) {
-    user.setGmtModified(LocalDateTime.now());
+    user.setUpdatedAt(LocalDateTime.now());
     getBasicUserRepository().update(user);
   }
 
@@ -123,8 +110,8 @@ public class UserService {
   public void batchInsertUsers(List<User> users, int batchSize) {
     users.forEach(user -> {
       user.setId(IdGenerator.nextId());
-      user.setGmtCreate(LocalDateTime.now());
-      user.setGmtModified(LocalDateTime.now());
+      user.setCreateAt(LocalDateTime.now());
+      user.setUpdatedAt(LocalDateTime.now());
     });
     int total = users.size();
     for (int i = 0; i < total; i += batchSize) {
@@ -140,7 +127,7 @@ public class UserService {
   @Transactional
   public void batchUpdateUsers(List<User> users) {
     users.forEach(user -> {
-      user.setGmtModified(LocalDateTime.now());
+      user.setUpdatedAt(LocalDateTime.now());
     });
     getBasicUserRepository().batchUpdate(users);
   }
@@ -151,7 +138,7 @@ public class UserService {
   @Transactional
   public void batchUpdateUsersByCaseWhen(List<User> users, boolean updatePassword) {
     users.forEach(user -> {
-      user.setGmtModified(LocalDateTime.now());
+      user.setUpdatedAt(LocalDateTime.now());
     });
     getBasicUserRepository().batchUpdateByCaseWhen(users, updatePassword);
   }

@@ -1,4 +1,4 @@
-package org.example.mybatis.query;
+package org.example.mybatis.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,17 +9,17 @@ import org.example.mybatis.SQLOperator;
 @Data
 public class BaseQuery {
 
-  private List<QueryCondition> conditions = new ArrayList<>();
+  private List<FilterableItem> conditions = new ArrayList<>();
   private String sortField;
   private String sortOrder;
   private Integer pageNum;
   private Integer pageSize;
 
   public void addCondition(String column, SQLOperator operator, Object value) {
-    conditions.add(new QueryCondition(column, operator, value));
+    conditions.add(new FilterableItem(column, operator, value));
   }
 
   public void addBetweenCondition(String column, Object value1, Object value2) {
-    conditions.add(new QueryCondition(column, SQLOperator.BETWEEN, value1, value2));
+    conditions.add(new FilterableItem(column, SQLOperator.BETWEEN, value1, value2));
   }
 }

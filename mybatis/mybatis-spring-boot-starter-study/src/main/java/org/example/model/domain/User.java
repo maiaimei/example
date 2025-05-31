@@ -6,13 +6,16 @@ import lombok.Data;
 import org.example.mybatis.annotation.TableName;
 
 @Data
-@TableName("SYS_USER")
+@TableName("USER_INFO")
 public class User {
 
   private BigDecimal id;
-  private String fullname;
   private String username;
   private String password;
-  private LocalDateTime gmtCreate;
-  private LocalDateTime gmtModified;
+  private String firstName;
+  private String lastName;
+  private LocalDateTime createAt;
+  private String createBy;
+  private LocalDateTime updatedAt;
+  private String updatedBy;
 }
