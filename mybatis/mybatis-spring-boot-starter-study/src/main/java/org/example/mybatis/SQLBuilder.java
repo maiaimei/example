@@ -1,8 +1,6 @@
 package org.example.mybatis;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
@@ -17,12 +15,10 @@ public class SQLBuilder {
 
   private final SQL sql;
   private final String dataSourceType;
-  private final List<Consumer<SQL>> whereConditions;
 
   public SQLBuilder() {
     this.sql = new SQL();
     this.dataSourceType = DataSourceContextHolder.getDataSourceType();
-    this.whereConditions = new ArrayList<>();
   }
 
   public static SQLBuilder builder() {
@@ -73,25 +69,25 @@ public class SQLBuilder {
         FilterableItem condition = conditions.get(i);
         switch (condition.getOperator()) {
           case EQ:
-            sql.WHERE(String.format("%s = #{filterable.conditions[%d].value}",
+            sql.WHERE(String.format("%s = #{queryable.conditions[%d].value}",
                 condition.getColumn(), i));
             break;
           case NE:
-            sql.WHERE(String.format("%s <> #{filterable.conditions[%d].value}",
+            sql.WHERE(String.format("%s <> #{queryable.conditions[%d].value}",
                 condition.getColumn(), i));
             break;
           case LIKE:
-            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{filterable.conditions[%d].value}, '%%')",
+            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')",
                 condition.getColumn(), i));
             break;
           case IN:
             sql.WHERE(String.format("%s IN " +
-                "<foreach collection='filterable.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
+                "<foreach collection='queryable.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
                 "#{item}" +
                 "</foreach>", condition.getColumn(), i));
             break;
           case BETWEEN:
-            sql.WHERE(String.format("%s BETWEEN #{filterable.conditions[%d].value} AND #{filterable.conditions[%d].secondValue}",
+            sql.WHERE(String.format("%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}",
                 condition.getColumn(), i, i));
             break;
           case IS_NULL:
@@ -122,8 +118,6 @@ public class SQLBuilder {
   }
 
   public String build() {
-    // 应用所有WHERE条件
-    whereConditions.forEach(condition -> condition.accept(sql));
     return sql.toString();
   }
 
