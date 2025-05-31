@@ -22,7 +22,7 @@ Content-Type: application/json
 
 
 ### 获取用户详情
-GET {{host}}/users/2025053111191108200001
+GET {{host}}/users/2025053112024864700001
 
 
 ### 创建用户

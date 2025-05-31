@@ -1,28 +1,51 @@
 package org.example.mybatis.query.filter;
 
 public enum SQLOperator {
-  EQ("="),
-  NE("<>"),
-  GT(">"),
-  GE(">="),
-  LT("<"),
-  LE("<="),
-  LIKE("LIKE"),
-  NOT_LIKE("NOT LIKE"),
-  IN("IN"),
-  NOT_IN("NOT IN"),
-  BETWEEN("BETWEEN"),
-  IS_NULL("IS NULL"),
-  IS_NOT_NULL("IS NOT NULL");
+  EQ("=", "%s = #{queryable.conditions[%d].value}"),
+
+  NE("<>", "%s <> #{queryable.conditions[%d].value}"),
+
+  GT(">", ""),
+
+  GE(">=", ""),
+
+  LT("<", ""),
+
+  LE("<=", ""),
+
+  LIKE("LIKE", "%s LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')"),
+
+  NOT_LIKE("NOT LIKE", ""),
+
+  IN("IN", """
+      %s IN\s
+      <foreach collection='queryable.conditions[%d].value' item='item' open='(' separator=',' close=')'>
+      #{item}
+      </foreach>"""),
+
+  NOT_IN("NOT IN", ""),
+
+  BETWEEN("BETWEEN", "%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}"),
+
+  IS_NULL("IS NULL", "%s IS NULL"),
+
+  IS_NOT_NULL("IS NOT NULL", "%s IS NOT NULL");
 
   private final String operator;
 
-  SQLOperator(String operator) {
+  private final String format;
+
+  SQLOperator(String operator, String format) {
     this.operator = operator;
+    this.format = format;
   }
 
   public String getOperator() {
     return operator;
+  }
+
+  public String getFormat() {
+    return format;
   }
 }
 
