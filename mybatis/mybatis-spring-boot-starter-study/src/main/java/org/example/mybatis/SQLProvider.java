@@ -7,8 +7,6 @@ import static org.example.mybatis.SQLHelper.validateDomain;
 import static org.example.mybatis.SQLHelper.validateDomainField;
 
 import java.util.List;
-import java.util.function.Consumer;
-import org.apache.ibatis.jdbc.SQL;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.model.Filterable;
 import org.example.mybatis.model.FilterableItem;
@@ -54,7 +52,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
         .select(tableName)
-        .whereConditions(buildWhereConditions(getConditions(queryable)))
+        .where(getConditions(queryable))
         .orderBy(getSorting(queryable))
         .build();
   }
@@ -77,48 +75,4 @@ public class SQLProvider {
     return null;
   }
 
-  private Consumer<SQL> buildWhereConditions(List<FilterableItem> conditions) {
-    return sql -> {
-      if (conditions == null || conditions.isEmpty()) {
-        return;
-      }
-
-      for (int i = 0; i < conditions.size(); i++) {
-        FilterableItem condition = conditions.get(i);
-        String paramName = condition.getColumn() + i;
-
-        switch (condition.getOperator()) {
-          case EQ:
-            sql.WHERE(String.format("%s = #{filterable.conditions[%d].value}",
-                condition.getColumn(), i));
-            break;
-          case NE:
-            sql.WHERE(String.format("%s <> #{filterable.conditions[%d].value}",
-                condition.getColumn(), i));
-            break;
-          case LIKE:
-            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{filterable.conditions[%d].value}, '%%')",
-                condition.getColumn(), i));
-            break;
-          case IN:
-            sql.WHERE(String.format("%s IN " +
-                "<foreach collection='filterable.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
-                "#{item}" +
-                "</foreach>", condition.getColumn(), i));
-            break;
-          case BETWEEN:
-            sql.WHERE(String.format("%s BETWEEN #{filterable.conditions[%d].value} AND #{filterable.conditions[%d].secondValue}",
-                condition.getColumn(), i, i));
-            break;
-          case IS_NULL:
-            sql.WHERE(String.format("%s IS NULL", condition.getColumn()));
-            break;
-          case IS_NOT_NULL:
-            sql.WHERE(String.format("%s IS NOT NULL", condition.getColumn()));
-            break;
-          // ... 其他操作符的处理
-        }
-      }
-    };
-  }
 }

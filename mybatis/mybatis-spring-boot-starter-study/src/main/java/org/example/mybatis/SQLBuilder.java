@@ -8,6 +8,7 @@ import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DataSourceType;
 import org.example.mybatis.model.FieldValue;
+import org.example.mybatis.model.FilterableItem;
 import org.example.mybatis.model.SortableItem;
 import org.springframework.util.CollectionUtils;
 
@@ -66,50 +67,43 @@ public class SQLBuilder {
     return this;
   }
 
-  // 添加等于条件
-  public SQLBuilder whereEqual(String column, String fieldName) {
-    whereConditions.add(sql ->
-        sql.WHERE(String.format("%s = #{%s}", formatName(column), fieldName)));
-    return this;
-  }
-
-  // 添加大于条件
-  public SQLBuilder whereGreaterThan(String column, String fieldName) {
-    whereConditions.add(sql ->
-        sql.WHERE(String.format("%s > #{%s}", formatName(column), fieldName)));
-    return this;
-  }
-
-  // 添加小于条件
-  public SQLBuilder whereLessThan(String column, String fieldName) {
-    whereConditions.add(sql ->
-        sql.WHERE(String.format("%s < #{%s}", formatName(column), fieldName)));
-    return this;
-  }
-
-  // 添加LIKE条件
-  public SQLBuilder whereLike(String column, String fieldName) {
-    whereConditions.add(sql ->
-        sql.WHERE(String.format("%s LIKE #{%s}", formatName(column), fieldName)));
-    return this;
-  }
-
-  // 添加IN条件
-  public SQLBuilder whereIn(String column, String fieldName) {
-    whereConditions.add(sql ->
-        sql.WHERE(String.format("%s IN #{%s}", formatName(column), fieldName)));
-    return this;
-  }
-
-  // 添加自定义条件
-  public SQLBuilder whereCustom(String condition) {
-    whereConditions.add(sql -> sql.WHERE(condition));
-    return this;
-  }
-
-  // 添加批量条件的方法
-  public SQLBuilder whereConditions(Consumer<SQL> conditions) {
-    conditions.accept(sql);
+  public SQLBuilder where(List<FilterableItem> conditions) {
+    if (!CollectionUtils.isEmpty(conditions)) {
+      for (int i = 0; i < conditions.size(); i++) {
+        FilterableItem condition = conditions.get(i);
+        switch (condition.getOperator()) {
+          case EQ:
+            sql.WHERE(String.format("%s = #{filterable.conditions[%d].value}",
+                condition.getColumn(), i));
+            break;
+          case NE:
+            sql.WHERE(String.format("%s <> #{filterable.conditions[%d].value}",
+                condition.getColumn(), i));
+            break;
+          case LIKE:
+            sql.WHERE(String.format("%s LIKE CONCAT('%%', #{filterable.conditions[%d].value}, '%%')",
+                condition.getColumn(), i));
+            break;
+          case IN:
+            sql.WHERE(String.format("%s IN " +
+                "<foreach collection='filterable.conditions[%d].value' item='item' open='(' separator=',' close=')'>" +
+                "#{item}" +
+                "</foreach>", condition.getColumn(), i));
+            break;
+          case BETWEEN:
+            sql.WHERE(String.format("%s BETWEEN #{filterable.conditions[%d].value} AND #{filterable.conditions[%d].secondValue}",
+                condition.getColumn(), i, i));
+            break;
+          case IS_NULL:
+            sql.WHERE(String.format("%s IS NULL", condition.getColumn()));
+            break;
+          case IS_NOT_NULL:
+            sql.WHERE(String.format("%s IS NOT NULL", condition.getColumn()));
+            break;
+          // ... 其他操作符的处理
+        }
+      }
+    }
     return this;
   }
 
