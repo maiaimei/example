@@ -1,0 +1,40 @@
+@host = http://localhost:8080
+
+# 用户管理 API 文档
+
+### 获取用户列表
+GET {{host}}/users/list
+    ?page=1
+    &size=10
+    &sorting.0.field=createAt
+    &sorting.0.sort=desc
+
+
+### 获取用户详情
+GET {{host}}/users/2025053111191108200001
+
+
+### 创建用户
+POST {{host}}/users
+Content-Type: application/json
+
+{
+    "username": "tracy",
+    "firstName": "tracy",
+    "lastName": "Chen",
+    "password": "encrypted_password"
+}
+
+
+### 更新用户
+PUT {{host}}/users
+Content-Type: application/json
+
+{
+    "id": "2025053111191108200001",
+    "password": "encrypted_password_test"
+}
+
+
+### 删除用户
+DELETE {{host}}/users/2025053111191108200001

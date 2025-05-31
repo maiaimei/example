@@ -54,11 +54,12 @@ public class SQLProvider {
         .select(tableName)
         .whereConditions(buildWhereConditions(filterable.getConditions()))
         .orderBy(getSorting(domain))
+        .orderBy(getSorting(filterable))
         .build();
   }
 
-  private List<SortableItem> getSorting(Object domain) {
-    if (domain instanceof Sortable sortable) {
+  private List<SortableItem> getSorting(Object object) {
+    if (object instanceof Sortable sortable) {
       return sortable.getSorting();
     }
     return null;
