@@ -1,7 +1,5 @@
 package org.example.mybatis;
 
-import static org.example.mybatis.SQLHelper.camelToUnderscore;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -9,6 +7,7 @@ import java.util.stream.Collectors;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DataSourceType;
+import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.model.SortableItem;
 import org.springframework.util.CollectionUtils;
 
@@ -119,8 +118,8 @@ public class SQLBuilder {
     if (!CollectionUtils.isEmpty(sorting)) {
       List<String> orderClauses = sorting.stream()
           .map(item -> String.format("%s %s",
-              formatName(camelToUnderscore(item.field())),
-              "DESC".equalsIgnoreCase(item.sort()) ? "DESC" : "ASC"))
+              formatName(item.getField()),
+              "DESC".equalsIgnoreCase(item.getSort()) ? "DESC" : "ASC"))
           .collect(Collectors.toList());
 
       sql.ORDER_BY(String.join(", ", orderClauses));

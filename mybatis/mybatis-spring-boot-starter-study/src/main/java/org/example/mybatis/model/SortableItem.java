@@ -1,5 +1,10 @@
 package org.example.mybatis.model;
 
-public record SortableItem(String field, String sort) {
+import lombok.Data;
 
+@Data
+public class SortableItem {
+
+  private String field;
+  private String sort;
 }

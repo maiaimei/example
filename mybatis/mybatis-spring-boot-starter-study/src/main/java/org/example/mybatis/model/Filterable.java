@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Objects;
 import org.example.mybatis.SQLOperator;
 
-public interface Filterable {
+/**
+ * 过滤能力接口
+ */
+public interface Filterable extends Queryable {
 
   List<FilterableItem> getConditions();
 

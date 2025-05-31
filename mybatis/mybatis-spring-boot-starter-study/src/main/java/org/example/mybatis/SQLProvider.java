@@ -1,5 +1,6 @@
 package org.example.mybatis;
 
+import static org.example.mybatis.SQLHelper.camelToUnderscore;
 import static org.example.mybatis.SQLHelper.getNotNullFieldValues;
 import static org.example.mybatis.SQLHelper.getTableName;
 import static org.example.mybatis.SQLHelper.validateDomain;
@@ -8,8 +9,10 @@ import static org.example.mybatis.SQLHelper.validateDomainField;
 import java.util.List;
 import java.util.function.Consumer;
 import org.apache.ibatis.jdbc.SQL;
+import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.model.Filterable;
 import org.example.mybatis.model.FilterableItem;
+import org.example.mybatis.model.Queryable;
 import org.example.mybatis.model.Sortable;
 import org.example.mybatis.model.SortableItem;
 
@@ -43,33 +46,33 @@ public class SQLProvider {
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     return SQLBuilder.builder()
         .select(tableName, notNullFieldValues)
-        .whereConditions(buildWhereConditions(getConditions(domain)))
-        .orderBy(getSorting(domain))
         .build();
   }
 
-  public String selectByConditions(Object domain, Filterable filterable) {
+  public String selectByConditions(Object domain, Queryable queryable) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
         .select(tableName)
-        .whereConditions(buildWhereConditions(getConditions(domain)))
-        .whereConditions(buildWhereConditions(filterable.getConditions()))
-        .orderBy(getSorting(domain))
-        .orderBy(getSorting(filterable))
+        .whereConditions(buildWhereConditions(getConditions(queryable)))
+        .orderBy(getSorting(queryable))
         .build();
   }
 
-  private List<FilterableItem> getConditions(Object object) {
-    if (object instanceof Filterable filterable) {
+  private List<FilterableItem> getConditions(Queryable queryable) {
+    if (queryable instanceof Filterable filterable) {
       return filterable.getConditions();
     }
     return null;
   }
 
-  private List<SortableItem> getSorting(Object object) {
-    if (object instanceof Sortable sortable) {
-      return sortable.getSorting();
+  private List<SortableItem> getSorting(Queryable queryable) {
+    if (queryable instanceof Sortable sortable) {
+      final List<SortableItem> sorting = sortable.getSorting();
+      for (SortableItem sortableItem : sorting) {
+        sortableItem.setField(camelToUnderscore(sortableItem.getField()));
+      }
+      return sorting;
     }
     return null;
   }

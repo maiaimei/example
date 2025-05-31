@@ -1,6 +1,9 @@
 package org.example.mybatis.model;
 
-public interface Pageable {
+/**
+ * 分页能力接口
+ */
+public interface Pageable extends Queryable {
 
   Integer getCurrent();
 
