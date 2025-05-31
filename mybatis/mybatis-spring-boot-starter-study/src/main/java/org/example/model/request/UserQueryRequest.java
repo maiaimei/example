@@ -7,14 +7,18 @@ import org.example.mybatis.query.filter.Filterable;
 import org.example.mybatis.query.filter.FilterableItem;
 import org.example.mybatis.query.filter.SQLOperator;
 import org.example.mybatis.query.page.Pageable;
+import org.example.mybatis.query.select.FieldSelectable;
 import org.example.mybatis.query.sort.Sortable;
 import org.example.mybatis.query.sort.SortableItem;
 
 @Data
-public class UserQueryRequest implements Filterable, Sortable, Pageable {
+public class UserQueryRequest implements Filterable, Sortable, Pageable, FieldSelectable {
 
   // 业务查询参数
   private String username;
+
+  // 查询字段
+  private List<String> selectFields;
 
   // 过滤条件
   private List<FilterableItem> conditions = new ArrayList<>();

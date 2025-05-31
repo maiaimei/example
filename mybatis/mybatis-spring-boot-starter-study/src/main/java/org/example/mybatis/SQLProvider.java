@@ -6,13 +6,16 @@ import static org.example.mybatis.SQLHelper.getTableName;
 import static org.example.mybatis.SQLHelper.validateDomain;
 import static org.example.mybatis.SQLHelper.validateDomainField;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.Queryable;
 import org.example.mybatis.query.filter.Filterable;
 import org.example.mybatis.query.filter.FilterableItem;
+import org.example.mybatis.query.select.FieldSelectable;
 import org.example.mybatis.query.sort.Sortable;
 import org.example.mybatis.query.sort.SortableItem;
+import org.springframework.util.CollectionUtils;
 
 public class SQLProvider {
 
@@ -43,7 +46,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     return SQLBuilder.builder()
-        .select(tableName, notNullFieldValues)
+        .selectAllColumnsWithConditions(tableName, notNullFieldValues)
         .build();
   }
 
@@ -51,19 +54,35 @@ public class SQLProvider {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
-        .select(tableName)
+        .selectSpecificColumns(tableName, getSelectFields(queryable))
         .where(getConditions(queryable))
         .orderBy(getSorting(queryable))
         .build();
   }
 
+  private List<String> getSelectFields(Queryable queryable) {
+    if (queryable instanceof FieldSelectable fieldSelectable) {
+      final List<String> selectFields = fieldSelectable.getSelectFields();
+      if (!CollectionUtils.isEmpty(selectFields)) {
+        List<String> selectColumns = new ArrayList<>();
+        for (String selectField : selectFields) {
+          selectColumns.add(camelToUnderscore(selectField));
+        }
+        return selectColumns;
+      }
+    }
+    return null;
+  }
+
   private List<FilterableItem> getConditions(Queryable queryable) {
     if (queryable instanceof Filterable filterable) {
       final List<FilterableItem> conditions = filterable.getConditions();
-      for (FilterableItem condition : conditions) {
-        condition.setColumn(camelToUnderscore(condition.getColumn()));
+      if (!CollectionUtils.isEmpty(conditions)) {
+        for (FilterableItem condition : conditions) {
+          condition.setColumn(camelToUnderscore(condition.getColumn()));
+        }
+        return conditions;
       }
-      return conditions;
     }
     return null;
   }
@@ -71,10 +90,12 @@ public class SQLProvider {
   private List<SortableItem> getSorting(Queryable queryable) {
     if (queryable instanceof Sortable sortable) {
       final List<SortableItem> sorting = sortable.getSorting();
-      for (SortableItem sortableItem : sorting) {
-        sortableItem.setField(camelToUnderscore(sortableItem.getField()));
+      if (!CollectionUtils.isEmpty(sorting)) {
+        for (SortableItem sortableItem : sorting) {
+          sortableItem.setField(camelToUnderscore(sortableItem.getField()));
+        }
+        return sorting;
       }
-      return sorting;
     }
     return null;
   }

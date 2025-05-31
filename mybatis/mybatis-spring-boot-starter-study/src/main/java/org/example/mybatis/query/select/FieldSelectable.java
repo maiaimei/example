@@ -1,5 +1,8 @@
 package org.example.mybatis.query.select;
 
-public class FieldSelectable {
+import java.util.List;
 
+public interface FieldSelectable {
+
+  List<String> getSelectFields();
 }

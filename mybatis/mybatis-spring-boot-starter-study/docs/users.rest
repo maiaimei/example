@@ -8,6 +8,7 @@ Content-Type: application/json
 
 {
     "username": "chen",
+    "selectFields": ["id","username","firstName","lastName","createAt","updatedAt"],
     "sorting": [
         {
             "field": "createAt",

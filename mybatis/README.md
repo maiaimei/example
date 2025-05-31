@@ -239,3 +239,27 @@ MyBatis 在 Spring Boot 中的配置可以在以下几个地方查看：
    ```
 
 这些配置可以根据实际项目需求进行调整和优化。建议在开发时查看官方文档以获取最新的配置选项和最佳实践。
+
+# Dynamic SQL Construction
+
+```
+org.example.common.query
+    ├── Queryable.java               // 查询能力标记接口
+    │
+    ├── select                       // 字段选择相关
+    │   ├── FieldSelectable.java     // 字段选择能力接口
+    │   └── SelectableField.java     // 可选择字段定义
+    │
+    ├── filter                       // 过滤相关
+    │   ├── Filterable.java
+    │   └── FilterableItem.java
+    │
+    ├── page                         // 分页相关
+    │   ├── Pageable.java
+    │   └── PageResult.java
+    │
+    └── sort                         // 排序相关
+        ├── Sortable.java
+        └── SortableItem.java
+```
+

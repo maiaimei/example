@@ -27,8 +27,7 @@ public class SQLBuilder {
 
   public SQLBuilder insert(String tableName, List<FieldValue> fieldValues) {
     sql.INSERT_INTO(formatName(tableName));
-    fieldValues.forEach(field ->
-        sql.VALUES(formatName(field.columnName()), "#{%s}".formatted(field.fieldName())));
+    fieldValues.forEach(field -> sql.VALUES(formatName(field.columnName()), "#{%s}".formatted(field.fieldName())));
     return this;
   }
 
@@ -36,8 +35,7 @@ public class SQLBuilder {
     sql.UPDATE(formatName(tableName));
     fieldValues.stream()
         .filter(field -> !field.fieldName().equals("id"))
-        .forEach(field ->
-            sql.SET("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
+        .forEach(field -> sql.SET("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
     sql.WHERE("id = #{id}");
     return this;
   }
@@ -47,16 +45,16 @@ public class SQLBuilder {
     return this;
   }
 
-  public SQLBuilder select(String tableName, List<FieldValue> fieldValues) {
+  // 查询所有列（带条件的查询）
+  public SQLBuilder selectAllColumnsWithConditions(String tableName, List<FieldValue> fieldValues) {
     sql.SELECT("*").FROM(formatName(tableName));
-    fieldValues.forEach(field ->
-        sql.WHERE("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
+    fieldValues.forEach(field -> sql.WHERE("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
     return this;
   }
 
-  // 支持指定列的select方法
-  public SQLBuilder select(String tableName, String... columns) {
-    String selectColumns = columns.length > 0
+  // 列选择查询
+  public SQLBuilder selectSpecificColumns(String tableName, List<String> columns) {
+    String selectColumns = !CollectionUtils.isEmpty(columns)
         ? String.join(", ", columns)
         : "*";
     sql.SELECT(selectColumns).FROM(formatName(tableName));
@@ -85,7 +83,8 @@ public class SQLBuilder {
                 "</foreach>", column, i));
             break;
           case BETWEEN:
-            sql.WHERE(String.format("%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}",
+            sql.WHERE(String.format(
+                "%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}",
                 column, i, i));
             break;
           case IS_NULL:
