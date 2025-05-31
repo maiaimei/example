@@ -7,8 +7,10 @@ POST {{host}}/users/list
 Content-Type: application/json
 
 {
-    "username": "chen",
-    "selectFields": ["id","username","firstName","lastName","createAt","updatedAt"],
+    "username": "",
+    "isEnabled": null,
+    "isDeleted": false,
+    "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],
     "sorting": [
         {
             "field": "createAt",
@@ -42,8 +44,8 @@ PUT {{host}}/users
 Content-Type: application/json
 
 {
-    "id": "2025053111191108200001",
-    "password": "encrypted_password_test"
+    "id": "2025053112024864700001",
+    "isEnabled": false
 }
 
 

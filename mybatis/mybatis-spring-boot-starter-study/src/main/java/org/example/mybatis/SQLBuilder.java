@@ -1,6 +1,7 @@
 package org.example.mybatis;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
@@ -10,6 +11,7 @@ import org.example.mybatis.query.filter.FilterableItem;
 import org.example.mybatis.query.filter.SQLOperator;
 import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 // SQL构建器类
 public class SQLBuilder {
@@ -66,7 +68,11 @@ public class SQLBuilder {
     if (!CollectionUtils.isEmpty(conditions)) {
       for (int i = 0; i < conditions.size(); i++) {
         FilterableItem condition = conditions.get(i);
-        final String column = formatName(condition.getColumn());
+        final Object value = condition.getValue();
+        if (Objects.isNull(value) || (value instanceof String stringValue && !StringUtils.hasText(stringValue))) {
+          continue;
+        }
+        final String column = formatName(condition.getField());
         final SQLOperator operator = condition.getOperator();
         final String operatorFormat = operator.getFormat();
         switch (operator) {

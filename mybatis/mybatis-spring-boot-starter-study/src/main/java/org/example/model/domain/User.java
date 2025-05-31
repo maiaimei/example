@@ -14,6 +14,8 @@ public class User {
   private String password;
   private String firstName;
   private String lastName;
+  private Boolean isEnabled;
+  private Boolean isDeleted;
   private LocalDateTime createAt;
   private String createBy;
   private LocalDateTime updatedAt;

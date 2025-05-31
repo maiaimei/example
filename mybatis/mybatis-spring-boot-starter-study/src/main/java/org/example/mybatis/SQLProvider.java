@@ -79,7 +79,7 @@ public class SQLProvider {
       final List<FilterableItem> conditions = filterable.getConditions();
       if (!CollectionUtils.isEmpty(conditions)) {
         for (FilterableItem condition : conditions) {
-          condition.setColumn(camelToUnderscore(condition.getColumn()));
+          condition.setField(camelToUnderscore(condition.getField()));
         }
         return conditions;
       }

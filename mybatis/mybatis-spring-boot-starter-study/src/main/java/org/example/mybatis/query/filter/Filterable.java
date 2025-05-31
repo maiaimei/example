@@ -11,15 +11,15 @@ public interface Filterable extends Queryable {
 
   List<FilterableItem> getConditions();
 
-  default void addCondition(List<FilterableItem> conditions, String column, SQLOperator operator, Object value) {
+  default void addCondition(List<FilterableItem> conditions, String field, SQLOperator operator, Object value) {
     if (Objects.nonNull(value)) {
-      conditions.add(new FilterableItem(column, operator, value));
+      conditions.add(new FilterableItem(field, operator, value));
     }
   }
 
-  default void addBetweenCondition(List<FilterableItem> conditions, String column, Object firstValue, Object secondValue) {
+  default void addBetweenCondition(List<FilterableItem> conditions, String field, Object firstValue, Object secondValue) {
     if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
-      conditions.add(new FilterableItem(column, SQLOperator.BETWEEN, firstValue, secondValue));
+      conditions.add(new FilterableItem(field, SQLOperator.BETWEEN, firstValue, secondValue));
     }
   }
 

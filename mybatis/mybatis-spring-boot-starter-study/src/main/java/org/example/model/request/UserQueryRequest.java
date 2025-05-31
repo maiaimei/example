@@ -16,12 +16,11 @@ public class UserQueryRequest implements Filterable, Sortable, Pageable, FieldSe
 
   // 业务查询参数
   private String username;
+  private Boolean isEnabled;
+  private Boolean isDeleted;
 
   // 查询字段
   private List<String> selectFields;
-
-  // 过滤条件
-  private List<FilterableItem> conditions = new ArrayList<>();
 
   // 排序参数
   private List<SortableItem> sorting;
@@ -30,10 +29,12 @@ public class UserQueryRequest implements Filterable, Sortable, Pageable, FieldSe
   private Integer current;
   private Integer size;
 
-  /**
-   * 构建查询条件
-   */
-  public void buildConditions() {
+  // 过滤条件
+  public List<FilterableItem> getConditions() {
+    List<FilterableItem> conditions = new ArrayList<>();
     addCondition(conditions, "username", SQLOperator.LIKE, username);
+    addCondition(conditions, "isEnabled", SQLOperator.EQ, isEnabled);
+    addCondition(conditions, "isDeleted", SQLOperator.EQ, isDeleted);
+    return conditions;
   }
 }
