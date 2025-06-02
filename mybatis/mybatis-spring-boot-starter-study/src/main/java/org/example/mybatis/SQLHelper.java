@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.example.datasource.DataSourceType;
@@ -24,12 +25,14 @@ public class SQLHelper {
   // 表名缓存
   private static final Map<Class<?>, String> TABLE_NAME_CACHE = new ConcurrentHashMap<>();
 
+  // 验证域对象是否为空
   public static void validateDomain(Object domain) {
     if (Objects.isNull(domain)) {
       throw new IllegalArgumentException("Domain object cannot be null");
     }
   }
 
+  // 验证域字段是否为空
   public static void validateDomainField(List<FieldValue> fieldValueList) {
     if (CollectionUtils.isEmpty(fieldValueList)) {
       throw new IllegalArgumentException("Domain fields cannot be null or empty");
@@ -53,14 +56,8 @@ public class SQLHelper {
    * <p> 3. 如果都没有注解，则将类名转换为下划线格式
    */
   private static String resolveTableName(Class<?> clazz) {
-    // 查找当前类及其父类的@TableName注解
     TableName tableName = findTableNameAnnotation(clazz);
-    if (Objects.nonNull(tableName)) {
-      return tableName.value().toUpperCase(Locale.US);
-    }
-
-    // 如果没有注解，则将类名转换为下划线格式
-    return camelToUnderscore(clazz.getSimpleName());
+    return Objects.nonNull(tableName) ? tableName.value().toUpperCase(Locale.US) : camelToUnderscore(clazz.getSimpleName());
   }
 
   /**
@@ -71,18 +68,15 @@ public class SQLHelper {
       return null;
     }
 
-    // 查找当前类的注解
-    TableName tableName = clazz.getAnnotation(TableName.class);
-    if (Objects.nonNull(tableName)) {
-      return tableName;
-    }
-
-    // 递归查找父类的注解
-    return findTableNameAnnotation(clazz.getSuperclass());
+    return Optional.ofNullable(clazz.getAnnotation(TableName.class))
+        .orElse(findTableNameAnnotation(clazz.getSuperclass()));
   }
 
   /**
-   * 获取类及其父类的所有字段 1. 优先从缓存获取 2. 递归获取类及其父类的所有字段 3. 过滤和排序字段
+   * 获取类及其父类的所有字段
+   * <p> 1. 优先从缓存获取
+   * <p> 2. 递归获取类及其父类的所有字段
+   * <p> 3. 过滤和排序字段
    */
   public static List<Field> getFields(Class<?> clazz) {
     return CLASS_FIELDS_CACHE.computeIfAbsent(clazz, SQLHelper::resolveFields);
@@ -93,19 +87,10 @@ public class SQLHelper {
    */
   private static List<Field> resolveFields(Class<?> clazz) {
     List<Field> fields = new ArrayList<>();
-    Class<?> currentClass = clazz;
-
-    // 递归获取类及其父类的所有字段
-    while (Objects.nonNull(currentClass) && currentClass != Object.class) {
-      // 获取当前类声明的所有字段
-      Field[] declaredFields = currentClass.getDeclaredFields();
-      // 将字段添加到列表中
-      fields.addAll(Arrays.asList(declaredFields));
-      // 获取父类
-      currentClass = currentClass.getSuperclass();
+    while (Objects.nonNull(clazz) && clazz != Object.class) {
+      fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+      clazz = clazz.getSuperclass();
     }
-
-    // 对字段进行处理和排序
     return processFields(fields);
   }
 
@@ -115,17 +100,8 @@ public class SQLHelper {
    * <p> 2. 排序（确保字段顺序一致）
    */
   private static List<Field> processFields(List<Field> fields) {
-    // 使用LinkedHashMap保持顺序，同时去重
     Map<String, Field> fieldMap = new LinkedHashMap<>();
-
-    // 按照字段名去重，子类的字段优先
-    fields.forEach(field -> {
-      if (!fieldMap.containsKey(field.getName())) {
-        fieldMap.put(field.getName(), field);
-      }
-    });
-
-    // 将字段列表排序（可选，根据需求决定是否需要排序）
+    fields.forEach(field -> fieldMap.putIfAbsent(field.getName(), field));
     return fieldMap.values().stream()
         .sorted(Comparator.comparing(Field::getName))
         .collect(Collectors.toList());
@@ -133,19 +109,14 @@ public class SQLHelper {
 
   // 获取非空字段值
   public static List<FieldValue> getNotNullFieldValues(Object domain) {
+    validateDomain(domain);
     List<FieldValue> fieldValues = new ArrayList<>();
-    List<Field> fields = getFields(domain.getClass());
-
-    for (Field field : fields) {
+    for (Field field : getFields(domain.getClass())) {
       field.setAccessible(true);
       try {
         Object value = field.get(domain);
         if (Objects.nonNull(value)) {
-          final ColumnName columnName = field.getAnnotation(ColumnName.class);
-          fieldValues.add(new FieldValue(
-              field.getName(),
-              Objects.nonNull(columnName) ? columnName.value() : camelToUnderscore(field.getName()),
-              value));
+          fieldValues.add(createFieldValue(field, value));
         }
       } catch (IllegalAccessException e) {
         throw new RuntimeException("Failed to get field value", e);
@@ -154,16 +125,20 @@ public class SQLHelper {
     return fieldValues;
   }
 
+  // 创建字段值对象
+  private static FieldValue createFieldValue(Field field, Object value) {
+    ColumnName columnName = field.getAnnotation(ColumnName.class);
+    String column = Objects.nonNull(columnName) ? columnName.value() : camelToUnderscore(field.getName());
+    return new FieldValue(field.getName(), column, value);
+  }
+
   // 驼峰转下划线
   public static String camelToUnderscore(String camelCase) {
     return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase(Locale.US);
   }
 
+  // 格式化名称
   public static String formatName(String dataSourceType, String name) {
-    if (DataSourceType.POSTGRESQL.getType().equals(dataSourceType)) {
-      // 保持原有大小写，使用双引号
-      return "\"" + name + "\"";
-    }
-    return name;
+    return DataSourceType.POSTGRESQL.getType().equals(dataSourceType) ? "\"" + name + "\"" : name;
   }
 }
