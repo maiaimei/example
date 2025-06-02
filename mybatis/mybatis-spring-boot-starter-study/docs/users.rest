@@ -8,7 +8,7 @@ Content-Type: application/json
 
 {
     "username": "",
-    "isEnabled": null,
+    "isEnabled": true,
     "isDeleted": false,
     "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],
     "sorting": [

@@ -65,6 +65,21 @@ public class SQLBuilder {
     return this;
   }
 
+  /**
+   * 构建WHERE子句
+   */
+  public SQLBuilder where2(List<Condition> conditions) {
+    if (!CollectionUtils.isEmpty(conditions)) {
+      conditions.forEach(condition -> {
+        String whereSql = condition.build(dataSourceType, parameterIndex++);
+        if (StringUtils.hasText(whereSql)) {
+          sql.WHERE(whereSql);
+        }
+      });
+    }
+    return this;
+  }
+
   public SQLBuilder where(List<FilterableItem> conditions) {
     if (!CollectionUtils.isEmpty(conditions)) {
       for (int i = 0; i < conditions.size(); i++) {
@@ -82,21 +97,6 @@ public class SQLBuilder {
           default -> sql.WHERE(String.format(operatorFormat, column, i));
         }
       }
-    }
-    return this;
-  }
-
-  /**
-   * 构建WHERE子句
-   */
-  public SQLBuilder where2(List<Condition> conditions) {
-    if (!CollectionUtils.isEmpty(conditions)) {
-      conditions.forEach(condition -> {
-        String whereSql = condition.build(dataSourceType, parameterIndex++);
-        if (StringUtils.hasText(whereSql)) {
-          sql.WHERE(whereSql);
-        }
-      });
     }
     return this;
   }

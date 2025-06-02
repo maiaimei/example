@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.example.mybatis.query.operator.LogicalOperator;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * 条件组（支持AND/OR）
@@ -24,19 +26,19 @@ public class ConditionGroup implements Condition {
 
   @Override
   public String build(String dataSourceType, int index) {
-    if (conditions.isEmpty()) {
+    if (CollectionUtils.isEmpty(conditions)) {
       return null;
     }
 
     List<String> sqlConditions = new ArrayList<>();
     for (Condition condition : conditions) {
       String sql = condition.build(dataSourceType, index++);
-      if (sql != null) {
+      if (StringUtils.hasText(sql)) {
         sqlConditions.add(sql);
       }
     }
 
-    if (sqlConditions.isEmpty()) {
+    if (CollectionUtils.isEmpty(sqlConditions)) {
       return null;
     }
 

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.Queryable;
+import org.example.mybatis.query.condition.Condition;
 import org.example.mybatis.query.filter.Filterable;
 import org.example.mybatis.query.filter.FilterableItem;
 import org.example.mybatis.query.select.FieldSelectable;
@@ -55,17 +56,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
         .selectSpecificColumns(tableName, getSelectFields(queryable))
-        .where(getConditions(queryable))
-        .orderBy(getSorting(queryable))
-        .build();
-  }
-
-  public String selectByConditions2(Object domain, Queryable queryable) {
-    validateDomain(domain);
-    final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder()
-        .selectSpecificColumns(tableName, getSelectFields(queryable))
-        .where(getConditions(queryable))
+        .where2(getConditions2(queryable))
         .orderBy(getSorting(queryable))
         .build();
   }
@@ -79,6 +70,16 @@ public class SQLProvider {
           selectColumns.add(camelToUnderscore(selectField));
         }
         return selectColumns;
+      }
+    }
+    return null;
+  }
+
+  private List<Condition> getConditions2(Queryable queryable) {
+    if (queryable instanceof Filterable filterable) {
+      final List<Condition> conditions = filterable.getConditions2();
+      if (!CollectionUtils.isEmpty(conditions)) {
+        return conditions;
       }
     }
     return null;

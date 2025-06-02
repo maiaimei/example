@@ -3,9 +3,12 @@ package org.example.model.request;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
+import org.example.mybatis.query.condition.Condition;
+import org.example.mybatis.query.condition.QueryConditionBuilder;
 import org.example.mybatis.query.filter.Filterable;
 import org.example.mybatis.query.filter.FilterableItem;
 import org.example.mybatis.query.operator.SQLOperator;
+import org.example.mybatis.query.operator.SQLOperator2;
 import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.select.FieldSelectable;
 import org.example.mybatis.query.sort.Sortable;
@@ -36,5 +39,14 @@ public class UserQueryRequest implements Filterable, Sortable, Pageable, FieldSe
     addCondition(conditions, "isEnabled", SQLOperator.EQ, isEnabled);
     addCondition(conditions, "isDeleted", SQLOperator.EQ, isDeleted);
     return conditions;
+  }
+
+  @Override
+  public List<Condition> getConditions2() {
+    QueryConditionBuilder builder = QueryConditionBuilder.create();
+    builder.and(newSimpleCondition("username", SQLOperator2.LIKE, username));
+    builder.and(newSimpleCondition("isEnabled", SQLOperator2.EQ, isEnabled));
+    builder.and(newSimpleCondition("isDeleted", SQLOperator2.EQ, isDeleted));
+    return builder.build();
   }
 }

@@ -1,6 +1,5 @@
 package org.example.mybatis.query.condition;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.example.mybatis.SQLHelper;
 import org.example.mybatis.query.operator.SQLOperator2;
@@ -10,7 +9,6 @@ import org.example.mybatis.query.operator.SQLOperatorStrategyFactory;
  * 简单条件
  */
 @Data
-@AllArgsConstructor
 public class SimpleCondition implements Condition {
 
   private String field;
@@ -18,9 +16,22 @@ public class SimpleCondition implements Condition {
   private Object value;
   private Object secondValue; // 用于 BETWEEN 等操作符
 
+  public SimpleCondition(String field, SQLOperator2 operator, Object value) {
+    this.field = field;
+    this.operator = operator;
+    this.value = value;
+  }
+
+  public SimpleCondition(String field, SQLOperator2 operator, Object value, Object secondValue) {
+    this(field, operator, value);
+    this.secondValue = secondValue;
+  }
+
   @Override
   public String build(String dataSourceType, int index) {
+    final String column = SQLHelper.camelToUnderscore(field);
+    final String formatColumn = SQLHelper.formatName(dataSourceType, column);
     return SQLOperatorStrategyFactory.getStrategy(operator)
-        .buildCondition(SQLHelper.formatName(dataSourceType, field), index);
+        .buildCondition(formatColumn, index);
   }
 }

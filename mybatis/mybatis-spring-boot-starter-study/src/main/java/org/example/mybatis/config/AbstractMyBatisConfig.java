@@ -15,6 +15,11 @@ public abstract class AbstractMyBatisConfig {
     configuration.setCacheEnabled(true);              // 开启二级缓存
     configuration.setLazyLoadingEnabled(true);        // 开启懒加载
     configuration.setAggressiveLazyLoading(false);    // 关闭积极加载
+
+    // 处理 Boolean 类型映射
+    //configuration.getTypeHandlerRegistry().register(Boolean.class, CustomBooleanTypeHandler.class);
+    //configuration.getTypeHandlerRegistry().register(boolean.class, CustomBooleanTypeHandler.class);
+
     return configuration;
   }
 

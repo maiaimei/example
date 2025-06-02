@@ -11,6 +11,7 @@ public enum SQLOperator2 {
   LT,          // 小于
   LE,          // 小于等于
   LIKE,        // 模糊查询
+  NOT_LIKE,    // NOT LIKE查询
   STARTS_WITH, // 左模糊
   ENDS_WITH,   // 右模糊
   IN,          // IN查询
