@@ -25,9 +25,10 @@ public class SQLBuilder {
   private final Map<String, Object> parameters = new HashMap<>();
   private int parameterIndex = 0;
 
-  public SQLBuilder() {
+  private SQLBuilder() {
     this.sql = new SQL();
-    this.dataSourceType = Optional.ofNullable(DataSourceContextHolder.getDataSourceType()).orElse(DataSourceType.MYSQL.getType());
+    this.dataSourceType = Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
+        .orElse(DataSourceType.MYSQL.getType());
   }
 
   public static SQLBuilder builder() {
@@ -36,73 +37,51 @@ public class SQLBuilder {
 
   public SQLBuilder insert(String tableName, List<FieldValue> fieldValues) {
     sql.INSERT_INTO(formatName(tableName));
-    fieldValues.forEach(field -> sql.VALUES(formatName(field.columnName()), "#{%s}".formatted(field.fieldName())));
+    fieldValues.forEach(field -> sql.VALUES(formatName(field.columnName()), formatParameter(field.fieldName())));
     return this;
   }
 
   public SQLBuilder update(String tableName, List<FieldValue> fieldValues) {
     sql.UPDATE(formatName(tableName));
     fieldValues.stream()
-        .filter(field -> !field.fieldName().equals("id"))
-        .forEach(field -> sql.SET("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
-    sql.WHERE("id = #{id}");
+        .filter(field -> !isPrimaryKey(field))
+        .forEach(field -> sql.SET(formatAssignment(field.columnName(), field.fieldName())));
+    sql.WHERE(formatAssignment("id", "id"));
     return this;
   }
 
   public SQLBuilder delete(String tableName) {
-    sql.DELETE_FROM(formatName(tableName)).WHERE("id = #{id}");
+    sql.DELETE_FROM(formatName(tableName)).WHERE(formatAssignment("id", "id"));
     return this;
   }
 
-  // 查询所有列
   public SQLBuilder selectAllColumns(String tableName) {
     sql.SELECT("*").FROM(formatName(tableName));
     return this;
   }
 
-  // 查询指定列
   public SQLBuilder selectColumns(String tableName, List<String> columns) {
-    String selectColumns = !CollectionUtils.isEmpty(columns)
-        ? String.join(", ", columns)
-        : "*";
-    sql.SELECT(selectColumns).FROM(formatName(tableName));
+    sql.SELECT(formatSelectColumns(columns)).FROM(formatName(tableName));
     return this;
   }
 
   public SQLBuilder whereByFieldValues(List<FieldValue> fieldValues) {
     if (!CollectionUtils.isEmpty(fieldValues)) {
-      fieldValues.forEach(field -> sql.WHERE("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
+      fieldValues.forEach(field -> sql.WHERE(formatAssignment(field.columnName(), field.fieldName())));
     }
     return this;
   }
 
-  /**
-   * 构建WHERE子句
-   */
   public SQLBuilder whereByConditions(List<Condition> conditions) {
     if (!CollectionUtils.isEmpty(conditions)) {
-      conditions.forEach(condition -> {
-        String whereSql = condition.build(dataSourceType, parameterIndex);
-        if (StringUtils.hasText(whereSql)) {
-          sql.WHERE(whereSql);
-          parameters.putAll(condition.getParameters(parameterIndex));
-          parameterIndex++;
-        }
-      });
+      conditions.forEach(this::addCondition);
     }
     return this;
   }
 
-  // 添加排序功能
   public SQLBuilder orderBy(List<SortableItem> sorting) {
     if (!CollectionUtils.isEmpty(sorting)) {
-      List<String> orderClauses = sorting.stream()
-          .map(item -> String.format("%s %s",
-              formatName(item.getField()),
-              "DESC".equalsIgnoreCase(item.getSort()) ? "DESC" : "ASC"))
-          .collect(Collectors.toList());
-
-      sql.ORDER_BY(String.join(", ", orderClauses));
+      sql.ORDER_BY(formatOrderBy(sorting));
     }
     return this;
   }
@@ -113,5 +92,40 @@ public class SQLBuilder {
 
   private String formatName(String name) {
     return SQLHelper.formatName(dataSourceType, name);
+  }
+
+  private String formatParameter(String fieldName) {
+    return "#{%s}".formatted(fieldName);
+  }
+
+  private String formatAssignment(String columnName, String fieldName) {
+    return "%s = %s".formatted(formatName(columnName), formatParameter(fieldName));
+  }
+
+  private String formatSelectColumns(List<String> columns) {
+    return CollectionUtils.isEmpty(columns) ? "*" : String.join(", ", columns);
+  }
+
+  private String formatOrderBy(List<SortableItem> sorting) {
+    return sorting.stream()
+        .map(item -> "%s %s".formatted(formatName(item.getField()), formatSortDirection(item.getSort())))
+        .collect(Collectors.joining(", "));
+  }
+
+  private String formatSortDirection(String sort) {
+    return "DESC".equalsIgnoreCase(sort) ? "DESC" : "ASC";
+  }
+
+  private boolean isPrimaryKey(FieldValue field) {
+    return "id".equals(field.fieldName());
+  }
+
+  private void addCondition(Condition condition) {
+    String whereSql = condition.build(dataSourceType, parameterIndex);
+    if (StringUtils.hasText(whereSql)) {
+      sql.WHERE(whereSql);
+      parameters.putAll(condition.getParameters(parameterIndex));
+      parameterIndex++;
+    }
   }
 }
