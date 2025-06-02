@@ -16,6 +16,8 @@ public class UserQueryRequest implements FieldSelectable, Filterable, Sortable, 
 
   // 业务查询参数
   private String username;
+  private String firstName;
+  private String lastName;
   private Boolean isEnabled;
   private Boolean isDeleted;
 
@@ -33,12 +35,13 @@ public class UserQueryRequest implements FieldSelectable, Filterable, Sortable, 
   @Override
   public List<Condition> getConditions() {
     QueryConditionBuilder builder = QueryConditionBuilder.create();
-    builder.and(
+    builder.or(
+        newSimpleCondition("username", SQLOperator.LIKE, username),
+        newSimpleCondition("firstName", SQLOperator.LIKE, firstName),
+        newSimpleCondition("lastName", SQLOperator.LIKE, lastName)
+    ).and(
         newSimpleCondition("isEnabled", SQLOperator.EQ, isEnabled),
         newSimpleCondition("isDeleted", SQLOperator.EQ, isDeleted)
-    ).or(
-        newSimpleCondition("username", SQLOperator.LIKE, username),
-        newSimpleCondition("username", SQLOperator.LIKE, "mai")
     );
     return builder.build();
   }

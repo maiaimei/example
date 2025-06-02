@@ -59,6 +59,8 @@ Content-Type: application/json
 
 {
     "username": "chen",
+    "firstName": "Tom",
+    "lastName": "Mai",
     "isEnabled": true,
     "isDeleted": false,
     "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],
