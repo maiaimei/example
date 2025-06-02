@@ -1,5 +1,7 @@
 package org.example.datasource;
 
+import java.util.Optional;
+
 public class DataSourceContextHolder {
 
   private static final ThreadLocal<String> DATA_SOURCE_NAME_CONTEXT = new ThreadLocal<>();
@@ -23,7 +25,8 @@ public class DataSourceContextHolder {
   }
 
   public static String getDataSourceType() {
-    return DATA_SOURCE_TYPE_CONTEXT.get();
+    return Optional.ofNullable(DATA_SOURCE_TYPE_CONTEXT.get())
+        .orElse(DataSourceType.MYSQL.getType());
   }
 
   public static void clearDataSourceType() {

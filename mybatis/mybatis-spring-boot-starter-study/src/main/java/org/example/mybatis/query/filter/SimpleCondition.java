@@ -29,11 +29,10 @@ public class SimpleCondition implements Condition {
   }
 
   @Override
-  public String build(String dataSourceType, AtomicInteger conditionIndex) {
-    final String column = SQLHelper.camelToUnderscore(field);
-    final String formatColumn = SQLHelper.formatName(dataSourceType, column);
+  public String build(AtomicInteger index) {
+    final String column = SQLHelper.formatName(SQLHelper.camelToUnderscore(field));
     return SQLOperatorStrategyFactory.getStrategy(operator)
-        .buildCondition(formatColumn, conditionIndex.getAndIncrement());
+        .buildCondition(column, index.getAndIncrement());
   }
 
 }

@@ -7,5 +7,5 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public interface Condition {
 
-  String build(String dataSourceType, AtomicInteger conditionIndex);
+  String build(AtomicInteger index);
 }

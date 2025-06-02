@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DataSourceType;
 import org.example.mybatis.annotation.ColumnName;
 import org.example.mybatis.annotation.TableName;
@@ -64,7 +65,8 @@ public class SQLHelper {
    */
   private static String resolveTableName(Class<?> clazz) {
     TableName tableName = findTableNameAnnotation(clazz);
-    return Objects.nonNull(tableName) ? tableName.value().toUpperCase(Locale.US) : camelToUnderscore(clazz.getSimpleName());
+    return Objects.nonNull(tableName) ? tableName.value().toUpperCase(Locale.US)
+        : formatName(camelToUnderscore(clazz.getSimpleName()));
   }
 
   /**
@@ -135,7 +137,7 @@ public class SQLHelper {
   // 创建字段值对象
   private static FieldValue createFieldValue(Field field, Object value) {
     ColumnName columnName = field.getAnnotation(ColumnName.class);
-    String column = Objects.nonNull(columnName) ? columnName.value() : camelToUnderscore(field.getName());
+    String column = Objects.nonNull(columnName) ? columnName.value() : formatName(camelToUnderscore(field.getName()));
     return new FieldValue(field.getName(), column, value);
   }
 
@@ -145,7 +147,7 @@ public class SQLHelper {
   }
 
   // 格式化名称
-  public static String formatName(String dataSourceType, String name) {
-    return DataSourceType.POSTGRESQL.getType().equals(dataSourceType) ? "\"" + name + "\"" : name;
+  public static String formatName(String name) {
+    return DataSourceType.POSTGRESQL.getType().equals(DataSourceContextHolder.getDataSourceType()) ? "\"" + name + "\"" : name;
   }
 }

@@ -27,14 +27,14 @@ public class ConditionGroup implements Condition {
   }
 
   @Override
-  public String build(String dataSourceType, AtomicInteger conditionIndex) {
+  public String build(AtomicInteger index) {
     if (CollectionUtils.isEmpty(conditions)) {
       return null;
     }
 
     List<String> sqlConditions = new ArrayList<>();
     for (Condition condition : conditions) {
-      String sql = condition.build(dataSourceType, conditionIndex);
+      String sql = condition.build(index);
       if (StringUtils.hasText(sql)) {
         sqlConditions.add(sql);
       }
