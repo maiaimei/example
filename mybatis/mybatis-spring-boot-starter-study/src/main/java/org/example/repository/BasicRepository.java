@@ -8,7 +8,6 @@ import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.example.mybatis.SQLProvider;
 import org.example.mybatis.query.filter.Condition;
-import org.example.mybatis.query.filter.SimpleCondition;
 
 public interface BasicRepository<T> {
 
@@ -24,15 +23,9 @@ public interface BasicRepository<T> {
   @SelectProvider(type = SQLProvider.class, method = "select")
   T select(T domain);
 
-//  @SelectProvider(type = SQLProvider.class, method = "advancedSelect")
-//  List<T> advancedSelect(@Param("domain") T domain,
-//      @Param("queryable") Queryable queryable,
-//      @Param("params") Map<String, Object> params);
-
-  @SelectProvider(type = SQLProvider.class, method = "advancedSelect2")
-  List<T> advancedSelect2(@Param("domain") T domain,
+  @SelectProvider(type = SQLProvider.class, method = "advancedSelect")
+  List<T> advancedSelect(@Param("domain") T domain,
       @Param("conditions") List<Condition> conditions,
-      @Param("simpleConditions") List<SimpleCondition> simpleConditions,
       @Param("fields") List<String> fields);
 
   @InsertProvider(type = SQLProvider.class, method = "batchInsert")

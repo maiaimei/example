@@ -73,20 +73,17 @@ public class SQLBuilder {
     return this;
   }
 
-  public SQLBuilder whereByCondition(Condition condition, AtomicInteger index) {
-    String whereSql = condition.build(dataSourceType, index);
-    if (StringUtils.hasText(whereSql)) {
-      sql.WHERE(whereSql);
+  public SQLBuilder whereByConditions(List<Condition> conditions, AtomicInteger index) {
+    if (!CollectionUtils.isEmpty(conditions)) {
+      conditions.forEach(condition -> {
+        String whereSql = condition.build(dataSourceType, index);
+        if (StringUtils.hasText(whereSql)) {
+          sql.WHERE(whereSql);
+        }
+      });
     }
     return this;
   }
-
-//  public SQLBuilder whereByConditions(List<Condition> conditions) {
-//    if (!CollectionUtils.isEmpty(conditions)) {
-//      conditions.forEach(this::addCondition);
-//    }
-//    return this;
-//  }
 
   public SQLBuilder orderBy(List<SortableItem> sorting) {
     if (!CollectionUtils.isEmpty(sorting)) {
@@ -112,7 +109,7 @@ public class SQLBuilder {
   }
 
   private String formatSelectColumns(List<String> columns) {
-    return CollectionUtils.isEmpty(columns) ? "*" : String.join(", ", columns.stream().map(SQLHelper::camelToUnderscore).toList());
+    return CollectionUtils.isEmpty(columns) ? "*" : String.join(", ", columns.stream().map(this::formatName).toList());
   }
 
   private String formatOrderBy(List<SortableItem> sorting) {
@@ -128,14 +125,4 @@ public class SQLBuilder {
   private boolean isPrimaryKey(FieldValue field) {
     return "id".equals(field.fieldName());
   }
-
-//  private void addCondition(Condition condition) {
-//    AtomicInteger atomicInteger = new AtomicInteger(0);
-//    String whereSql = condition.build(dataSourceType, parameterIndex);
-//    if (StringUtils.hasText(whereSql)) {
-//      sql.WHERE(whereSql);
-//      parameters.putAll(condition.getParameters(parameterIndex));
-//      parameterIndex++;
-//    }
-//  }
 }

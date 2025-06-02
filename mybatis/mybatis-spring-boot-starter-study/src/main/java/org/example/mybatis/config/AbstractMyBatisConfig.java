@@ -4,6 +4,7 @@ import org.apache.ibatis.logging.slf4j.Slf4jImpl;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.example.mybatis.handler.CustomBooleanTypeHandler;
+import org.example.mybatis.interceptor.ConditionInterceptor;
 
 public abstract class AbstractMyBatisConfig {
 
@@ -25,6 +26,8 @@ public abstract class AbstractMyBatisConfig {
     configuration.getTypeHandlerRegistry().register(Boolean.class, JdbcType.BIT, CustomBooleanTypeHandler.class);
     configuration.getTypeHandlerRegistry().register(Boolean.class, JdbcType.TINYINT, CustomBooleanTypeHandler.class);
     configuration.getTypeHandlerRegistry().register(Boolean.class, JdbcType.VARCHAR, CustomBooleanTypeHandler.class);
+
+    configuration.addInterceptor(new ConditionInterceptor());
 
     return configuration;
   }

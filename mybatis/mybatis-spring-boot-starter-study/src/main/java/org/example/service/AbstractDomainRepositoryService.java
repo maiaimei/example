@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
@@ -54,17 +53,8 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
     return select(domain);
   }
 
-//  public List<T> advancedSelect(Queryable queryable) {
-//    final T domain = createDomain();
-//    return advancedSelect(domain, queryable);
-//  }
-//
-//  public List<T> advancedSelect(T domain, Queryable queryable) {
-//    return repository.advancedSelect(domain, queryable, new HashMap<>());
-//  }
-
-  public List<T> advancedSelect2(T domain, List<Condition> conditions, List<String> fields) {
-    return repository.advancedSelect2(domain, conditions, new ArrayList<>(), fields);
+  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields) {
+    return repository.advancedSelect(domain, conditions, fields);
   }
 
   public void batchInsert(List<T> domains) {

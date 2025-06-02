@@ -30,6 +30,6 @@ public class UserService extends AbstractDomainRepositoryService<User, UserRepos
             newSimpleCondition("isDeleted", SQLOperator.EQ, userQueryRequest.getIsDeleted())
         ).build();
     List<String> fields = List.of("id", "username", "firstName", "lastName", "isEnabled", "isDeleted", "createAt", "updatedAt");
-    return advancedSelect2(user, conditions, fields);
+    return advancedSelect(user, conditions, fields);
   }
 }
