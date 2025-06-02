@@ -32,7 +32,7 @@ public class ConditionGroup implements Condition {
 
     List<String> sqlConditions = new ArrayList<>();
     for (Condition condition : conditions) {
-      String sql = condition.build(dataSourceType, index++);
+      String sql = condition.build(dataSourceType, index);
       if (StringUtils.hasText(sql)) {
         sqlConditions.add(sql);
       }
