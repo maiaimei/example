@@ -4,6 +4,8 @@ import com.github.pagehelper.PageInterceptor;
 import java.util.Properties;
 import org.apache.ibatis.logging.slf4j.Slf4jImpl;
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.type.JdbcType;
+import org.example.mybatis.handler.CustomBooleanTypeHandler;
 
 public abstract class AbstractMyBatisConfig {
 
@@ -12,13 +14,18 @@ public abstract class AbstractMyBatisConfig {
     Configuration configuration = new Configuration();
     configuration.setMapUnderscoreToCamelCase(true);  // 开启驼峰命名转换，相当于 yaml 配置的 mybatis.configuration.map-underscore-to-camel-case
     configuration.setLogImpl(Slf4jImpl.class);        // 设置日志实现，相当于 yaml 配置的 mybatis.configuration.log-impl
-    configuration.setCacheEnabled(true);              // 开启二级缓存
-    configuration.setLazyLoadingEnabled(true);        // 开启懒加载
+    configuration.setCacheEnabled(false);              // 关闭二级缓存
+    configuration.setLazyLoadingEnabled(false);        // 关闭懒加载
     configuration.setAggressiveLazyLoading(false);    // 关闭积极加载
 
-    // 处理 Boolean 类型映射
-    //configuration.getTypeHandlerRegistry().register(Boolean.class, CustomBooleanTypeHandler.class);
-    //configuration.getTypeHandlerRegistry().register(boolean.class, CustomBooleanTypeHandler.class);
+    // 同时注册Boolean和boolean类型
+    configuration.getTypeHandlerRegistry().register(Boolean.class, CustomBooleanTypeHandler.class);
+    configuration.getTypeHandlerRegistry().register(boolean.class, CustomBooleanTypeHandler.class);
+    // 如果需要，也可以指定具体的JDBC类型
+    configuration.getTypeHandlerRegistry().register(Boolean.class, JdbcType.BOOLEAN, CustomBooleanTypeHandler.class);
+    configuration.getTypeHandlerRegistry().register(Boolean.class, JdbcType.BIT, CustomBooleanTypeHandler.class);
+    configuration.getTypeHandlerRegistry().register(Boolean.class, JdbcType.TINYINT, CustomBooleanTypeHandler.class);
+    configuration.getTypeHandlerRegistry().register(Boolean.class, JdbcType.VARCHAR, CustomBooleanTypeHandler.class);
 
     return configuration;
   }
