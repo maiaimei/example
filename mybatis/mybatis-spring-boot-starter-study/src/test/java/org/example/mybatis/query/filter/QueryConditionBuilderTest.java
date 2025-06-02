@@ -18,8 +18,8 @@ public class QueryConditionBuilderTest {
         .and(new SimpleCondition("role", SQLOperator.IN, Arrays.asList(1, 2, 3)))
         .and(new SimpleCondition("deleted_at", SQLOperator.IS_NULL, null));
     String sql = SQLBuilder.builder()
-        .selectAllColumnsWithConditions("users", null)
-        .where(defaultFilterable.getConditions())
+        .selectAllColumns("users")
+        .whereByConditions(defaultFilterable.getConditions())
         .build();
     System.out.println(sql);
   }

@@ -46,7 +46,8 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     return SQLBuilder.builder()
-        .selectAllColumnsWithConditions(tableName, notNullFieldValues)
+        .selectAllColumns(tableName)
+        .whereByFieldValues(notNullFieldValues)
         .build();
   }
 
@@ -61,8 +62,8 @@ public class SQLProvider {
     final List<SortableItem> sorting = resolveSorting(queryable);
 
     final SQLBuilder builder = SQLBuilder.builder()
-        .selectSpecificColumns(tableName, selectFields)
-        .where(conditions)
+        .selectColumns(tableName, selectFields)
+        .whereByConditions(conditions)
         .orderBy(sorting);
 
     mergeParameters(params, builder.getParameters());

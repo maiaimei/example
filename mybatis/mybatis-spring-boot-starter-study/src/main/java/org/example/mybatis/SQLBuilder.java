@@ -54,17 +54,14 @@ public class SQLBuilder {
     return this;
   }
 
-  // 查询所有列（带条件的查询）
-  public SQLBuilder selectAllColumnsWithConditions(String tableName, List<FieldValue> fieldValues) {
+  // 查询所有列
+  public SQLBuilder selectAllColumns(String tableName) {
     sql.SELECT("*").FROM(formatName(tableName));
-    if (!CollectionUtils.isEmpty(fieldValues)) {
-      fieldValues.forEach(field -> sql.WHERE("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
-    }
     return this;
   }
 
-  // 列选择查询
-  public SQLBuilder selectSpecificColumns(String tableName, List<String> columns) {
+  // 查询指定列
+  public SQLBuilder selectColumns(String tableName, List<String> columns) {
     String selectColumns = !CollectionUtils.isEmpty(columns)
         ? String.join(", ", columns)
         : "*";
@@ -72,10 +69,17 @@ public class SQLBuilder {
     return this;
   }
 
+  public SQLBuilder whereByFieldValues(List<FieldValue> fieldValues) {
+    if (!CollectionUtils.isEmpty(fieldValues)) {
+      fieldValues.forEach(field -> sql.WHERE("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
+    }
+    return this;
+  }
+
   /**
    * 构建WHERE子句
    */
-  public SQLBuilder where(List<Condition> conditions) {
+  public SQLBuilder whereByConditions(List<Condition> conditions) {
     if (!CollectionUtils.isEmpty(conditions)) {
       conditions.forEach(condition -> {
         String whereSql = condition.build(dataSourceType, parameterIndex);
