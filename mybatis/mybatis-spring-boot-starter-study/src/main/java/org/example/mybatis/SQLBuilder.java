@@ -20,9 +20,10 @@ public class SQLBuilder {
 
   private final SQL sql;
   private final String dataSourceType;
-  private int parameterIndex = 0;
+
   @Getter
   private final Map<String, Object> parameters = new HashMap<>();
+  private int parameterIndex = 0;
 
   public SQLBuilder() {
     this.sql = new SQL();

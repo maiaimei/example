@@ -5,9 +5,9 @@ import static org.example.mybatis.SQLHelper.getTableName;
 import static org.example.mybatis.SQLHelper.validateDomain;
 import static org.example.mybatis.SQLHelper.validateDomainField;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.Queryable;
 import org.example.mybatis.query.filter.Condition;
@@ -50,55 +50,67 @@ public class SQLProvider {
         .build();
   }
 
-  @SuppressWarnings("unchecked")
   public String advancedSelect(Map<String, Object> params) {
     Object domain = params.get("domain");
     Queryable queryable = (Queryable) params.get("queryable");
     validateDomain(domain);
+
     final String tableName = getTableName(domain.getClass());
+    final List<String> selectFields = resolveSelectFields(queryable);
+    final List<Condition> conditions = resolveConditions(queryable);
+    final List<SortableItem> sorting = resolveSorting(queryable);
+
     final SQLBuilder builder = SQLBuilder.builder()
-        .selectSpecificColumns(tableName, getSelectFields(queryable))
-        .where(getConditions(queryable))
-        .orderBy(getSorting(queryable));
-    ((Map<String, Object>) params.get("params")).putAll(builder.getParameters());
+        .selectSpecificColumns(tableName, selectFields)
+        .where(conditions)
+        .orderBy(sorting);
+
+    mergeParameters(params, builder.getParameters());
     return builder.build();
   }
 
-  private List<String> getSelectFields(Queryable queryable) {
+  // 字段选择
+  private List<String> resolveSelectFields(Queryable queryable) {
     if (queryable instanceof FieldSelectable fieldSelectable) {
-      final List<String> selectFields = fieldSelectable.getSelectFields();
-      if (!CollectionUtils.isEmpty(selectFields)) {
-        List<String> selectColumns = new ArrayList<>();
-        for (String selectField : selectFields) {
-          selectColumns.add(SQLHelper.camelToUnderscore(selectField));
-        }
-        return selectColumns;
-      }
+      return getSelectFields(fieldSelectable.getSelectFields());
     }
     return null;
   }
 
-  private List<Condition> getConditions(Queryable queryable) {
+  private List<String> getSelectFields(List<String> selectFields) {
+    if (!CollectionUtils.isEmpty(selectFields)) {
+      return selectFields.stream()
+          .map(SQLHelper::camelToUnderscore)
+          .collect(Collectors.toList());
+    }
+    return null;
+  }
+
+  // 条件解析
+  private List<Condition> resolveConditions(Queryable queryable) {
     if (queryable instanceof Filterable filterable) {
-      final List<Condition> conditions = filterable.getConditions();
-      if (!CollectionUtils.isEmpty(conditions)) {
-        return conditions;
-      }
+      return filterable.getConditions();
     }
     return null;
   }
 
-  private List<SortableItem> getSorting(Queryable queryable) {
+  // 排序解析
+  private List<SortableItem> resolveSorting(Queryable queryable) {
     if (queryable instanceof Sortable sortable) {
-      final List<SortableItem> sorting = sortable.getSorting();
-      if (!CollectionUtils.isEmpty(sorting)) {
-        for (SortableItem sortableItem : sorting) {
-          sortableItem.setField(SQLHelper.camelToUnderscore(sortableItem.getField()));
-        }
-        return sorting;
-      }
+      return sortable.getSorting().stream()
+          .peek(item -> item.setField(SQLHelper.camelToUnderscore(item.getField())))
+          .collect(Collectors.toList());
     }
     return null;
+  }
+
+  // 参数合并
+  @SuppressWarnings("unchecked")
+  private void mergeParameters(Map<String, Object> params, Map<String, Object> builderParams) {
+    Map<String, Object> existingParams = (Map<String, Object>) params.get("params");
+    if (existingParams != null) {
+      existingParams.putAll(builderParams);
+    }
   }
 
 }
