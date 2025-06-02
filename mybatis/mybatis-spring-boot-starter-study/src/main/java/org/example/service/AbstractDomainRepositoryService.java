@@ -52,11 +52,11 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
 
   public List<T> selectByConditions(Filterable filterable) {
     final T domain = createDomain();
-    return repository.selectByConditions(domain, filterable);
+    return repository.selectByQueryable(domain, filterable);
   }
 
   public List<T> selectByConditions(T domain, Filterable filterable) {
-    return repository.selectByConditions(domain, filterable);
+    return repository.selectByQueryable(domain, filterable);
   }
 
   public void batchInsert(List<T> domains) {

@@ -1,9 +1,11 @@
 package org.example.mybatis;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
+import org.example.datasource.DataSourceType;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.sort.SortableItem;
@@ -19,7 +21,7 @@ public class SQLBuilder {
 
   public SQLBuilder() {
     this.sql = new SQL();
-    this.dataSourceType = DataSourceContextHolder.getDataSourceType();
+    this.dataSourceType = Optional.ofNullable(DataSourceContextHolder.getDataSourceType()).orElse(DataSourceType.MYSQL.getType());
   }
 
   public static SQLBuilder builder() {

@@ -1,6 +1,5 @@
 package org.example.repository;
 
-import com.github.pagehelper.Page;
 import java.util.List;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
@@ -23,11 +22,8 @@ public interface BasicRepository<T> {
   @SelectProvider(type = SQLProvider.class, method = "select")
   T select(T domain);
 
-  @SelectProvider(type = SQLProvider.class, method = "selectByConditions")
-  List<T> selectByConditions(T domain, Queryable queryable);
-
-  @SelectProvider(type = SQLProvider.class, method = "selectByConditions")
-  Page<T> selectByConditionsWithPage(T domain, Queryable queryable);
+  @SelectProvider(type = SQLProvider.class, method = "selectByQueryable")
+  List<T> selectByQueryable(T domain, Queryable queryable);
 
   void batchInsert(List<T> domains);
 

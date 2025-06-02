@@ -50,7 +50,7 @@ public class SQLProvider {
         .build();
   }
 
-  public String selectByConditions(Object domain, Queryable queryable) {
+  public String selectByQueryable(Object domain, Queryable queryable) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
