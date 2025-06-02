@@ -1,8 +1,10 @@
 package org.example.repository;
 
 import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.example.mybatis.SQLProvider;
@@ -22,8 +24,10 @@ public interface BasicRepository<T> {
   @SelectProvider(type = SQLProvider.class, method = "select")
   T select(T domain);
 
-  @SelectProvider(type = SQLProvider.class, method = "selectByQueryable")
-  List<T> selectByQueryable(T domain, Queryable queryable);
+  @SelectProvider(type = SQLProvider.class, method = "advancedSelect")
+  List<T> advancedSelect(@Param("domain") T domain,
+      @Param("queryable") Queryable queryable,
+      @Param("params") Map<String, Object> params);
 
   void batchInsert(List<T> domains);
 

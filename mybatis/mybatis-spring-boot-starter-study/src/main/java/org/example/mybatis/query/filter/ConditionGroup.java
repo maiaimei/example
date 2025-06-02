@@ -1,7 +1,9 @@
 package org.example.mybatis.query.filter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import org.example.mybatis.query.operator.LogicalOperator;
 import org.springframework.util.CollectionUtils;
@@ -43,5 +45,14 @@ public class ConditionGroup implements Condition {
     }
 
     return "(" + String.join(" " + operator.name() + " ", sqlConditions) + ")";
+  }
+
+  @Override
+  public Map<String, Object> getParameters(int index) {
+    Map<String, Object> params = new HashMap<>();
+    for (Condition condition : conditions) {
+      params.putAll(condition.getParameters(index));
+    }
+    return params;
   }
 }

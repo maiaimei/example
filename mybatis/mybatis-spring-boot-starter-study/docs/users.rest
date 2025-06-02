@@ -58,7 +58,7 @@ POST {{host}}/users/list
 Content-Type: application/json
 
 {
-    "username": "chen",
+    "username": "",
     "isEnabled": true,
     "isDeleted": false,
     "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],

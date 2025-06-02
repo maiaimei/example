@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import lombok.Getter;
 import org.example.mybatis.annotation.Id;
@@ -38,7 +39,7 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
 
   public void deleteById(BigDecimal id) {
     final T domain = createDomainWithId(id);
-    repository.delete(domain);
+    delete(domain);
   }
 
   public T select(T domain) {
@@ -47,16 +48,16 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
 
   public T selectById(BigDecimal id) {
     final T domain = createDomainWithId(id);
-    return repository.select(domain);
+    return select(domain);
   }
 
-  public List<T> selectByConditions(Queryable queryable) {
+  public List<T> advancedSelect(Queryable queryable) {
     final T domain = createDomain();
-    return repository.selectByQueryable(domain, queryable);
+    return advancedSelect(domain, queryable);
   }
 
-  public List<T> selectByConditions(T domain, Queryable queryable) {
-    return repository.selectByQueryable(domain, queryable);
+  public List<T> advancedSelect(T domain, Queryable queryable) {
+    return repository.advancedSelect(domain, queryable, new HashMap<>());
   }
 
   public void batchInsert(List<T> domains) {

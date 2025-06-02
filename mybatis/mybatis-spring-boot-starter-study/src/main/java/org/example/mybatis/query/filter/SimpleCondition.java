@@ -1,5 +1,7 @@
 package org.example.mybatis.query.filter;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import org.example.mybatis.SQLHelper;
 import org.example.mybatis.query.operator.SQLOperator;
@@ -33,5 +35,16 @@ public class SimpleCondition implements Condition {
     final String formatColumn = SQLHelper.formatName(dataSourceType, column);
     return SQLOperatorStrategyFactory.getStrategy(operator)
         .buildCondition(formatColumn, index);
+  }
+
+  @Override
+  public Map<String, Object> getParameters(int index) {
+    Map<String, Object> params = new HashMap<>();
+    params.put("param" + index, value);
+    if (operator == SQLOperator.BETWEEN) {
+      params.put("param" + index + "First", value);
+      params.put("param" + index + "Second", secondValue);
+    }
+    return params;
   }
 }

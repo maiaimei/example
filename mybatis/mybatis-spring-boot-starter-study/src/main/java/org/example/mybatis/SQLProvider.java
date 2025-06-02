@@ -1,6 +1,5 @@
 package org.example.mybatis;
 
-import static org.example.mybatis.SQLHelper.camelToUnderscore;
 import static org.example.mybatis.SQLHelper.getNotNullFieldValues;
 import static org.example.mybatis.SQLHelper.getTableName;
 import static org.example.mybatis.SQLHelper.validateDomain;
@@ -8,6 +7,7 @@ import static org.example.mybatis.SQLHelper.validateDomainField;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.Queryable;
 import org.example.mybatis.query.filter.Condition;
@@ -50,14 +50,17 @@ public class SQLProvider {
         .build();
   }
 
-  public String selectByQueryable(Object domain, Queryable queryable) {
+  public String advancedSelect(Map<String, Object> params) {
+    Object domain = params.get("domain");
+    Queryable queryable = (Queryable) params.get("queryable");
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder()
+    final SQLBuilder builder = SQLBuilder.builder()
         .selectSpecificColumns(tableName, getSelectFields(queryable))
         .where(getConditions(queryable))
-        .orderBy(getSorting(queryable))
-        .build();
+        .orderBy(getSorting(queryable));
+    ((Map<String, Object>) params.get("params")).putAll(builder.getParameters());
+    return builder.build();
   }
 
   private List<String> getSelectFields(Queryable queryable) {
@@ -66,7 +69,7 @@ public class SQLProvider {
       if (!CollectionUtils.isEmpty(selectFields)) {
         List<String> selectColumns = new ArrayList<>();
         for (String selectField : selectFields) {
-          selectColumns.add(camelToUnderscore(selectField));
+          selectColumns.add(SQLHelper.camelToUnderscore(selectField));
         }
         return selectColumns;
       }
@@ -89,7 +92,7 @@ public class SQLProvider {
       final List<SortableItem> sorting = sortable.getSorting();
       if (!CollectionUtils.isEmpty(sorting)) {
         for (SortableItem sortableItem : sorting) {
-          sortableItem.setField(camelToUnderscore(sortableItem.getField()));
+          sortableItem.setField(SQLHelper.camelToUnderscore(sortableItem.getField()));
         }
         return sorting;
       }

@@ -14,55 +14,55 @@ public class SQLOperatorStrategyFactory {
   static {
     // 等于
     STRATEGIES.put(SQLOperator.EQ, (column, index) ->
-        String.format("%s = #{queryable.conditions[%d].value}", column, index));
+        String.format("%s = #{params.param%d}", column, index));
 
     // 不等于
     STRATEGIES.put(SQLOperator.NE, (column, index) ->
-        String.format("%s != #{queryable.conditions[%d].value}", column, index));
+        String.format("%s != #{params.param%d}", column, index));
 
     // 大于
     STRATEGIES.put(SQLOperator.GT, (column, index) ->
-        String.format("%s > #{queryable.conditions[%d].value}", column, index));
+        String.format("%s > #{params.param%d}", column, index));
 
     // 大于等于
     STRATEGIES.put(SQLOperator.GE, (column, index) ->
-        String.format("%s >= #{queryable.conditions[%d].value}", column, index));
+        String.format("%s >= #{params.param%d}", column, index));
 
     // 小于
     STRATEGIES.put(SQLOperator.LT, (column, index) ->
-        String.format("%s < #{queryable.conditions[%d].value}", column, index));
+        String.format("%s < #{params.param%d}", column, index));
 
     // 小于等于
     STRATEGIES.put(SQLOperator.LE, (column, index) ->
-        String.format("%s <= #{queryable.conditions[%d].value}", column, index));
+        String.format("%s <= #{params.param%d}", column, index));
 
     // 模糊查询
     STRATEGIES.put(SQLOperator.LIKE, (column, index) ->
-        String.format("%s LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')", column, index));
+        String.format("%s LIKE CONCAT('%%', #{params.param%d}, '%%')", column, index));
 
     // 左模糊
     STRATEGIES.put(SQLOperator.STARTS_WITH, (column, index) ->
-        String.format("%s LIKE CONCAT(#{queryable.conditions[%d].value}, '%%')", column, index));
+        String.format("%s LIKE CONCAT(#{params.param%d}, '%%')", column, index));
 
     // 右模糊
     STRATEGIES.put(SQLOperator.ENDS_WITH, (column, index) ->
-        String.format("%s LIKE CONCAT('%%', #{queryable.conditions[%d].value})", column, index));
+        String.format("%s LIKE CONCAT('%%', #{params.param%d})", column, index));
 
     // NOT LIKE查询
     STRATEGIES.put(SQLOperator.NOT_LIKE, (column, index) ->
-        String.format("%s NOT LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')", column, index));
+        String.format("%s NOT LIKE CONCAT('%%', #{params.param%d}, '%%')", column, index));
 
     // IN查询
     STRATEGIES.put(SQLOperator.IN, (column, index) ->
-        String.format("%s IN #{queryable.conditions[%d].value}", column, index));
+        String.format("%s IN #{params.param%d}", column, index));
 
     // NOT IN查询
     STRATEGIES.put(SQLOperator.NOT_IN, (column, index) ->
-        String.format("%s NOT IN #{queryable.conditions[%d].value}", column, index));
+        String.format("%s NOT IN #{params.param%d}", column, index));
 
     // BETWEEN查询
     STRATEGIES.put(SQLOperator.BETWEEN, (column, index) ->
-        String.format("%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}",
+        String.format("%s BETWEEN #{params.param%dFirst} AND #{params.param%dSecond}",
             column, index, index));
 
     // IS NULL

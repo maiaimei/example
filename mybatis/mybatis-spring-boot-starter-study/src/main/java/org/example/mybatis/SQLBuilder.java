@@ -1,8 +1,11 @@
 package org.example.mybatis;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DataSourceType;
@@ -18,6 +21,8 @@ public class SQLBuilder {
   private final SQL sql;
   private final String dataSourceType;
   private int parameterIndex = 0;
+  @Getter
+  private final Map<String, Object> parameters = new HashMap<>();
 
   public SQLBuilder() {
     this.sql = new SQL();
@@ -70,9 +75,11 @@ public class SQLBuilder {
   public SQLBuilder where(List<Condition> conditions) {
     if (!CollectionUtils.isEmpty(conditions)) {
       conditions.forEach(condition -> {
-        String whereSql = condition.build(dataSourceType, parameterIndex++);
+        String whereSql = condition.build(dataSourceType, parameterIndex);
         if (StringUtils.hasText(whereSql)) {
           sql.WHERE(whereSql);
+          parameters.putAll(condition.getParameters(parameterIndex));
+          parameterIndex++;
         }
       });
     }
