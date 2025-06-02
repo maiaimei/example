@@ -2,12 +2,63 @@
 
 # 用户管理 API 文档
 
-### 获取用户列表
+### 获取用户列表1
 POST {{host}}/users/list
 Content-Type: application/json
 
 {
-    "username": "",
+    "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],
+    "sorting": [
+        {
+            "field": "createAt",
+            "sort": "desc"
+        }
+    ],
+    "current": 1,
+    "size": 5
+}
+
+### 获取用户列表2
+POST {{host}}/users/list
+Content-Type: application/json
+
+{
+    "isDeleted": false,
+    "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],
+    "sorting": [
+        {
+            "field": "createAt",
+            "sort": "desc"
+        }
+    ],
+    "current": 1,
+    "size": 5
+}
+
+### 获取用户列表3
+POST {{host}}/users/list
+Content-Type: application/json
+
+{
+    "isEnabled": true,
+    "isDeleted": false,
+    "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],
+    "sorting": [
+        {
+            "field": "createAt",
+            "sort": "desc"
+        }
+    ],
+    "current": 1,
+    "size": 5
+}
+
+### 获取用户列表4
+POST {{host}}/users/list
+Content-Type: application/json
+
+{
+    "username": "chen",
     "isEnabled": true,
     "isDeleted": false,
     "selectFields": ["id","username","firstName","lastName","isEnabled","isDeleted","createAt","updatedAt"],

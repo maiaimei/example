@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import lombok.Getter;
 import org.example.mybatis.annotation.Id;
-import org.example.mybatis.query.filter.Filterable;
+import org.example.mybatis.query.Queryable;
 import org.example.repository.BasicRepository;
 
 @Getter
@@ -50,13 +50,13 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
     return repository.select(domain);
   }
 
-  public List<T> selectByConditions(Filterable filterable) {
+  public List<T> selectByConditions(Queryable queryable) {
     final T domain = createDomain();
-    return repository.selectByQueryable(domain, filterable);
+    return repository.selectByQueryable(domain, queryable);
   }
 
-  public List<T> selectByConditions(T domain, Filterable filterable) {
-    return repository.selectByQueryable(domain, filterable);
+  public List<T> selectByConditions(T domain, Queryable queryable) {
+    return repository.selectByQueryable(domain, queryable);
   }
 
   public void batchInsert(List<T> domains) {

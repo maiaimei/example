@@ -36,7 +36,7 @@ public class MyBatisConfig extends AbstractMyBatisConfig {
 //    ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 //    factoryBean.setMapperLocations(resolver.getResources("classpath:mapper/*.xml"));
 
-    factoryBean.setPlugins(getPageInterceptor("mysql"));
+    //factoryBean.setPlugins(getPageInterceptor("mysql"));
 
     return factoryBean.getObject();
   }

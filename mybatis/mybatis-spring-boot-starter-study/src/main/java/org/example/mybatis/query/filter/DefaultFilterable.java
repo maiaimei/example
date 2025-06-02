@@ -24,6 +24,7 @@ public class DefaultFilterable implements Filterable {
     return builder;
   }
 
+  @Override
   public List<Condition> getConditions() {
     return builder.build();
   }
