@@ -50,6 +50,7 @@ public class SQLProvider {
         .build();
   }
 
+  @SuppressWarnings("unchecked")
   public String advancedSelect(Map<String, Object> params) {
     Object domain = params.get("domain");
     Queryable queryable = (Queryable) params.get("queryable");

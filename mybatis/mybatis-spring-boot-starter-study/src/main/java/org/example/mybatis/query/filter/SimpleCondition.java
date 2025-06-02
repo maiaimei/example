@@ -34,16 +34,16 @@ public class SimpleCondition implements Condition {
     final String column = SQLHelper.camelToUnderscore(field);
     final String formatColumn = SQLHelper.formatName(dataSourceType, column);
     return SQLOperatorStrategyFactory.getStrategy(operator)
-        .buildCondition(formatColumn, index);
+        .buildCondition(formatColumn, field, index);
   }
 
   @Override
   public Map<String, Object> getParameters(int index) {
     Map<String, Object> params = new HashMap<>();
-    params.put("param" + index, value);
+    params.put(field + index, value);
     if (operator == SQLOperator.BETWEEN) {
-      params.put("param" + index + "First", value);
-      params.put("param" + index + "Second", secondValue);
+      params.put(field + index + "First", value);
+      params.put(field + index + "Second", secondValue);
     }
     return params;
   }

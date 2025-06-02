@@ -12,7 +12,7 @@ import org.example.mybatis.query.sort.Sortable;
 import org.example.mybatis.query.sort.SortableItem;
 
 @Data
-public class UserQueryRequest implements Filterable, Sortable, Pageable, FieldSelectable {
+public class UserQueryRequest implements FieldSelectable, Filterable, Sortable, Pageable {
 
   // 业务查询参数
   private String username;
@@ -33,9 +33,13 @@ public class UserQueryRequest implements Filterable, Sortable, Pageable, FieldSe
   @Override
   public List<Condition> getConditions() {
     QueryConditionBuilder builder = QueryConditionBuilder.create();
-    builder.and(newSimpleCondition("username", SQLOperator.LIKE, username));
-    builder.and(newSimpleCondition("isEnabled", SQLOperator.EQ, isEnabled));
-    builder.and(newSimpleCondition("isDeleted", SQLOperator.EQ, isDeleted));
+    builder.and(
+        newSimpleCondition("isEnabled", SQLOperator.EQ, isEnabled),
+        newSimpleCondition("isDeleted", SQLOperator.EQ, isDeleted)
+    ).or(
+        newSimpleCondition("username", SQLOperator.LIKE, username),
+        newSimpleCondition("username", SQLOperator.LIKE, "mai")
+    );
     return builder.build();
   }
 }

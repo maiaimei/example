@@ -56,7 +56,9 @@ public class SQLBuilder {
   // 查询所有列（带条件的查询）
   public SQLBuilder selectAllColumnsWithConditions(String tableName, List<FieldValue> fieldValues) {
     sql.SELECT("*").FROM(formatName(tableName));
-    fieldValues.forEach(field -> sql.WHERE("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
+    if (!CollectionUtils.isEmpty(fieldValues)) {
+      fieldValues.forEach(field -> sql.WHERE("%s = #{%s}".formatted(formatName(field.columnName()), field.fieldName())));
+    }
     return this;
   }
 

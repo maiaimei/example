@@ -34,7 +34,7 @@ public class ConditionGroup implements Condition {
 
     List<String> sqlConditions = new ArrayList<>();
     for (Condition condition : conditions) {
-      String sql = condition.build(dataSourceType, index);
+      String sql = condition.build(dataSourceType, index++);
       if (StringUtils.hasText(sql)) {
         sqlConditions.add(sql);
       }
@@ -51,7 +51,7 @@ public class ConditionGroup implements Condition {
   public Map<String, Object> getParameters(int index) {
     Map<String, Object> params = new HashMap<>();
     for (Condition condition : conditions) {
-      params.putAll(condition.getParameters(index));
+      params.putAll(condition.getParameters(index++));
     }
     return params;
   }
