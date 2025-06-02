@@ -1,7 +1,6 @@
 package org.example.mybatis.query.filter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
 import org.example.mybatis.SQLHelper;
 import org.example.mybatis.query.operator.SQLOperator;
@@ -30,21 +29,21 @@ public class SimpleCondition implements Condition {
   }
 
   @Override
-  public String build(String dataSourceType, int index) {
+  public String build(String dataSourceType, AtomicInteger index) {
     final String column = SQLHelper.camelToUnderscore(field);
     final String formatColumn = SQLHelper.formatName(dataSourceType, column);
     return SQLOperatorStrategyFactory.getStrategy(operator)
-        .buildCondition(formatColumn, field, index);
+        .buildCondition(formatColumn, index.getAndIncrement());
   }
 
-  @Override
-  public Map<String, Object> getParameters(int index) {
-    Map<String, Object> params = new HashMap<>();
-    params.put(field + index, value);
-    if (operator == SQLOperator.BETWEEN) {
-      params.put(field + index + "First", value);
-      params.put(field + index + "Second", secondValue);
-    }
-    return params;
-  }
+//  @Override
+//  public Map<String, Object> getParameters(int index) {
+//    Map<String, Object> params = new HashMap<>();
+//    params.put(field + index, value);
+//    if (operator == SQLOperator.BETWEEN) {
+//      params.put(field + index + "First", value);
+//      params.put(field + index + "Second", secondValue);
+//    }
+//    return params;
+//  }
 }

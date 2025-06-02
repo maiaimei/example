@@ -1,9 +1,8 @@
 package org.example.mybatis.query.filter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
 import org.example.mybatis.query.operator.LogicalOperator;
 import org.springframework.util.CollectionUtils;
@@ -17,6 +16,7 @@ public class ConditionGroup implements Condition {
 
   private LogicalOperator operator; // AND/OR
   private List<Condition> conditions = new ArrayList<>();
+  private List<SimpleCondition> simpleConditions = new ArrayList<>();
 
   public ConditionGroup(LogicalOperator operator) {
     this.operator = operator;
@@ -27,14 +27,17 @@ public class ConditionGroup implements Condition {
   }
 
   @Override
-  public String build(String dataSourceType, int index) {
+  public String build(String dataSourceType, AtomicInteger index) {
     if (CollectionUtils.isEmpty(conditions)) {
       return null;
     }
 
     List<String> sqlConditions = new ArrayList<>();
     for (Condition condition : conditions) {
-      String sql = condition.build(dataSourceType, index++);
+      if (condition instanceof SimpleCondition simpleCondition) {
+        simpleConditions.add(simpleCondition);
+      }
+      String sql = condition.build(dataSourceType, index);
       if (StringUtils.hasText(sql)) {
         sqlConditions.add(sql);
       }
@@ -47,12 +50,12 @@ public class ConditionGroup implements Condition {
     return "(" + String.join(" " + operator.name() + " ", sqlConditions) + ")";
   }
 
-  @Override
-  public Map<String, Object> getParameters(int index) {
-    Map<String, Object> params = new HashMap<>();
-    for (Condition condition : conditions) {
-      params.putAll(condition.getParameters(index++));
-    }
-    return params;
-  }
+//  @Override
+//  public Map<String, Object> getParameters(int index) {
+//    Map<String, Object> params = new HashMap<>();
+//    for (Condition condition : conditions) {
+//      params.putAll(condition.getParameters(index++));
+//    }
+//    return params;
+//  }
 }

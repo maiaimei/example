@@ -4,11 +4,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.Getter;
 import org.example.mybatis.annotation.Id;
-import org.example.mybatis.query.Queryable;
+import org.example.mybatis.query.filter.Condition;
+import org.example.mybatis.query.filter.SimpleCondition;
+import org.example.mybatis.query.operator.SQLOperator;
 import org.example.repository.BasicRepository;
 
 @Getter
@@ -51,13 +54,17 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
     return select(domain);
   }
 
-  public List<T> advancedSelect(Queryable queryable) {
-    final T domain = createDomain();
-    return advancedSelect(domain, queryable);
-  }
+//  public List<T> advancedSelect(Queryable queryable) {
+//    final T domain = createDomain();
+//    return advancedSelect(domain, queryable);
+//  }
+//
+//  public List<T> advancedSelect(T domain, Queryable queryable) {
+//    return repository.advancedSelect(domain, queryable, new HashMap<>());
+//  }
 
-  public List<T> advancedSelect(T domain, Queryable queryable) {
-    return repository.advancedSelect(domain, queryable, new HashMap<>());
+  public List<T> advancedSelect2(T domain, List<Condition> conditions, List<String> fields) {
+    return repository.advancedSelect2(domain, conditions, new ArrayList<>(), fields);
   }
 
   public void batchInsert(List<T> domains) {
@@ -117,5 +124,21 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
     }
 
     return null;
+  }
+
+  protected SimpleCondition newSimpleCondition(String field, SQLOperator operator, Object value) {
+    SimpleCondition simpleCondition = null;
+    if (Objects.nonNull(value)) {
+      simpleCondition = new SimpleCondition(field, operator, value);
+    }
+    return simpleCondition;
+  }
+
+  protected SimpleCondition newSimpleCondition(String field, SQLOperator operator, Object firstValue, Object secondValue) {
+    SimpleCondition simpleCondition = null;
+    if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
+      simpleCondition = new SimpleCondition(field, operator, firstValue, secondValue);
+    }
+    return simpleCondition;
   }
 }

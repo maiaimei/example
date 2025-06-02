@@ -5,5 +5,5 @@ package org.example.mybatis.query.operator;
  */
 public interface SQLOperatorStrategy {
 
-  String buildCondition(String column, String field, int index);
+  String buildCondition(String column, int index);
 }

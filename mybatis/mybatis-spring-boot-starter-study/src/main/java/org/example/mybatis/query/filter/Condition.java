@@ -1,13 +1,13 @@
 package org.example.mybatis.query.filter;
 
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 条件组合接口
  */
 public interface Condition {
 
-  String build(String dataSourceType, int index);
+  String build(String dataSourceType, AtomicInteger index);
 
-  Map<String, Object> getParameters(int index);
+//  Map<String, Object> getParameters(int index);
 }

@@ -14,12 +14,12 @@ public class DefaultFilterable implements Filterable {
     return new DefaultFilterable();
   }
 
-  public QueryConditionBuilder and(Condition... conditions) {
+  public QueryConditionBuilder and(SimpleCondition... conditions) {
     builder.and(conditions);
     return builder;
   }
 
-  public QueryConditionBuilder or(Condition... conditions) {
+  public QueryConditionBuilder or(SimpleCondition... conditions) {
     builder.or(conditions);
     return builder;
   }

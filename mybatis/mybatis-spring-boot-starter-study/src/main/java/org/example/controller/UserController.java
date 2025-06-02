@@ -29,7 +29,7 @@ public class UserController {
 
   @PostMapping("/list")
   public ResponseEntity<List<User>> getUsersByConditions(@RequestBody UserQueryRequest userQueryRequest) {
-    List<User> users = userService.advancedSelect(userQueryRequest);
+    List<User> users = userService.getUsers(userQueryRequest);
     return ResponseEntity.ok(users);
   }
 
