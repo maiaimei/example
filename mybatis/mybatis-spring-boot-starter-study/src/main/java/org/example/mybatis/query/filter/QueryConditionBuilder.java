@@ -1,4 +1,4 @@
-package org.example.mybatis.query.condition;
+package org.example.mybatis.query.filter;
 
 import java.util.Arrays;
 import java.util.List;

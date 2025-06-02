@@ -1,51 +1,22 @@
 package org.example.mybatis.query.operator;
 
-import lombok.Getter;
-
-@Getter
+/**
+ * SQL操作符枚举
+ */
 public enum SQLOperator {
-  EQ("=", "%s = #{queryable.conditions[%d].value}"),
-
-  NE("<>", "%s <> #{queryable.conditions[%d].value}"),
-
-  GT(">", "%s > #{queryable.conditions[%d].value}"),
-
-  GE(">=", "%s >= #{queryable.conditions[%d].value}"),
-
-  LT("<", "%s < #{queryable.conditions[%d].value}"),
-
-  LE("<=", "%s <= #{queryable.conditions[%d].value}"),
-
-  LIKE("LIKE", "%s LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')"),
-
-  NOT_LIKE("NOT LIKE", "%s NOT LIKE CONCAT('%%', #{queryable.conditions[%d].value}, '%%')"),
-
-  IN("IN", """
-      %s IN\s
-      <foreach collection='queryable.conditions[%d].value' item='item' open='(' separator=',' close=')'>
-      #{item}
-      </foreach>"""),
-
-  NOT_IN("NOT IN", """
-      %s NOT IN\s
-      <foreach collection='queryable.conditions[%d].value' item='item' open='(' separator=',' close=')'>
-      #{item}
-      </foreach>"""),
-
-  BETWEEN("BETWEEN", "%s BETWEEN #{queryable.conditions[%d].value} AND #{queryable.conditions[%d].secondValue}"),
-
-  IS_NULL("IS NULL", "%s IS NULL"),
-
-  IS_NOT_NULL("IS NOT NULL", "%s IS NOT NULL");
-
-  private final String operator;
-
-  private final String format;
-
-  SQLOperator(String operator, String format) {
-    this.operator = operator;
-    this.format = format;
-  }
-
+  EQ,          // 等于
+  NE,          // 不等于
+  GT,          // 大于
+  GE,          // 大于等于
+  LT,          // 小于
+  LE,          // 小于等于
+  LIKE,        // 模糊查询
+  NOT_LIKE,    // NOT LIKE查询
+  STARTS_WITH, // 左模糊
+  ENDS_WITH,   // 右模糊
+  IN,          // IN查询
+  NOT_IN,      // NOT IN查询
+  BETWEEN,     // 范围查询
+  IS_NULL,     // 为空
+  IS_NOT_NULL  // 不为空
 }
-

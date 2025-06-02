@@ -1,8 +1,8 @@
-package org.example.mybatis.query.condition;
+package org.example.mybatis.query.filter;
 
 import lombok.Data;
 import org.example.mybatis.SQLHelper;
-import org.example.mybatis.query.operator.SQLOperator2;
+import org.example.mybatis.query.operator.SQLOperator;
 import org.example.mybatis.query.operator.SQLOperatorStrategyFactory;
 
 /**
@@ -12,17 +12,17 @@ import org.example.mybatis.query.operator.SQLOperatorStrategyFactory;
 public class SimpleCondition implements Condition {
 
   private String field;
-  private SQLOperator2 operator;
+  private SQLOperator operator;
   private Object value;
   private Object secondValue; // 用于 BETWEEN 等操作符
 
-  public SimpleCondition(String field, SQLOperator2 operator, Object value) {
+  public SimpleCondition(String field, SQLOperator operator, Object value) {
     this.field = field;
     this.operator = operator;
     this.value = value;
   }
 
-  public SimpleCondition(String field, SQLOperator2 operator, Object value, Object secondValue) {
+  public SimpleCondition(String field, SQLOperator operator, Object value, Object secondValue) {
     this(field, operator, value);
     this.secondValue = secondValue;
   }

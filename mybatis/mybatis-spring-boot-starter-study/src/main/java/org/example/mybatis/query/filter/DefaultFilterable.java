@@ -1,20 +1,31 @@
-//package org.example.mybatis.query.filter;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import lombok.Getter;
-//import org.example.mybatis.query.operator.SQLOperator;
-//
-//@Getter
-//public class DefaultFilterable implements Filterable {
-//
-//  private final List<FilterableItem> conditions = new ArrayList<>();
-//
-//  public void addCondition(String field, SQLOperator operator, Object value) {
-//    addCondition(conditions, field, operator, value);
-//  }
-//
-//  public void addBetweenCondition(String field, Object firstValue, Object secondValue) {
-//    addBetweenCondition(conditions, field, firstValue, secondValue);
-//  }
-//}
+package org.example.mybatis.query.filter;
+
+import java.util.List;
+
+public class DefaultFilterable implements Filterable {
+
+  private final QueryConditionBuilder builder;
+
+  private DefaultFilterable() {
+    this.builder = QueryConditionBuilder.create();
+  }
+
+  public static DefaultFilterable newInstance() {
+    return new DefaultFilterable();
+  }
+
+  public QueryConditionBuilder and(Condition... conditions) {
+    builder.and(conditions);
+    return builder;
+  }
+
+  public QueryConditionBuilder or(Condition... conditions) {
+    builder.or(conditions);
+    return builder;
+  }
+
+  public List<Condition> getConditions() {
+    return builder.build();
+  }
+
+}

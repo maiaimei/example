@@ -1,14 +1,11 @@
 package org.example.mybatis;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.mybatis.model.FieldValue;
-import org.example.mybatis.query.condition.Condition;
-import org.example.mybatis.query.filter.FilterableItem;
-import org.example.mybatis.query.operator.SQLOperator;
+import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -68,7 +65,7 @@ public class SQLBuilder {
   /**
    * 构建WHERE子句
    */
-  public SQLBuilder where2(List<Condition> conditions) {
+  public SQLBuilder where(List<Condition> conditions) {
     if (!CollectionUtils.isEmpty(conditions)) {
       conditions.forEach(condition -> {
         String whereSql = condition.build(dataSourceType, parameterIndex++);
@@ -76,27 +73,6 @@ public class SQLBuilder {
           sql.WHERE(whereSql);
         }
       });
-    }
-    return this;
-  }
-
-  public SQLBuilder where(List<FilterableItem> conditions) {
-    if (!CollectionUtils.isEmpty(conditions)) {
-      for (int i = 0; i < conditions.size(); i++) {
-        FilterableItem condition = conditions.get(i);
-        final Object value = condition.getValue();
-        if (Objects.isNull(value) || (value instanceof String stringValue && !StringUtils.hasText(stringValue))) {
-          continue;
-        }
-        final String column = formatName(condition.getField());
-        final SQLOperator operator = condition.getOperator();
-        final String operatorFormat = operator.getFormat();
-        switch (operator) {
-          case BETWEEN -> sql.WHERE(String.format(operatorFormat, column, i, i));
-          case IS_NULL, IS_NOT_NULL -> sql.WHERE(String.format(operatorFormat, column));
-          default -> sql.WHERE(String.format(operatorFormat, column, i));
-        }
-      }
     }
     return this;
   }

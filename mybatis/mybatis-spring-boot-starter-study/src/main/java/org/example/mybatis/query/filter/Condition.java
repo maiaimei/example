@@ -1,4 +1,4 @@
-package org.example.mybatis.query.condition;
+package org.example.mybatis.query.filter;
 
 /**
  * 条件组合接口

@@ -10,9 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.Queryable;
-import org.example.mybatis.query.condition.Condition;
+import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.filter.Filterable;
-import org.example.mybatis.query.filter.FilterableItem;
 import org.example.mybatis.query.select.FieldSelectable;
 import org.example.mybatis.query.sort.Sortable;
 import org.example.mybatis.query.sort.SortableItem;
@@ -56,7 +55,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     return SQLBuilder.builder()
         .selectSpecificColumns(tableName, getSelectFields(queryable))
-        .where2(getConditions2(queryable))
+        .where(getConditions(queryable))
         .orderBy(getSorting(queryable))
         .build();
   }
@@ -75,23 +74,10 @@ public class SQLProvider {
     return null;
   }
 
-  private List<Condition> getConditions2(Queryable queryable) {
+  private List<Condition> getConditions(Queryable queryable) {
     if (queryable instanceof Filterable filterable) {
-      final List<Condition> conditions = filterable.getConditions2();
+      final List<Condition> conditions = filterable.getConditions();
       if (!CollectionUtils.isEmpty(conditions)) {
-        return conditions;
-      }
-    }
-    return null;
-  }
-
-  private List<FilterableItem> getConditions(Queryable queryable) {
-    if (queryable instanceof Filterable filterable) {
-      final List<FilterableItem> conditions = filterable.getConditions();
-      if (!CollectionUtils.isEmpty(conditions)) {
-        for (FilterableItem condition : conditions) {
-          condition.setField(camelToUnderscore(condition.getField()));
-        }
         return conditions;
       }
     }
