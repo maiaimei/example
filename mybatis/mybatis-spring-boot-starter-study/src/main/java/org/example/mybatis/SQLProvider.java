@@ -4,6 +4,7 @@ import static org.example.mybatis.SQLHelper.getNotNullFieldValues;
 import static org.example.mybatis.SQLHelper.getTableName;
 import static org.example.mybatis.SQLHelper.validateDomain;
 import static org.example.mybatis.SQLHelper.validateDomainField;
+import static org.example.mybatis.SQLHelper.validateDomains;
 
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,22 @@ public class SQLProvider {
 
     mergeParameters(params, builder.getParameters());
     return builder.build();
+  }
+
+  public String batchInsert(Map<String, Object> params) {
+    List<?> domains = (List<?>) params.get("domains");
+    validateDomains(domains);
+
+    // TODO: batchInsert
+    return null;
+  }
+
+  public String batchUpdate(Map<String, Object> params) {
+    List<?> domains = (List<?>) params.get("domains");
+    validateDomains(domains);
+
+    // TODO: batchUpdate
+    return null;
   }
 
   // 字段选择

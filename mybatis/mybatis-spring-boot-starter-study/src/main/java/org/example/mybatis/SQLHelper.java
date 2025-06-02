@@ -25,6 +25,13 @@ public class SQLHelper {
   // 表名缓存
   private static final Map<Class<?>, String> TABLE_NAME_CACHE = new ConcurrentHashMap<>();
 
+  // 验证域对象列表是否为空
+  public static void validateDomains(List<?> domains) {
+    if (CollectionUtils.isEmpty(domains)) {
+      throw new IllegalArgumentException("Domains cannot be null or empty");
+    }
+  }
+
   // 验证域对象是否为空
   public static void validateDomain(Object domain) {
     if (Objects.isNull(domain)) {

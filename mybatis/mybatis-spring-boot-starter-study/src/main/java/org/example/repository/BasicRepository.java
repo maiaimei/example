@@ -29,7 +29,9 @@ public interface BasicRepository<T> {
       @Param("queryable") Queryable queryable,
       @Param("params") Map<String, Object> params);
 
-  void batchInsert(List<T> domains);
+  @InsertProvider(type = SQLProvider.class, method = "batchInsert")
+  void batchInsert(@Param("domains") List<T> domains);
 
-  void batchUpdate(List<T> domains);
+  @UpdateProvider(type = SQLProvider.class, method = "batchUpdate")
+  void batchUpdate(@Param("domains") List<T> domains);
 }
