@@ -29,21 +29,11 @@ public class SimpleCondition implements Condition {
   }
 
   @Override
-  public String build(String dataSourceType, AtomicInteger index) {
+  public String build(String dataSourceType, AtomicInteger conditionIndex) {
     final String column = SQLHelper.camelToUnderscore(field);
     final String formatColumn = SQLHelper.formatName(dataSourceType, column);
     return SQLOperatorStrategyFactory.getStrategy(operator)
-        .buildCondition(formatColumn, index.getAndIncrement());
+        .buildCondition(formatColumn, conditionIndex.getAndIncrement());
   }
 
-//  @Override
-//  public Map<String, Object> getParameters(int index) {
-//    Map<String, Object> params = new HashMap<>();
-//    params.put(field + index, value);
-//    if (operator == SQLOperator.BETWEEN) {
-//      params.put(field + index + "First", value);
-//      params.put(field + index + "Second", secondValue);
-//    }
-//    return params;
-//  }
 }

@@ -7,7 +7,5 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public interface Condition {
 
-  String build(String dataSourceType, AtomicInteger index);
-
-//  Map<String, Object> getParameters(int index);
+  String build(String dataSourceType, AtomicInteger conditionIndex);
 }

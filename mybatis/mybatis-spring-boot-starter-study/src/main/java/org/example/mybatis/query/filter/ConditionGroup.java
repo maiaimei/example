@@ -14,12 +14,12 @@ import org.springframework.util.StringUtils;
 @Data
 public class ConditionGroup implements Condition {
 
-  private LogicalOperator operator; // AND/OR
-  private List<Condition> conditions = new ArrayList<>();
-  private List<SimpleCondition> simpleConditions = new ArrayList<>();
+  private LogicalOperator operator;
+  private List<Condition> conditions;
 
   public ConditionGroup(LogicalOperator operator) {
     this.operator = operator;
+    this.conditions = new ArrayList<>();
   }
 
   public void add(Condition condition) {
@@ -27,17 +27,14 @@ public class ConditionGroup implements Condition {
   }
 
   @Override
-  public String build(String dataSourceType, AtomicInteger index) {
+  public String build(String dataSourceType, AtomicInteger conditionIndex) {
     if (CollectionUtils.isEmpty(conditions)) {
       return null;
     }
 
     List<String> sqlConditions = new ArrayList<>();
     for (Condition condition : conditions) {
-      if (condition instanceof SimpleCondition simpleCondition) {
-        simpleConditions.add(simpleCondition);
-      }
-      String sql = condition.build(dataSourceType, index);
+      String sql = condition.build(dataSourceType, conditionIndex);
       if (StringUtils.hasText(sql)) {
         sqlConditions.add(sql);
       }
@@ -47,15 +44,6 @@ public class ConditionGroup implements Condition {
       return null;
     }
 
-    return "(" + String.join(" " + operator.name() + " ", sqlConditions) + ")";
+    return "(%s)".formatted(String.join(" %s ".formatted(operator.name()), sqlConditions));
   }
-
-//  @Override
-//  public Map<String, Object> getParameters(int index) {
-//    Map<String, Object> params = new HashMap<>();
-//    for (Condition condition : conditions) {
-//      params.putAll(condition.getParameters(index++));
-//    }
-//    return params;
-//  }
 }
