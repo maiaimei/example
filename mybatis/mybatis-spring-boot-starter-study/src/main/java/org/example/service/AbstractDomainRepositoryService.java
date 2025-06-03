@@ -122,18 +122,16 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
   }
 
   protected SimpleCondition newSimpleCondition(String field, SQLOperator operator, Object value) {
-    SimpleCondition simpleCondition = null;
     if (Objects.nonNull(value)) {
-      simpleCondition = new SimpleCondition(field, operator, value);
+      return new SimpleCondition(field, operator, value);
     }
-    return simpleCondition;
+    return null;
   }
 
   protected SimpleCondition newSimpleCondition(String field, SQLOperator operator, Object firstValue, Object secondValue) {
-    SimpleCondition simpleCondition = null;
     if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
-      simpleCondition = new SimpleCondition(field, operator, firstValue, secondValue);
+      return new SimpleCondition(field, operator, firstValue, secondValue);
     }
-    return simpleCondition;
+    return null;
   }
 }

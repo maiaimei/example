@@ -6,6 +6,7 @@ import java.util.Objects;
 import lombok.Builder;
 import lombok.Data;
 import org.example.mybatis.query.operator.LogicalOperator;
+import org.example.mybatis.query.operator.SQLOperator;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -24,36 +25,45 @@ public class QueryConditionBuilder {
   }
 
   public QueryConditionBuilder and(Condition... conditions) {
-    if (Objects.nonNull(conditions) && conditions.length > 0) {
-      ConditionGroup group = new ConditionGroup(LogicalOperator.AND);
-      Arrays.stream(conditions)
-          .filter(Objects::nonNull)
-          .forEach(group::add);
-
-      // 如果group中添加了条件，才添加到rootGroup
-      if (!CollectionUtils.isEmpty(group.getConditions())) {
-        rootGroup.add(group);
-      }
-    }
+    addConditions(LogicalOperator.AND, conditions);
     return this;
   }
 
   public QueryConditionBuilder or(Condition... conditions) {
-    if (Objects.nonNull(conditions) && conditions.length > 0) {
-      ConditionGroup group = new ConditionGroup(LogicalOperator.OR);
-      Arrays.stream(conditions)
-          .filter(Objects::nonNull)
-          .forEach(group::add);
+    addConditions(LogicalOperator.OR, conditions);
+    return this;
+  }
 
-      // 如果group中添加了条件，才添加到rootGroup
-      if (!CollectionUtils.isEmpty(group.getConditions())) {
-        rootGroup.add(group);
-      }
+  public QueryConditionBuilder addCondition(String field, SQLOperator operator, Object value) {
+    if (Objects.nonNull(value)) {
+      SimpleCondition simpleCondition = new SimpleCondition(field, operator, value);
+      rootGroup.add(simpleCondition);
+    }
+    return this;
+  }
+
+  public QueryConditionBuilder addCondition(String field, SQLOperator operator, Object firstValue, Object secondValue) {
+    if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
+      SimpleCondition simpleCondition = new SimpleCondition(field, operator, firstValue, secondValue);
+      rootGroup.add(simpleCondition);
     }
     return this;
   }
 
   public List<Condition> build() {
     return rootGroup.getConditions();
+  }
+
+  private void addConditions(LogicalOperator operator, Condition... conditions) {
+    if (Objects.nonNull(conditions) && conditions.length > 0) {
+      ConditionGroup group = new ConditionGroup(operator);
+      Arrays.stream(conditions)
+          .filter(Objects::nonNull)
+          .forEach(group::add);
+
+      if (!CollectionUtils.isEmpty(group.getConditions())) {
+        rootGroup.add(group);
+      }
+    }
   }
 }

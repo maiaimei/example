@@ -18,7 +18,7 @@ public class UserService extends AbstractDomainRepositoryService<User, UserRepos
     super(repository);
   }
 
-  public List<User> getUsers(UserQueryRequest userQueryRequest) {
+  public List<User> getUsers1(UserQueryRequest userQueryRequest) {
     final User user = new User();
     final List<Condition> conditions = QueryConditionBuilder.create()
         .or(
@@ -29,6 +29,21 @@ public class UserService extends AbstractDomainRepositoryService<User, UserRepos
             newSimpleCondition("isEnabled", SQLOperator.EQ, userQueryRequest.getIsEnabled()),
             newSimpleCondition("isDeleted", SQLOperator.EQ, userQueryRequest.getIsDeleted())
         ).build();
+    List<String> fields = List.of("id", "username", "firstName", "lastName", "isEnabled", "isDeleted", "createAt", "updatedAt");
+    return advancedSelect(user, conditions, userQueryRequest.getSorting(), fields);
+  }
+
+  public List<User> getUsers2(UserQueryRequest userQueryRequest) {
+    final User user = new User();
+    final List<Condition> conditions = QueryConditionBuilder.create()
+        .or(
+            newSimpleCondition("username", SQLOperator.LIKE, userQueryRequest.getUsername()),
+            newSimpleCondition("firstName", SQLOperator.LIKE, userQueryRequest.getFirstName()),
+            newSimpleCondition("lastName", SQLOperator.LIKE, userQueryRequest.getLastName())
+        )
+        .addCondition("isEnabled", SQLOperator.EQ, userQueryRequest.getIsEnabled())
+        .addCondition("isDeleted", SQLOperator.EQ, userQueryRequest.getIsDeleted())
+        .build();
     List<String> fields = List.of("id", "username", "firstName", "lastName", "isEnabled", "isDeleted", "createAt", "updatedAt");
     return advancedSelect(user, conditions, userQueryRequest.getSorting(), fields);
   }

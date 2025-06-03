@@ -3,7 +3,7 @@
 # 用户管理 API 文档
 
 ### 获取用户列表1
-POST {{host}}/users/list
+POST {{host}}/users/list1
 Content-Type: application/json
 
 {
@@ -18,7 +18,7 @@ Content-Type: application/json
 }
 
 ### 获取用户列表2
-POST {{host}}/users/list
+POST {{host}}/users/list1
 Content-Type: application/json
 
 {
@@ -34,7 +34,7 @@ Content-Type: application/json
 }
 
 ### 获取用户列表3
-POST {{host}}/users/list
+POST {{host}}/users/list1
 Content-Type: application/json
 
 {
@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### 获取用户列表4
-POST {{host}}/users/list
+POST {{host}}/users/list1
 Content-Type: application/json
 
 {
@@ -70,6 +70,25 @@ Content-Type: application/json
     "size": 5
 }
 
+### 获取用户列表5
+POST {{host}}/users/list2
+Content-Type: application/json
+
+{
+    "username": "chen",
+    "firstName": "Tom",
+    "lastName": "Mai",
+    "isEnabled": true,
+    "isDeleted": false,
+    "sorting": [
+        {
+            "field": "createAt",
+            "sort": "desc"
+        }
+    ],
+    "current": 1,
+    "size": 5
+}
 
 
 ### 获取用户详情

@@ -27,9 +27,15 @@ public class UserController {
   @Autowired
   private UserService userService;
 
-  @PostMapping("/list")
-  public ResponseEntity<List<User>> getUsersByConditions(@RequestBody UserQueryRequest userQueryRequest) {
-    List<User> users = userService.getUsers(userQueryRequest);
+  @PostMapping("/list1")
+  public ResponseEntity<List<User>> getUsers1(@RequestBody UserQueryRequest userQueryRequest) {
+    List<User> users = userService.getUsers1(userQueryRequest);
+    return ResponseEntity.ok(users);
+  }
+
+  @PostMapping("/list2")
+  public ResponseEntity<List<User>> getUsers2(@RequestBody UserQueryRequest userQueryRequest) {
+    List<User> users = userService.getUsers2(userQueryRequest);
     return ResponseEntity.ok(users);
   }
 
