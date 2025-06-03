@@ -1,18 +1,16 @@
 package org.example.mybatis.interceptor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.statement.StatementHandler;
-import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
-import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
@@ -31,6 +29,13 @@ import org.example.mybatis.query.filter.SimpleCondition;
 })
 public class ConditionInterceptor implements Interceptor {
 
+  // 定义需要拦截的方法后缀
+  private static final List<String> INTERCEPTED_METHOD_SUFFIXES = Arrays.asList(
+      "advancedSelect",
+      "advancedCount",
+      "advancedDelete"
+  );
+
   @Override
   public Object intercept(Invocation invocation) throws Throwable {
     // 添加日志确认拦截器是否执行
@@ -47,41 +52,24 @@ public class ConditionInterceptor implements Interceptor {
     return invocation.proceed();
   }
 
+  private boolean skipIntercept(String methodId) {
+    return INTERCEPTED_METHOD_SUFFIXES.stream().noneMatch(methodId::endsWith);
+  }
+
   private Object handleStatementHandler(Invocation invocation) throws Throwable {
     StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
     MetaObject metaObject = SystemMetaObject.forObject(statementHandler);
 
-    // 获取 MappedStatement
     MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
     String methodId = mappedStatement.getId();
 
     log.info("Intercepted method: {}", methodId);
 
-    if (!methodId.endsWith("advancedSelect")) {
+    if (skipIntercept(methodId)) {
       return invocation.proceed();
     }
 
-    // 获取参数
-    BoundSql boundSql = statementHandler.getBoundSql();
-    Object parameterObject = boundSql.getParameterObject();
-
-    if (parameterObject instanceof Map) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> params = (Map<String, Object>) parameterObject;
-
-      // 获取 conditions 参数
-      @SuppressWarnings("unchecked")
-      List<Condition> conditions = (List<Condition>) params.get("conditions");
-
-      if (conditions != null) {
-        List<SimpleCondition> simpleConditions = convertToSimpleConditions(conditions);
-        params.put("simpleConditions", simpleConditions);
-        log.info("Converted {} conditions to {} simple conditions",
-            conditions.size(), simpleConditions.size());
-      }
-    }
-
-    return invocation.proceed();
+    return processConditions(invocation, statementHandler.getBoundSql().getParameterObject());
   }
 
   private Object handleExecutor(Invocation invocation) throws Throwable {
@@ -90,14 +78,17 @@ public class ConditionInterceptor implements Interceptor {
 
     log.info("Intercepted executor method: {}", methodId);
 
-    if (!methodId.endsWith("advancedSelect")) {
+    if (skipIntercept(methodId)) {
       return invocation.proceed();
     }
 
-    Object parameter = invocation.getArgs()[1];
-    if (parameter instanceof Map) {
+    return processConditions(invocation, invocation.getArgs()[1]);
+  }
+
+  private Object processConditions(Invocation invocation, Object parameterObject) throws Throwable {
+    if (parameterObject instanceof Map) {
       @SuppressWarnings("unchecked")
-      Map<String, Object> params = (Map<String, Object>) parameter;
+      Map<String, Object> params = (Map<String, Object>) parameterObject;
 
       @SuppressWarnings("unchecked")
       List<Condition> conditions = (List<Condition>) params.get("conditions");
@@ -119,21 +110,11 @@ public class ConditionInterceptor implements Interceptor {
     for (Condition condition : conditions) {
       if (condition instanceof SimpleCondition) {
         simpleConditions.add((SimpleCondition) condition);
-      } else if (condition instanceof ConditionGroup) {
-        ConditionGroup group = (ConditionGroup) condition;
+      } else if (condition instanceof ConditionGroup group) {
         simpleConditions.addAll(convertToSimpleConditions(group.getConditions()));
       }
     }
 
     return simpleConditions;
-  }
-
-  @Override
-  public Object plugin(Object target) {
-    return Plugin.wrap(target, this);
-  }
-
-  @Override
-  public void setProperties(Properties properties) {
   }
 }
