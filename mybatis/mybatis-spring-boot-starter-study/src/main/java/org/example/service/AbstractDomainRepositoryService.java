@@ -11,6 +11,7 @@ import org.example.mybatis.annotation.Id;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.filter.SimpleCondition;
 import org.example.mybatis.query.operator.SQLOperator;
+import org.example.mybatis.query.sort.SortableItem;
 import org.example.repository.BasicRepository;
 
 @Getter
@@ -54,7 +55,11 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
   }
 
   public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields) {
-    return repository.advancedSelect(domain, conditions, fields);
+    return repository.advancedSelect(domain, conditions, null, fields);
+  }
+
+  public List<T> advancedSelect(T domain, List<Condition> conditions, List<SortableItem> sorting, List<String> fields) {
+    return repository.advancedSelect(domain, conditions, sorting, fields);
   }
 
   public void batchInsert(List<T> domains) {

@@ -14,6 +14,7 @@ import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.sort.Sortable;
 import org.example.mybatis.query.sort.SortableItem;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 public class SQLProvider {
@@ -52,11 +53,14 @@ public class SQLProvider {
 
   public String advancedSelect(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions,
+      @Param("sorting") List<SortableItem> sorting,
       @Param("fields") List<String> fields) {
     validateDomain(domain);
 
     final String tableName = getTableName(domain.getClass());
-    final List<SortableItem> sorting = getSorting(domain);
+    if (CollectionUtils.isEmpty(sorting)) {
+      sorting = getSorting(domain);
+    }
 
     AtomicInteger index = new AtomicInteger(0);
     return SQLBuilder.builder()
