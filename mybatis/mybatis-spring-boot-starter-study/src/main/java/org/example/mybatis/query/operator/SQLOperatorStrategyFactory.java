@@ -12,70 +12,78 @@ public class SQLOperatorStrategyFactory {
   private static final Map<SQLOperator, SQLOperatorStrategy> STRATEGIES = new EnumMap<>(SQLOperator.class);
 
   static {
-    // 等于
-    STRATEGIES.put(SQLOperator.EQ, (column, index) ->
+    registerDefaultStrategies();
+  }
+
+  /**
+   * 注册默认的 SQL 操作符策略
+   */
+  private static void registerDefaultStrategies() {
+    registerStrategy(SQLOperator.EQ, (column, index) ->
         String.format("%s = #{simpleConditions[%d].value}", column, index));
 
-    // 不等于
-    STRATEGIES.put(SQLOperator.NE, (column, index) ->
+    registerStrategy(SQLOperator.NE, (column, index) ->
         String.format("%s != #{simpleConditions[%d].value}", column, index));
 
-    // 大于
-    STRATEGIES.put(SQLOperator.GT, (column, index) ->
+    registerStrategy(SQLOperator.GT, (column, index) ->
         String.format("%s > #{simpleConditions[%d].value}", column, index));
 
-    // 大于等于
-    STRATEGIES.put(SQLOperator.GE, (column, index) ->
+    registerStrategy(SQLOperator.GE, (column, index) ->
         String.format("%s >= #{simpleConditions[%d].value}", column, index));
 
-    // 小于
-    STRATEGIES.put(SQLOperator.LT, (column, index) ->
+    registerStrategy(SQLOperator.LT, (column, index) ->
         String.format("%s < #{simpleConditions[%d].value}", column, index));
 
-    // 小于等于
-    STRATEGIES.put(SQLOperator.LE, (column, index) ->
+    registerStrategy(SQLOperator.LE, (column, index) ->
         String.format("%s <= #{simpleConditions[%d].value}", column, index));
 
-    // 模糊查询
-    STRATEGIES.put(SQLOperator.LIKE, (column, index) ->
+    registerStrategy(SQLOperator.LIKE, (column, index) ->
         String.format("%s LIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')", column, index));
 
-    // 左模糊
-    STRATEGIES.put(SQLOperator.STARTS_WITH, (column, index) ->
+    registerStrategy(SQLOperator.STARTS_WITH, (column, index) ->
         String.format("%s LIKE CONCAT(#{simpleConditions[%d].value}, '%%')", column, index));
 
-    // 右模糊
-    STRATEGIES.put(SQLOperator.ENDS_WITH, (column, index) ->
+    registerStrategy(SQLOperator.ENDS_WITH, (column, index) ->
         String.format("%s LIKE CONCAT('%%', #{simpleConditions[%d].value})", column, index));
 
-    // NOT LIKE查询
-    STRATEGIES.put(SQLOperator.NOT_LIKE, (column, index) ->
+    registerStrategy(SQLOperator.NOT_LIKE, (column, index) ->
         String.format("%s NOT LIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')", column, index));
 
-    // IN查询
-    STRATEGIES.put(SQLOperator.IN, (column, index) ->
+    registerStrategy(SQLOperator.IN, (column, index) ->
         String.format("%s IN #{simpleConditions[%d].value}", column, index));
 
-    // NOT IN查询
-    STRATEGIES.put(SQLOperator.NOT_IN, (column, index) ->
+    registerStrategy(SQLOperator.NOT_IN, (column, index) ->
         String.format("%s NOT IN #{simpleConditions[%d].value}", column, index));
 
-    // BETWEEN查询
-    STRATEGIES.put(SQLOperator.BETWEEN, (column, index) ->
+    registerStrategy(SQLOperator.BETWEEN, (column, index) ->
         String.format("%s BETWEEN #{simpleConditions[%d].value} AND #{simpleConditions[%d].secondValue}",
             column, index, index));
 
-    // IS NULL
-    STRATEGIES.put(SQLOperator.IS_NULL, (column, index) ->
+    registerStrategy(SQLOperator.IS_NULL, (column, index) ->
         String.format("%s IS NULL", column));
 
-    // IS NOT NULL
-    STRATEGIES.put(SQLOperator.IS_NOT_NULL, (column, index) ->
+    registerStrategy(SQLOperator.IS_NOT_NULL, (column, index) ->
         String.format("%s IS NOT NULL", column));
   }
 
   /**
-   * 获取SQL操作符对应的策略
+   * 注册自定义 SQL 操作符策略
+   *
+   * @param operator SQL 操作符
+   * @param strategy 对应的策略
+   */
+  public static void registerStrategy(SQLOperator operator, SQLOperatorStrategy strategy) {
+    if (Objects.isNull(operator) || Objects.isNull(strategy)) {
+      throw new IllegalArgumentException("Operator and strategy must not be null.");
+    }
+    STRATEGIES.put(operator, strategy);
+  }
+
+  /**
+   * 获取 SQL 操作符对应的策略
+   *
+   * @param operator SQL 操作符
+   * @return 对应的策略
    */
   public static SQLOperatorStrategy getStrategy(SQLOperator operator) {
     SQLOperatorStrategy strategy = STRATEGIES.get(operator);
