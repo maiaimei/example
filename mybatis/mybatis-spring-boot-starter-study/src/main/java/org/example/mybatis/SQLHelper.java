@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.example.datasource.DataSourceContextHolder;
-import org.example.datasource.DataSourceType;
+import org.example.datasource.DatabaseType;
 import org.example.mybatis.annotation.ColumnName;
 import org.example.mybatis.annotation.TableName;
 import org.example.mybatis.model.FieldValue;
@@ -154,6 +154,6 @@ public class SQLHelper {
 
   // 格式化名称
   public static String formatName(String name) {
-    return DataSourceType.POSTGRESQL.getType().equals(DataSourceContextHolder.getDataSourceType()) ? "\"" + name + "\"" : name;
+    return DatabaseType.POSTGRESQL.getType().equals(DataSourceContextHolder.getDataSourceType()) ? "\"" + name + "\"" : name;
   }
 }

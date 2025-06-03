@@ -3,7 +3,7 @@ package org.example.datasource;
 import lombok.Getter;
 
 @Getter
-public enum DataSourceType {
+public enum DatabaseType {
 
   ORACLE("oracle"),
 
@@ -13,7 +13,7 @@ public enum DataSourceType {
 
   private final String type;
 
-  DataSourceType(String type) {
+  DatabaseType(String type) {
     this.type = type;
   }
 }

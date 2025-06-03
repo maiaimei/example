@@ -1,9 +1,13 @@
 package org.example.mybatis;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.apache.ibatis.jdbc.SQL;
+import org.example.datasource.DataSourceContextHolder;
+import org.example.datasource.DatabaseType;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.sort.SortableItem;
@@ -15,14 +19,26 @@ import org.springframework.util.StringUtils;
  */
 public class SQLBuilder {
 
-  private final SQL sql;
+  private static final String PRIMARY_KEY = "id";
+  private static final String COUNT_COLUMN = "COUNT(1)";
+  private static final String ALL_COLUMNS = "*";
+
+  private final DatabaseType databaseType;
+  private SQL sql;
 
   private SQLBuilder() {
-    this.sql = new SQL();
+    this.databaseType = Optional.of(DatabaseType.valueOf(DataSourceContextHolder.getDataSourceType()))
+        .orElse(DatabaseType.MYSQL);
+  }
+
+  public static SQLBuilder newInstance() {
+    return new SQLBuilder();
   }
 
   public static SQLBuilder builder() {
-    return new SQLBuilder();
+    final SQLBuilder sqlBuilder = new SQLBuilder();
+    sqlBuilder.sql = new SQL();
+    return sqlBuilder;
   }
 
   public SQLBuilder buildInsertQuery(String tableName, List<FieldValue> fieldValues) {
@@ -46,12 +62,12 @@ public class SQLBuilder {
   }
 
   public SQLBuilder buildCountQuery(String tableName) {
-    sql.SELECT("COUNT(1)").FROM(tableName);
+    sql.SELECT(COUNT_COLUMN).FROM(tableName);
     return this;
   }
 
   public SQLBuilder buildSelectQueryWithAllColumns(String tableName) {
-    sql.SELECT("*").FROM(tableName);
+    sql.SELECT(ALL_COLUMNS).FROM(tableName);
     return this;
   }
 
@@ -84,12 +100,48 @@ public class SQLBuilder {
     return this;
   }
 
-  public SQLBuilder buildBatchInsertQuery(List<Object> domains) {
-    return this;
-  }
-
   public String build() {
     return sql.toString();
+  }
+
+  public String buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
+    return switch (databaseType) {
+      case DatabaseType.MYSQL, DatabaseType.POSTGRESQL -> buildBatchInsert(tableName, fields, domains);
+      case DatabaseType.ORACLE -> buildOracleBatchInsert(tableName, fields, domains);
+    };
+  }
+
+  private String buildBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
+    String columnNames = formatBatchInsertColumns(fields);
+    String values = domains.stream()
+        .map(domain -> formatBatchInsertValues(fields))
+        .collect(Collectors.joining(", "));
+    return "INSERT INTO %s (%s) VALUES %s".formatted(tableName, columnNames, values);
+  }
+
+  private String buildOracleBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
+    StringBuilder sqlBuilder = new StringBuilder("INSERT ALL ");
+    domains.forEach(domain -> sqlBuilder.append(formatOracleBatchInsert(tableName, fields, domain)));
+    sqlBuilder.append("SELECT * FROM dual");
+    return sqlBuilder.toString();
+  }
+
+  private String formatOracleBatchInsert(String tableName, List<Field> fields, Object domain) {
+    String columnNames = formatBatchInsertColumns(fields);
+    String values = formatBatchInsertValues(fields);
+    return "INTO %s (%s) VALUES (%s) ".formatted(tableName, columnNames, values);
+  }
+
+  private String formatBatchInsertColumns(List<Field> fields) {
+    return fields.stream()
+        .map(Field::getName)
+        .collect(Collectors.joining(", "));
+  }
+
+  private String formatBatchInsertValues(List<Field> fields) {
+    return fields.stream()
+        .map(field -> "#{domain.%s}".formatted(field.getName()))
+        .collect(Collectors.joining(", "));
   }
 
   // Private helper methods
@@ -120,11 +172,11 @@ public class SQLBuilder {
   }
 
   private boolean isPrimaryKey(FieldValue field) {
-    return "id".equals(field.fieldName());
+    return PRIMARY_KEY.equals(field.fieldName());
   }
 
   private void addPrimaryKeyCondition() {
-    sql.WHERE(formatAssignment("id", "id"));
+    sql.WHERE(formatAssignment(PRIMARY_KEY, PRIMARY_KEY));
   }
 
   private void addConditions(List<Condition> conditions) {

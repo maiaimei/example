@@ -26,7 +26,7 @@ public class DataSourceContextHolder {
 
   public static String getDataSourceType() {
     return Optional.ofNullable(DATA_SOURCE_TYPE_CONTEXT.get())
-        .orElse(DataSourceType.MYSQL.getType());
+        .orElse(DatabaseType.MYSQL.getType());
   }
 
   public static void clearDataSourceType() {

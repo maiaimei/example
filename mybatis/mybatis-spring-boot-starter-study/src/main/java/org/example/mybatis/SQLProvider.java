@@ -1,11 +1,13 @@
 package org.example.mybatis;
 
+import static org.example.mybatis.SQLHelper.getFields;
 import static org.example.mybatis.SQLHelper.getNotNullFieldValues;
 import static org.example.mybatis.SQLHelper.getTableName;
 import static org.example.mybatis.SQLHelper.validateDomain;
 import static org.example.mybatis.SQLHelper.validateDomainField;
 import static org.example.mybatis.SQLHelper.validateDomains;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
@@ -90,10 +92,17 @@ public class SQLProvider {
   }
 
   public String batchInsert(@Param("domains") List<Object> domains) {
+    // 验证输入的 domains 列表是否为空
     validateDomains(domains);
 
-    // TODO: batchInsert
-    return null;
+    // 获取第一个 domain 的表名（假设所有 domain 属于同一个表）
+    final Object firstDomain = domains.get(0);
+    final Class<?> firstDomainClass = firstDomain.getClass();
+    final String tableName = getTableName(firstDomainClass);
+    final List<Field> fields = getFields(firstDomainClass);
+
+    // 使用 SQLBuilder 构建批量插入 SQL
+    return SQLBuilder.newInstance().buildBatchInsertQuery(tableName, fields, domains);
   }
 
   public String batchUpdate(@Param("domains") List<Object> domains) {
