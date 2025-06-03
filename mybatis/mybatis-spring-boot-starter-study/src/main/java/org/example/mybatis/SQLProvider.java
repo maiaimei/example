@@ -23,7 +23,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     validateDomainField(notNullFieldValues);
-    return SQLBuilder.builder().insert(tableName, notNullFieldValues).build();
+    return SQLBuilder.builder().buildInsertQuery(tableName, notNullFieldValues).build();
   }
 
   public String update(Object domain) {
@@ -31,13 +31,13 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     validateDomainField(notNullFieldValues);
-    return SQLBuilder.builder().update(tableName, notNullFieldValues).build();
+    return SQLBuilder.builder().buildUpdateQuery(tableName, notNullFieldValues).build();
   }
 
   public String delete(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().deleteById(tableName).build();
+    return SQLBuilder.builder().buildDeleteQuery(tableName).buildWhereClauseWithPrimaryKey().build();
   }
 
   public String select(Object domain) {
@@ -45,8 +45,8 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
     return SQLBuilder.builder()
-        .selectAllColumns(tableName)
-        .whereByFieldValues(notNullFieldValues)
+        .buildSelectQueryWithAllColumns(tableName)
+        .buildWhereClauseWithFields(notNullFieldValues)
         .build();
   }
 
@@ -57,14 +57,11 @@ public class SQLProvider {
     validateDomain(domain);
 
     final String tableName = getTableName(domain.getClass());
-    if (CollectionUtils.isEmpty(sorting)) {
-      sorting = getSorting(domain);
-    }
 
     return SQLBuilder.builder()
-        .selectColumns(tableName, fields)
-        .whereByConditions(conditions)
-        .orderBy(sorting)
+        .buildSelectQueryWithColumns(tableName, fields)
+        .buildWhereClauseWithConditions(conditions)
+        .buildOrderByClause(getSorting(domain, sorting))
         .build();
   }
 
@@ -75,8 +72,8 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
 
     return SQLBuilder.builder()
-        .selectCount(tableName)
-        .whereByConditions(conditions)
+        .buildCountQuery(tableName)
+        .buildWhereClauseWithConditions(conditions)
         .build();
   }
 
@@ -87,7 +84,8 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
 
     return SQLBuilder.builder()
-        .deleteByConditions(tableName, conditions)
+        .buildDeleteQuery(tableName)
+        .buildWhereClauseWithConditions(conditions)
         .build();
   }
 
@@ -105,11 +103,11 @@ public class SQLProvider {
     return null;
   }
 
-  private List<SortableItem> getSorting(Object object) {
-    if (object instanceof Sortable sortable) {
+  private List<SortableItem> getSorting(Object object, List<SortableItem> sorting) {
+    if (CollectionUtils.isEmpty(sorting) && object instanceof Sortable sortable) {
       return sortable.getSorting();
     }
-    return null;
+    return sorting;
   }
 
 }

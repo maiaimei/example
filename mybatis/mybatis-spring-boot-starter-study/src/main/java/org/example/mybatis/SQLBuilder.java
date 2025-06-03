@@ -25,13 +25,13 @@ public class SQLBuilder {
     return new SQLBuilder();
   }
 
-  public SQLBuilder insert(String tableName, List<FieldValue> fieldValues) {
+  public SQLBuilder buildInsertQuery(String tableName, List<FieldValue> fieldValues) {
     sql.INSERT_INTO(tableName);
     fieldValues.forEach(field -> sql.VALUES(field.columnName(), formatParameter(field.fieldName())));
     return this;
   }
 
-  public SQLBuilder update(String tableName, List<FieldValue> fieldValues) {
+  public SQLBuilder buildUpdateQuery(String tableName, List<FieldValue> fieldValues) {
     sql.UPDATE(tableName);
     fieldValues.stream()
         .filter(field -> !isPrimaryKey(field))
@@ -40,46 +40,44 @@ public class SQLBuilder {
     return this;
   }
 
-  public SQLBuilder deleteById(String tableName) {
+  public SQLBuilder buildDeleteQuery(String tableName) {
     sql.DELETE_FROM(tableName);
-    addPrimaryKeyCondition();
     return this;
   }
 
-  public SQLBuilder deleteByConditions(String tableName, List<Condition> conditions) {
-    sql.DELETE_FROM(tableName);
-    addConditions(conditions);
-    return this;
-  }
-
-  public SQLBuilder selectCount(String tableName) {
+  public SQLBuilder buildCountQuery(String tableName) {
     sql.SELECT("COUNT(1)").FROM(tableName);
     return this;
   }
 
-  public SQLBuilder selectAllColumns(String tableName) {
+  public SQLBuilder buildSelectQueryWithAllColumns(String tableName) {
     sql.SELECT("*").FROM(tableName);
     return this;
   }
 
-  public SQLBuilder selectColumns(String tableName, List<String> columns) {
+  public SQLBuilder buildSelectQueryWithColumns(String tableName, List<String> columns) {
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
     return this;
   }
 
-  public SQLBuilder whereByFieldValues(List<FieldValue> fieldValues) {
+  public SQLBuilder buildWhereClauseWithFields(List<FieldValue> fieldValues) {
     if (!CollectionUtils.isEmpty(fieldValues)) {
       fieldValues.forEach(field -> sql.WHERE(formatAssignment(field.columnName(), field.fieldName())));
     }
     return this;
   }
 
-  public SQLBuilder whereByConditions(List<Condition> conditions) {
+  public SQLBuilder buildWhereClauseWithConditions(List<Condition> conditions) {
     addConditions(conditions);
     return this;
   }
 
-  public SQLBuilder orderBy(List<SortableItem> sorting) {
+  public SQLBuilder buildWhereClauseWithPrimaryKey() {
+    addPrimaryKeyCondition();
+    return this;
+  }
+
+  public SQLBuilder buildOrderByClause(List<SortableItem> sorting) {
     if (!CollectionUtils.isEmpty(sorting)) {
       sql.ORDER_BY(formatOrderBy(sorting));
     }
