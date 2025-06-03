@@ -5,12 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import lombok.Getter;
 import org.example.mybatis.annotation.Id;
 import org.example.mybatis.query.filter.Condition;
-import org.example.mybatis.query.filter.SimpleCondition;
-import org.example.mybatis.query.operator.SQLOperator;
 import org.example.mybatis.query.sort.SortableItem;
 import org.example.repository.BasicRepository;
 
@@ -121,17 +118,4 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
     return null;
   }
 
-  protected SimpleCondition newSimpleCondition(String field, SQLOperator operator, Object value) {
-    if (Objects.nonNull(value)) {
-      return new SimpleCondition(field, operator, value);
-    }
-    return null;
-  }
-
-  protected SimpleCondition newSimpleCondition(String field, SQLOperator operator, Object firstValue, Object secondValue) {
-    if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
-      return new SimpleCondition(field, operator, firstValue, secondValue);
-    }
-    return null;
-  }
 }

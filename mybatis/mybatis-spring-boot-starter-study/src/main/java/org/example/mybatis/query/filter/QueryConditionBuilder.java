@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.example.mybatis.query.operator.LogicalOperator;
 import org.example.mybatis.query.operator.SQLOperator;
-import org.springframework.util.CollectionUtils;
 
 /**
  * 查询条件构建器
@@ -24,46 +23,73 @@ public class QueryConditionBuilder {
         .build();
   }
 
-  public QueryConditionBuilder and(Condition... conditions) {
-    addConditions(LogicalOperator.AND, conditions);
-    return this;
-  }
-
   public QueryConditionBuilder or(Condition... conditions) {
-    addConditions(LogicalOperator.OR, conditions);
-    return this;
+    return addLogicalConditions(LogicalOperator.OR, conditions);
   }
 
-  public QueryConditionBuilder addCondition(String field, SQLOperator operator, Object value) {
-    if (Objects.nonNull(value)) {
-      SimpleCondition simpleCondition = new SimpleCondition(field, operator, value);
-      rootGroup.add(simpleCondition);
-    }
-    return this;
+  public QueryConditionBuilder and(Condition... conditions) {
+    return addLogicalConditions(LogicalOperator.AND, conditions);
   }
 
-  public QueryConditionBuilder addCondition(String field, SQLOperator operator, Object firstValue, Object secondValue) {
-    if (Objects.nonNull(firstValue) && Objects.nonNull(secondValue)) {
-      SimpleCondition simpleCondition = new SimpleCondition(field, operator, firstValue, secondValue);
-      rootGroup.add(simpleCondition);
-    }
-    return this;
+  public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value) {
+    return addConditionInternal(field, operator, value, null);
+  }
+
+  public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value, Object secondValue) {
+    return addConditionInternal(field, operator, value, secondValue);
+  }
+
+  public QueryConditionBuilder andEquals(String field, Object value) {
+    return addConditionInternal(field, SQLOperator.EQ, value, null);
+  }
+
+  public QueryConditionBuilder andLike(String field, String value) {
+    return addConditionInternal(field, SQLOperator.LIKE, value, null);
+  }
+
+  public QueryConditionBuilder andStartsWith(String field, String value) {
+    return addConditionInternal(field, SQLOperator.STARTS_WITH, value, null);
+  }
+
+  public QueryConditionBuilder andEndsWith(String field, String value) {
+    return addConditionInternal(field, SQLOperator.ENDS_WITH, value, null);
+  }
+
+  public QueryConditionBuilder andIlike(String field, String value) {
+    return addConditionInternal(field, SQLOperator.ILIKE, value, null);
+  }
+
+  public QueryConditionBuilder andJsonContains(String field, String value) {
+    return addConditionInternal(field, SQLOperator.JSON_CONTAINS, value, null);
   }
 
   public List<Condition> build() {
     return rootGroup.getConditions();
   }
 
-  private void addConditions(LogicalOperator operator, Condition... conditions) {
-    if (Objects.nonNull(conditions) && conditions.length > 0) {
-      ConditionGroup group = new ConditionGroup(operator);
-      Arrays.stream(conditions)
-          .filter(Objects::nonNull)
-          .forEach(group::add);
-
-      if (!CollectionUtils.isEmpty(group.getConditions())) {
-        rootGroup.add(group);
-      }
+  private QueryConditionBuilder addLogicalConditions(LogicalOperator operator, Condition... conditions) {
+    if (Objects.isNull(conditions) || conditions.length == 0) {
+      return this;
     }
+
+    ConditionGroup group = new ConditionGroup(operator);
+    Arrays.stream(conditions)
+        .filter(Objects::nonNull)
+        .forEach(group::add);
+
+    if (!group.getConditions().isEmpty()) {
+      rootGroup.add(group);
+    }
+    return this;
+  }
+
+  private QueryConditionBuilder addConditionInternal(String field, SQLOperator operator, Object firstValue, Object secondValue) {
+    if (Objects.isNull(firstValue) || (operator == SQLOperator.BETWEEN && Objects.isNull(secondValue))) {
+      return this;
+    }
+
+    SimpleCondition condition = new SimpleCondition(field, operator, firstValue, secondValue);
+    rootGroup.add(condition);
+    return this;
   }
 }
