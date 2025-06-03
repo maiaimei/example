@@ -154,6 +154,7 @@ public class SQLHelper {
 
   // 格式化名称
   public static String formatName(String name) {
-    return DatabaseType.POSTGRESQL.getType().equals(DataSourceContextHolder.getDataSourceType()) ? "\"" + name + "\"" : name;
+    final String dataSourceType = DataSourceContextHolder.getDataSourceType();
+    return DatabaseType.POSTGRESQL.getType().equals(dataSourceType) ? "\"" + name + "\"" : name;
   }
 }

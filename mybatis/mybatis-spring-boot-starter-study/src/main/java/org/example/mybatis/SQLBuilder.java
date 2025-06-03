@@ -27,7 +27,9 @@ public class SQLBuilder {
   private SQL sql;
 
   private SQLBuilder() {
-    this.databaseType = Optional.of(DatabaseType.valueOf(DataSourceContextHolder.getDataSourceType()))
+    this.databaseType = Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
+        .map(String::toUpperCase)  // 转换为大写以匹配枚举常量
+        .map(DatabaseType::valueOf)
         .orElse(DatabaseType.MYSQL);
   }
 
