@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.builder.SqlSourceBuilder;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DatabaseType;
@@ -17,6 +19,7 @@ import org.springframework.util.StringUtils;
 /**
  * SQL Builder Class
  */
+@Slf4j
 public class SQLBuilder {
 
   private static final String PRIMARY_KEY = "id";
@@ -103,14 +106,18 @@ public class SQLBuilder {
   }
 
   public String build() {
-    return sql.toString();
+    final String sqlToUse = sql.toString();
+    debugSql(sqlToUse);
+    return sqlToUse;
   }
 
   public String buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
-    return switch (databaseType) {
+    final String sqlToUse = switch (databaseType) {
       case DatabaseType.MYSQL, DatabaseType.POSTGRESQL -> buildBatchInsert(tableName, fields, domains);
       case DatabaseType.ORACLE -> buildOracleBatchInsert(tableName, fields, domains);
     };
+    debugSql(sqlToUse);
+    return sqlToUse;
   }
 
   private String buildBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
@@ -190,6 +197,12 @@ public class SQLBuilder {
           sql.WHERE(whereSql);
         }
       });
+    }
+  }
+
+  private void debugSql(String sqlToUse) {
+    if (log.isDebugEnabled()) {
+      log.debug("==>  Preparing: {}", SqlSourceBuilder.removeExtraWhitespaces(sqlToUse));
     }
   }
 }
