@@ -1,6 +1,8 @@
 package org.example.mybatis;
 
+import java.beans.Transient;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -11,7 +13,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DataSourceType;
 import org.example.mybatis.annotation.ColumnName;
@@ -92,28 +93,33 @@ public class SQLHelper {
   }
 
   /**
-   * 解析类的所有字段（包括父类字段）
+   * 解析类的所有字段（包括父类字段），并进行处理：
+   * <p> 1. 排除静态字段、瞬态字段等。
+   * <p> 2. 去重（子类覆盖父类字段）。
+   * <p> 3. 排序（确保字段顺序一致）。
    */
-  private static List<Field> resolveFields(Class<?> clazz) {
-    List<Field> fields = new ArrayList<>();
+  public static List<Field> resolveFields(Class<?> clazz) {
+    Map<String, Field> fieldMap = new LinkedHashMap<>();
+
     while (Objects.nonNull(clazz) && clazz != Object.class) {
-      fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+      Arrays.stream(clazz.getDeclaredFields())
+          .filter(field -> {
+            int modifiers = field.getModifiers();
+            // 排除静态字段、瞬态字段等
+            if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)) {
+              return false;
+            }
+            // 检查是否有@Transient注解
+            return !field.isAnnotationPresent(Transient.class);
+          })
+          .forEach(field -> fieldMap.putIfAbsent(field.getName(), field));
       clazz = clazz.getSuperclass();
     }
-    return processFields(fields);
-  }
 
-  /**
-   * 处理字段列表
-   * <p> 1. 去重（如果子类覆盖了父类的字段）
-   * <p> 2. 排序（确保字段顺序一致）
-   */
-  private static List<Field> processFields(List<Field> fields) {
-    Map<String, Field> fieldMap = new LinkedHashMap<>();
-    fields.forEach(field -> fieldMap.putIfAbsent(field.getName(), field));
+    // 排序字段并返回
     return fieldMap.values().stream()
         .sorted(Comparator.comparing(Field::getName))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   // 获取非空字段值

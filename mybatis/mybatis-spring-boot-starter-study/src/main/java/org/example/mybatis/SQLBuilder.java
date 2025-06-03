@@ -84,6 +84,10 @@ public class SQLBuilder {
     return this;
   }
 
+  public SQLBuilder buildBatchInsertQuery(List<Object> domains) {
+    return this;
+  }
+
   public String build() {
     return sql.toString();
   }
