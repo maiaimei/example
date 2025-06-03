@@ -10,7 +10,9 @@ import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-// SQL构建器类
+/**
+ * SQL Builder Class
+ */
 public class SQLBuilder {
 
   private final SQL sql;
@@ -34,12 +36,24 @@ public class SQLBuilder {
     fieldValues.stream()
         .filter(field -> !isPrimaryKey(field))
         .forEach(field -> sql.SET(formatAssignment(field.columnName(), field.fieldName())));
-    sql.WHERE(formatAssignment("id", "id"));
+    addPrimaryKeyCondition();
     return this;
   }
 
-  public SQLBuilder delete(String tableName) {
-    sql.DELETE_FROM(tableName).WHERE(formatAssignment("id", "id"));
+  public SQLBuilder deleteById(String tableName) {
+    sql.DELETE_FROM(tableName);
+    addPrimaryKeyCondition();
+    return this;
+  }
+
+  public SQLBuilder deleteByConditions(String tableName, List<Condition> conditions) {
+    sql.DELETE_FROM(tableName);
+    addConditions(conditions);
+    return this;
+  }
+
+  public SQLBuilder selectCount(String tableName) {
+    sql.SELECT("COUNT(1)").FROM(tableName);
     return this;
   }
 
@@ -60,15 +74,8 @@ public class SQLBuilder {
     return this;
   }
 
-  public SQLBuilder whereByConditions(List<Condition> conditions, AtomicInteger index) {
-    if (!CollectionUtils.isEmpty(conditions)) {
-      conditions.forEach(condition -> {
-        String whereSql = condition.build(index);
-        if (StringUtils.hasText(whereSql)) {
-          sql.WHERE(whereSql);
-        }
-      });
-    }
+  public SQLBuilder whereByConditions(List<Condition> conditions) {
+    addConditions(conditions);
     return this;
   }
 
@@ -83,6 +90,7 @@ public class SQLBuilder {
     return sql.toString();
   }
 
+  // Private helper methods
   private String formatParameter(String fieldName) {
     return "#{%s}".formatted(fieldName);
   }
@@ -93,7 +101,9 @@ public class SQLBuilder {
 
   private String formatSelectColumns(List<String> columns) {
     return CollectionUtils.isEmpty(columns) ? "*"
-        : String.join(", ", columns.stream().map(column -> SQLHelper.formatName(SQLHelper.camelToUnderscore(column))).toList());
+        : columns.stream()
+            .map(column -> SQLHelper.formatName(SQLHelper.camelToUnderscore(column)))
+            .collect(Collectors.joining(", "));
   }
 
   private String formatOrderBy(List<SortableItem> sorting) {
@@ -109,5 +119,21 @@ public class SQLBuilder {
 
   private boolean isPrimaryKey(FieldValue field) {
     return "id".equals(field.fieldName());
+  }
+
+  private void addPrimaryKeyCondition() {
+    sql.WHERE(formatAssignment("id", "id"));
+  }
+
+  private void addConditions(List<Condition> conditions) {
+    if (!CollectionUtils.isEmpty(conditions)) {
+      AtomicInteger index = new AtomicInteger(0);
+      conditions.forEach(condition -> {
+        String whereSql = condition.build(index);
+        if (StringUtils.hasText(whereSql)) {
+          sql.WHERE(whereSql);
+        }
+      });
+    }
   }
 }

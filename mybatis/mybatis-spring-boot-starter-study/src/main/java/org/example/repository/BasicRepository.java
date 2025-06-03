@@ -30,6 +30,14 @@ public interface BasicRepository<T> {
       @Param("sorting") List<SortableItem> sorting,
       @Param("fields") List<String> fields);
 
+  @SelectProvider(type = SQLProvider.class, method = "advancedCount")
+  List<T> advancedCount(@Param("domain") T domain,
+      @Param("conditions") List<Condition> conditions);
+
+  @SelectProvider(type = SQLProvider.class, method = "advancedDelete")
+  List<T> advancedDelete(@Param("domain") T domain,
+      @Param("conditions") List<Condition> conditions);
+
   @InsertProvider(type = SQLProvider.class, method = "batchInsert")
   void batchInsert(@Param("domains") List<T> domains);
 

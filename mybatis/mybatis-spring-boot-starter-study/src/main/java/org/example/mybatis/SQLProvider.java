@@ -7,7 +7,6 @@ import static org.example.mybatis.SQLHelper.validateDomainField;
 import static org.example.mybatis.SQLHelper.validateDomains;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.example.mybatis.model.FieldValue;
@@ -38,7 +37,7 @@ public class SQLProvider {
   public String delete(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().delete(tableName).build();
+    return SQLBuilder.builder().deleteById(tableName).build();
   }
 
   public String select(Object domain) {
@@ -62,11 +61,33 @@ public class SQLProvider {
       sorting = getSorting(domain);
     }
 
-    AtomicInteger index = new AtomicInteger(0);
     return SQLBuilder.builder()
         .selectColumns(tableName, fields)
-        .whereByConditions(conditions, index)
+        .whereByConditions(conditions)
         .orderBy(sorting)
+        .build();
+  }
+
+  public String advancedCount(@Param("domain") Object domain,
+      @Param("conditions") List<Condition> conditions) {
+    validateDomain(domain);
+
+    final String tableName = getTableName(domain.getClass());
+
+    return SQLBuilder.builder()
+        .selectCount(tableName)
+        .whereByConditions(conditions)
+        .build();
+  }
+
+  public String advancedDelete(@Param("domain") Object domain,
+      @Param("conditions") List<Condition> conditions) {
+    validateDomain(domain);
+
+    final String tableName = getTableName(domain.getClass());
+
+    return SQLBuilder.builder()
+        .deleteByConditions(tableName, conditions)
         .build();
   }
 
