@@ -66,6 +66,16 @@ public enum SQLOperator {
   NOT_IN,      // NOT IN查询
 
   /**
+   * {@code IN} Value in a list
+   */
+  IN_WITH_LIMITED_SIZE,          // IN查询
+
+  /**
+   * {@code NOT IN} Value not in a list
+   */
+  NOT_IN_WITH_LIMITED_SIZE,      // NOT IN查询
+
+  /**
    * {@code BETWEEN} Range query
    */
   BETWEEN,     // 范围查询
