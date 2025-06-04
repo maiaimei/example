@@ -30,9 +30,9 @@ public class SimpleCondition implements Condition {
 
   @Override
   public String build(AtomicInteger index) {
-    final String column = SQLHelper.formatName(SQLHelper.camelToUnderscore(field));
+    final String columnName = SQLHelper.formatName(SQLHelper.camelCaseToUpperSnakeCase(field));
     return SQLOperatorStrategyFactory.getStrategy(operator)
-        .buildCondition(column, index.getAndIncrement());
+        .buildCondition(columnName, index.getAndIncrement());
   }
 
 }

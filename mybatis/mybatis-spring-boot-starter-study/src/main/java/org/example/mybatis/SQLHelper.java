@@ -27,13 +27,6 @@ public class SQLHelper {
   // 表名缓存
   private static final Map<Class<?>, String> TABLE_NAME_CACHE = new ConcurrentHashMap<>();
 
-  // 验证域对象列表是否为空
-  public static void validateDomains(List<?> domains) {
-    if (CollectionUtils.isEmpty(domains)) {
-      throw new IllegalArgumentException("Domains cannot be null or empty");
-    }
-  }
-
   // 验证域对象是否为空
   public static void validateDomain(Object domain) {
     if (Objects.isNull(domain)) {
@@ -45,6 +38,13 @@ public class SQLHelper {
   public static void validateDomainField(List<FieldValue> fieldValueList) {
     if (CollectionUtils.isEmpty(fieldValueList)) {
       throw new IllegalArgumentException("Domain fields cannot be null or empty");
+    }
+  }
+
+  // 验证域对象列表是否为空
+  public static void validateDomains(List<?> domains) {
+    if (CollectionUtils.isEmpty(domains)) {
+      throw new IllegalArgumentException("Domains cannot be null or empty");
     }
   }
 
@@ -65,9 +65,9 @@ public class SQLHelper {
    * <p> 3. 如果都没有注解，则将类名转换为下划线格式
    */
   private static String resolveTableName(Class<?> clazz) {
-    TableName tableName = findTableNameAnnotation(clazz);
-    return Objects.nonNull(tableName) ? tableName.value().toUpperCase(Locale.US)
-        : formatName(camelToUnderscore(clazz.getSimpleName()));
+    TableName tableNameAnnotation = findTableNameAnnotation(clazz);
+    String tableName = Objects.nonNull(tableNameAnnotation) ? tableNameAnnotation.value() : clazz.getSimpleName();
+    return formatName(camelCaseToUpperSnakeCase(tableName));
   }
 
   /**
@@ -142,19 +142,33 @@ public class SQLHelper {
 
   // 创建字段值对象
   private static FieldValue createFieldValue(Field field, Object value) {
-    ColumnName columnName = field.getAnnotation(ColumnName.class);
-    String column = Objects.nonNull(columnName) ? columnName.value() : formatName(camelToUnderscore(field.getName()));
-    return new FieldValue(field.getName(), column, value);
+    ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
+    String columnName = Objects.nonNull(columnNameAnnotation) ? columnNameAnnotation.value()
+        : field.getName();
+    return new FieldValue(field.getName(), formatName(camelCaseToUpperSnakeCase(columnName)), value);
   }
 
-  // 驼峰转下划线
-  public static String camelToUnderscore(String camelCase) {
+  // 驼峰命名转大蛇形命名
+  public static String camelCaseToUpperSnakeCase(String camelCase) {
     return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase(Locale.US);
   }
 
-  // 格式化名称
+  // 格式化表名或列名
   public static String formatName(String name) {
-    final String dataSourceType = DataSourceContextHolder.getDataSourceType();
-    return DatabaseType.POSTGRESQL.getType().equals(dataSourceType) ? "\"" + name + "\"" : name;
+    final String databaseType = getDatabaseTypeAsString();
+    return DatabaseType.POSTGRESQL.getType().equals(databaseType) ? "\"" + name + "\"" : name;
+  }
+
+  // 获取数据库类型
+  public static String getDatabaseTypeAsString() {
+    return Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
+        .orElse(Optional.ofNullable(System.getProperty("app.dbType")).orElse(DatabaseType.MYSQL.getType()));
+  }
+
+  public static DatabaseType getDatabaseType() {
+    return Optional.ofNullable(getDatabaseTypeAsString())
+        .map(String::toUpperCase)
+        .map(DatabaseType::valueOf)
+        .orElse(DatabaseType.MYSQL);
   }
 }

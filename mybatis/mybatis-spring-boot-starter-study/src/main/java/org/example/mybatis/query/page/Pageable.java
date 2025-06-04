@@ -7,7 +7,7 @@ import org.example.mybatis.query.Queryable;
  */
 public interface Pageable extends Queryable {
 
-  Integer getCurrent();
+  Integer getCurrentPageNumber();
 
-  Integer getSize();
+  Integer getPageSize();
 }

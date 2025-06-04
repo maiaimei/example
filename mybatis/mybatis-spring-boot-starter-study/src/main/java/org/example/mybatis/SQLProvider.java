@@ -102,7 +102,7 @@ public class SQLProvider {
     final List<Field> fields = getFields(firstDomainClass);
 
     // 使用 SQLBuilder 构建批量插入 SQL
-    return SQLBuilder.newInstance().buildBatchInsertQuery(tableName, fields, domains);
+    return SQLBuilder.builder(false).buildBatchInsertQuery(tableName, fields, domains).build();
   }
 
   public String batchUpdate(@Param("domains") List<Object> domains) {

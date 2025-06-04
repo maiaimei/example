@@ -20,6 +20,6 @@ public class UserQueryRequest implements Sortable, Pageable {
   private List<SortableItem> sorting;
 
   // 分页字段
-  private Integer current;
-  private Integer size;
+  private Integer currentPageNumber;
+  private Integer pageSize;
 }

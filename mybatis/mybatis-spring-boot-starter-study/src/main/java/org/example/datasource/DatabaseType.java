@@ -4,10 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum DatabaseType {
+  MYSQL("mysql"),
 
   ORACLE("oracle"),
-
-  MYSQL("mysql"),
 
   POSTGRESQL("postgresql");
 

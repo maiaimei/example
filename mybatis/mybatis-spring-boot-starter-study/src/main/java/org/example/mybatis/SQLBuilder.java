@@ -2,14 +2,14 @@ package org.example.mybatis;
 
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.builder.SqlSourceBuilder;
 import org.apache.ibatis.jdbc.SQL;
-import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DatabaseType;
+import org.example.mybatis.exception.InvalidSqlException;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.sort.SortableItem;
@@ -26,24 +26,23 @@ public class SQLBuilder {
   private static final String COUNT_COLUMN = "COUNT(1)";
   private static final String ALL_COLUMNS = "*";
 
-  private final DatabaseType databaseType;
-  private SQL sql;
+  private final SQL sql;
+  private String sqlAsString;
 
   private SQLBuilder() {
-    this.databaseType = Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
-        .map(String::toUpperCase)  // 转换为大写以匹配枚举常量
-        .map(DatabaseType::valueOf)
-        .orElse(DatabaseType.MYSQL);
+    this(true);
   }
 
-  public static SQLBuilder newInstance() {
-    return new SQLBuilder();
+  private SQLBuilder(boolean shouldInitializeSql) {
+    this.sql = shouldInitializeSql ? new SQL() : null;
   }
 
   public static SQLBuilder builder() {
-    final SQLBuilder sqlBuilder = new SQLBuilder();
-    sqlBuilder.sql = new SQL();
-    return sqlBuilder;
+    return new SQLBuilder();
+  }
+
+  public static SQLBuilder builder(boolean shouldInitializeSql) {
+    return new SQLBuilder(shouldInitializeSql);
   }
 
   public SQLBuilder buildInsertQuery(String tableName, List<FieldValue> fieldValues) {
@@ -81,15 +80,15 @@ public class SQLBuilder {
     return this;
   }
 
+  public SQLBuilder buildWhereClauseWithConditions(List<Condition> conditions) {
+    addConditions(conditions);
+    return this;
+  }
+
   public SQLBuilder buildWhereClauseWithFields(List<FieldValue> fieldValues) {
     if (!CollectionUtils.isEmpty(fieldValues)) {
       fieldValues.forEach(field -> sql.WHERE(formatAssignment(field.columnName(), field.fieldName())));
     }
-    return this;
-  }
-
-  public SQLBuilder buildWhereClauseWithConditions(List<Condition> conditions) {
-    addConditions(conditions);
     return this;
   }
 
@@ -105,22 +104,30 @@ public class SQLBuilder {
     return this;
   }
 
-  public String build() {
-    final String sqlToUse = sql.toString();
-    debugSql(sqlToUse);
-    return sqlToUse;
-  }
-
-  public String buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
-    final String sqlToUse = switch (databaseType) {
-      case DatabaseType.MYSQL, DatabaseType.POSTGRESQL -> buildBatchInsert(tableName, fields, domains);
-      case DatabaseType.ORACLE -> buildOracleBatchInsert(tableName, fields, domains);
+  public SQLBuilder buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
+    final DatabaseType databaseType = SQLHelper.getDatabaseType();
+    sqlAsString = switch (databaseType) {
+      case DatabaseType.MYSQL, DatabaseType.POSTGRESQL -> buildDefaultBatchInsertQuery(tableName, fields, domains);
+      case DatabaseType.ORACLE -> buildOracleBatchInsertQuery(tableName, fields, domains);
     };
+    return this;
+  }
+
+  public String build() {
+    String sqlToUse = null;
+    if (Objects.nonNull(sql)) {
+      sqlToUse = wrapSqlWithScriptTag(sql.toString());
+    } else if (StringUtils.hasText(sqlAsString)) {
+      sqlToUse = wrapSqlWithScriptTag(sqlAsString);
+    }
+    if (!StringUtils.hasText(sqlToUse)) {
+      throw new InvalidSqlException();
+    }
     debugSql(sqlToUse);
     return sqlToUse;
   }
 
-  private String buildBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
+  private String buildDefaultBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
     String columnNames = formatBatchInsertColumns(fields);
     String values = domains.stream()
         .map(domain -> formatBatchInsertValues(fields))
@@ -128,14 +135,14 @@ public class SQLBuilder {
     return "INSERT INTO %s (%s) VALUES %s".formatted(tableName, columnNames, values);
   }
 
-  private String buildOracleBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
+  private String buildOracleBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
     StringBuilder sqlBuilder = new StringBuilder("INSERT ALL ");
-    domains.forEach(domain -> sqlBuilder.append(formatOracleBatchInsert(tableName, fields, domain)));
+    domains.forEach(domain -> sqlBuilder.append(formatOracleBatchInsertClause(tableName, fields, domain)));
     sqlBuilder.append("SELECT * FROM dual");
     return sqlBuilder.toString();
   }
 
-  private String formatOracleBatchInsert(String tableName, List<Field> fields, Object domain) {
+  private String formatOracleBatchInsertClause(String tableName, List<Field> fields, Object domain) {
     String columnNames = formatBatchInsertColumns(fields);
     String values = formatBatchInsertValues(fields);
     return "INTO %s (%s) VALUES (%s) ".formatted(tableName, columnNames, values);
@@ -165,13 +172,13 @@ public class SQLBuilder {
   private String formatSelectColumns(List<String> columns) {
     return CollectionUtils.isEmpty(columns) ? "*"
         : columns.stream()
-            .map(column -> SQLHelper.formatName(SQLHelper.camelToUnderscore(column)))
+            .map(column -> SQLHelper.formatName(SQLHelper.camelCaseToUpperSnakeCase(column)))
             .collect(Collectors.joining(", "));
   }
 
   private String formatOrderBy(List<SortableItem> sorting) {
     return sorting.stream()
-        .map(item -> "%s %s".formatted(SQLHelper.formatName(SQLHelper.camelToUnderscore(item.getField())),
+        .map(item -> "%s %s".formatted(SQLHelper.formatName(SQLHelper.camelCaseToUpperSnakeCase(item.getField())),
             formatSortDirection(item.getSort())))
         .collect(Collectors.joining(", "));
   }
@@ -198,6 +205,10 @@ public class SQLBuilder {
         }
       });
     }
+  }
+
+  private String wrapSqlWithScriptTag(String sqlToUse) {
+    return "<script>" + sqlToUse + "</script>";
   }
 
   private void debugSql(String sqlToUse) {
