@@ -12,6 +12,7 @@ import org.example.datasource.DatabaseType;
 import org.example.mybatis.exception.InvalidSqlException;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.filter.Condition;
+import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -28,6 +29,7 @@ public class SQLBuilder {
 
   private final SQL sql;
   private String sqlAsString;
+  private String paginationClause;
 
   private SQLBuilder() {
     this(true);
@@ -104,6 +106,38 @@ public class SQLBuilder {
     return this;
   }
 
+  public SQLBuilder buildPaginationClause(Pageable pageable) {
+    if (Objects.isNull(pageable)) {
+      return this;
+    }
+
+    final DatabaseType databaseType = SQLHelper.getDatabaseType();
+    final int currentPageNumber = Math.max(1, pageable.getCurrentPageNumber());
+    final int pageSize = pageable.getPageSize();
+
+    // 计算偏移量
+    final int offset = (currentPageNumber - 1) * pageSize;
+
+    switch (databaseType) {
+      case DatabaseType.MYSQL -> {
+        // MySQL使用 LIMIT offset, size
+        sql.LIMIT(offset + ", " + pageSize);
+      }
+      case DatabaseType.ORACLE -> {
+        // Oracle 12c+: OFFSET n ROWS FETCH NEXT n ROWS ONLY
+        paginationClause = "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY".formatted(offset, pageSize);
+      }
+      case DatabaseType.POSTGRESQL -> {
+        // PostgreSQL使用 LIMIT size OFFSET offset
+        sql.LIMIT(String.valueOf(pageSize))
+            .OFFSET(String.valueOf(offset));
+      }
+      default -> throw new UnsupportedOperationException(
+          "Unsupported database type: " + databaseType);
+    }
+    return this;
+  }
+
   public SQLBuilder buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
     final DatabaseType databaseType = SQLHelper.getDatabaseType();
     sqlAsString = switch (databaseType) {
@@ -114,15 +148,19 @@ public class SQLBuilder {
   }
 
   public String build() {
-    String sqlToUse = null;
+    String sqlToUse;
     if (Objects.nonNull(sql)) {
-      sqlToUse = wrapSqlWithScriptTag(sql.toString());
-    } else if (StringUtils.hasText(sqlAsString)) {
-      sqlToUse = wrapSqlWithScriptTag(sqlAsString);
+      sqlToUse = sql.toString();
+    } else {
+      sqlToUse = sqlAsString;
     }
     if (!StringUtils.hasText(sqlToUse)) {
       throw new InvalidSqlException();
     }
+    if (StringUtils.hasText(paginationClause)) {
+      sqlToUse = sqlToUse + " " + paginationClause;
+    }
+    sqlToUse = wrapSqlWithScriptTag(sqlToUse);
     debugSql(sqlToUse);
     return sqlToUse;
   }
