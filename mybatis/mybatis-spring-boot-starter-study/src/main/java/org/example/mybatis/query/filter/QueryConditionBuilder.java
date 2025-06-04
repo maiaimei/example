@@ -31,20 +31,20 @@ public class QueryConditionBuilder {
     return addLogicalConditions(LogicalOperator.AND, conditions);
   }
 
-  public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value) {
-    return addConditionInternal(field, operator, value, null);
-  }
-
-  public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value, Object secondValue) {
-    return addConditionInternal(field, operator, value, secondValue);
-  }
-
   public QueryConditionBuilder andEquals(String field, Object value) {
     return addConditionInternal(field, SQLOperator.EQ, value, null);
   }
 
+  public QueryConditionBuilder andBetween(String field, Object value, Object secondValue) {
+    return addConditionInternal(field, SQLOperator.BETWEEN, value, secondValue);
+  }
+
   public QueryConditionBuilder andLike(String field, String value) {
     return addConditionInternal(field, SQLOperator.LIKE, value, null);
+  }
+
+  public QueryConditionBuilder andIlike(String field, String value) {
+    return addConditionInternal(field, SQLOperator.ILIKE, value, null);
   }
 
   public QueryConditionBuilder andStartsWith(String field, String value) {
@@ -55,12 +55,24 @@ public class QueryConditionBuilder {
     return addConditionInternal(field, SQLOperator.ENDS_WITH, value, null);
   }
 
-  public QueryConditionBuilder andIlike(String field, String value) {
-    return addConditionInternal(field, SQLOperator.ILIKE, value, null);
+  public QueryConditionBuilder andIn(String field, Object value) {
+    return addConditionInternal(field, SQLOperator.IN, value, null);
+  }
+
+  public QueryConditionBuilder andInWithLimitedSize(String field, Object value) {
+    return addConditionInternal(field, SQLOperator.IN_WITH_LIMITED_SIZE, value, null);
   }
 
   public QueryConditionBuilder andJsonContains(String field, String value) {
     return addConditionInternal(field, SQLOperator.JSON_CONTAINS, value, null);
+  }
+
+  public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value) {
+    return addConditionInternal(field, operator, value, null);
+  }
+
+  public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value, Object secondValue) {
+    return addConditionInternal(field, operator, value, secondValue);
   }
 
   public List<Condition> build() {
