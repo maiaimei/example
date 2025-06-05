@@ -1,8 +1,6 @@
 package org.example.mybatis.query.operator;
 
-import static org.example.mybatis.query.operator.SQLOperatorStrategyFactory.registerStrategy;
-
-public class PostgreSQLOperatorStrategyFactory {
+public class PostgreSQLOperatorStrategyFactory extends SQLOperatorStrategyFactory {
 
   static {
     registerStringOperatorStrategies();
@@ -91,7 +89,7 @@ public class PostgreSQLOperatorStrategyFactory {
     registerStrategy(SQLOperator.RANGE_ADJACENT, (column, index) ->
         String.format("%s -|- #{simpleConditions[%d].value}", column, index));
   }
-  
+
   private static void registerOtherOperatorStrategies() {
     // Distinct Operators
     registerStrategy(SQLOperator.IS_DISTINCT_FROM, (column, index) ->

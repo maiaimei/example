@@ -29,34 +29,28 @@ import org.example.mybatis.query.filter.SimpleCondition;
 })
 public class ConditionInterceptor implements Interceptor {
 
-  // 定义需要拦截的方法后缀
   private static final List<String> INTERCEPTED_METHOD_SUFFIXES = Arrays.asList(
       "advancedSelect",
+      "advancedSelectWithPagination",
       "advancedCount",
       "advancedDelete"
   );
 
   @Override
   public Object intercept(Invocation invocation) throws Throwable {
-    // 添加日志确认拦截器是否执行
     log.info("ConditionInterceptor is executing...");
-
     Object target = invocation.getTarget();
 
     if (target instanceof StatementHandler) {
-      return handleStatementHandler(invocation);
+      handleStatementHandler(invocation);
     } else if (target instanceof Executor) {
-      return handleExecutor(invocation);
+      handleExecutor(invocation);
     }
 
     return invocation.proceed();
   }
 
-  private boolean skipIntercept(String methodId) {
-    return INTERCEPTED_METHOD_SUFFIXES.stream().noneMatch(methodId::endsWith);
-  }
-
-  private Object handleStatementHandler(Invocation invocation) throws Throwable {
+  private void handleStatementHandler(Invocation invocation) {
     StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
     MetaObject metaObject = SystemMetaObject.forObject(statementHandler);
 
@@ -65,43 +59,48 @@ public class ConditionInterceptor implements Interceptor {
 
     log.info("Intercepted method: {}", methodId);
 
-    if (skipIntercept(methodId)) {
-      return invocation.proceed();
+    if (shouldIntercept(methodId)) {
+      processConditions(statementHandler.getBoundSql().getParameterObject());
     }
-
-    return processConditions(invocation, statementHandler.getBoundSql().getParameterObject());
   }
 
-  private Object handleExecutor(Invocation invocation) throws Throwable {
+  private void handleExecutor(Invocation invocation) {
     MappedStatement ms = (MappedStatement) invocation.getArgs()[0];
     String methodId = ms.getId();
 
     log.info("Intercepted executor method: {}", methodId);
 
-    if (skipIntercept(methodId)) {
-      return invocation.proceed();
+    if (shouldIntercept(methodId)) {
+      processConditions(invocation.getArgs()[1]);
     }
-
-    return processConditions(invocation, invocation.getArgs()[1]);
   }
 
-  private Object processConditions(Invocation invocation, Object parameterObject) throws Throwable {
-    if (parameterObject instanceof Map) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> params = (Map<String, Object>) parameterObject;
+  private boolean shouldIntercept(String methodId) {
+    return INTERCEPTED_METHOD_SUFFIXES.stream().anyMatch(methodId::endsWith);
+  }
 
-      @SuppressWarnings("unchecked")
-      List<Condition> conditions = (List<Condition>) params.get("conditions");
-
-      if (conditions != null) {
-        List<SimpleCondition> simpleConditions = convertToSimpleConditions(conditions);
-        params.put("simpleConditions", simpleConditions);
-        log.info("Converted {} conditions to {} simple conditions",
-            conditions.size(), simpleConditions.size());
-      }
+  private void processConditions(Object parameterObject) {
+    if (!(parameterObject instanceof Map)) {
+      log.debug("Parameter object is not a Map, skipping condition processing");
+      return;
     }
 
-    return invocation.proceed();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> params = (Map<String, Object>) parameterObject;
+
+    @SuppressWarnings("unchecked")
+    List<Condition> conditions = (List<Condition>) params.get("conditions");
+
+    if (conditions == null || conditions.isEmpty()) {
+      log.debug("No conditions found to process");
+      return;
+    }
+
+    List<SimpleCondition> simpleConditions = convertToSimpleConditions(conditions);
+    params.put("simpleConditions", simpleConditions);
+
+    log.info("Successfully processed conditions: converted {} conditions to {} simple conditions",
+        conditions.size(), simpleConditions.size());
   }
 
   private List<SimpleCondition> convertToSimpleConditions(List<Condition> conditions) {

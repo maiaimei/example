@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.example.mybatis.SQLProvider;
 import org.example.mybatis.query.filter.Condition;
+import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.SortableItem;
 
 public interface BasicRepository<T> {
@@ -29,6 +30,13 @@ public interface BasicRepository<T> {
       @Param("conditions") List<Condition> conditions,
       @Param("sorting") List<SortableItem> sorting,
       @Param("fields") List<String> fields);
+
+  @SelectProvider(type = SQLProvider.class, method = "advancedSelectWithPagination")
+  List<T> advancedSelectWithPagination(@Param("domain") T domain,
+      @Param("conditions") List<Condition> conditions,
+      @Param("sorting") List<SortableItem> sorting,
+      @Param("fields") List<String> fields,
+      @Param("paging") Pageable pageable);
 
   @SelectProvider(type = SQLProvider.class, method = "advancedCount")
   long advancedCount(@Param("domain") T domain,

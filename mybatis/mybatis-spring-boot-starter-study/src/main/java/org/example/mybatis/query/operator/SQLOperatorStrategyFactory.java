@@ -16,7 +16,7 @@ public class SQLOperatorStrategyFactory {
   static {
     registerComparisonOperatorStrategies();
     registerStringOperatorStrategies();
-    registerInOperatorStrategies();
+    registerRangeOperatorStrategies();
     registerOtherOperatorStrategies();
   }
 
@@ -54,7 +54,11 @@ public class SQLOperatorStrategyFactory {
         String.format("%s NOT LIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')", column, index));
   }
 
-  private static void registerInOperatorStrategies() {
+  private static void registerRangeOperatorStrategies() {
+    registerStrategy(SQLOperator.BETWEEN, (column, index) ->
+        String.format("%s BETWEEN #{simpleConditions[%d].value} AND #{simpleConditions[%d].secondValue}",
+            column, index, index));
+
     registerStrategy(SQLOperator.IN, (column, index) ->
         String.format(
             "%s IN <foreach collection='simpleConditions[%d].value' item='item' open='(' separator=',' close=')'>#{item}</foreach>",
@@ -130,10 +134,6 @@ public class SQLOperatorStrategyFactory {
   }
 
   private static void registerOtherOperatorStrategies() {
-    registerStrategy(SQLOperator.BETWEEN, (column, index) ->
-        String.format("%s BETWEEN #{simpleConditions[%d].value} AND #{simpleConditions[%d].secondValue}",
-            column, index, index));
-
     registerStrategy(SQLOperator.IS_NULL, (column, index) ->
         String.format("%s IS NULL", column));
 

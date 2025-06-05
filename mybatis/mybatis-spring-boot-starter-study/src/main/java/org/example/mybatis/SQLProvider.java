@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.example.mybatis.model.FieldValue;
 import org.example.mybatis.query.filter.Condition;
+import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.Sortable;
 import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
@@ -64,6 +65,23 @@ public class SQLProvider {
         .buildSelectQueryWithColumns(tableName, fields)
         .buildWhereClauseWithConditions(conditions)
         .buildOrderByClause(getSorting(domain, sorting))
+        .build();
+  }
+
+  public String advancedSelectWithPagination(@Param("domain") Object domain,
+      @Param("conditions") List<Condition> conditions,
+      @Param("sorting") List<SortableItem> sorting,
+      @Param("fields") List<String> fields,
+      @Param("paging") Pageable pageable) {
+    validateDomain(domain);
+
+    final String tableName = getTableName(domain.getClass());
+
+    return SQLBuilder.builder()
+        .buildSelectQueryWithColumns(tableName, fields)
+        .buildWhereClauseWithConditions(conditions)
+        .buildOrderByClause(getSorting(domain, sorting))
+        .buildPaginationClause(pageable)
         .build();
   }
 
