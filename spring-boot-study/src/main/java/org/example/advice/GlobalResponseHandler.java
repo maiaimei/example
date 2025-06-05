@@ -10,7 +10,6 @@ import org.example.model.response.ApiResponse.BasicResponse;
 import org.example.utils.JsonUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -79,8 +78,12 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
     String requestPath = request.getURI().getPath();
     String requestMethod = request.getMethod().name();
 
-    if (body == null || body instanceof String) {
-      return handleNullOrStringResponse(body, selectedContentType, response, requestPath, requestMethod);
+    if (Objects.isNull(body)) {
+      return ApiResponse.success(body, requestPath, requestMethod);
+    }
+
+    if (body instanceof String) {
+      return JsonUtils.toJsonString(ApiResponse.success(body, requestPath, requestMethod));
     }
 
     if (body instanceof BasicResponse) {
@@ -88,24 +91,6 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
     }
 
     return ApiResponse.success(body, requestPath, requestMethod);
-  }
-
-  /**
-   * 处理空值或 String 类型响应
-   */
-  private Object handleNullOrStringResponse(Object body, MediaType selectedContentType,
-      ServerHttpResponse response, String requestPath, String requestMethod) {
-    if (MediaType.APPLICATION_JSON.includes(selectedContentType)) {
-      response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      return JsonUtils.toJsonString(ApiResponse.success(body, requestPath, requestMethod));
-    }
-
-    if (body == null) {
-      response.setStatusCode(HttpStatus.NO_CONTENT);
-      return null;
-    }
-
-    return body;
   }
 
   /**
