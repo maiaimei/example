@@ -2,6 +2,7 @@ package org.example.controller;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +33,7 @@ public class UserController {
   public UserDTO create(@RequestBody @Valid ApiRequest<UserDTO> apiRequest) {
     final UserDTO userDTO = apiRequest.getData();
     userDTO.setId(IdGenerator.nextId());
+    userDTO.setCreatedAt(LocalDateTime.now());
     users.add(userDTO);
     return userDTO;
   }
@@ -45,6 +47,7 @@ public class UserController {
     }
     existingUserDTO.setName(userDTO.getName());
     existingUserDTO.setPhone(userDTO.getPhone());
+    existingUserDTO.setUpdatedAt(LocalDateTime.now());
     return existingUserDTO;
   }
 
@@ -56,6 +59,7 @@ public class UserController {
       //throw new BusinessException(ResponseCode.BUSINESS_ERROR, "Incorrect request");
     }
     existingUserDTO.setPhone(userDTO.getPhone());
+    existingUserDTO.setUpdatedAt(LocalDateTime.now());
     return existingUserDTO;
   }
 

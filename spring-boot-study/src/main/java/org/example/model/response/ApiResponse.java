@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.example.constants.ErrorCode;
 import org.example.constants.ResponseCode;
-import org.example.utils.DateTimeUtils;
 import org.example.utils.TraceIdUtils;
 
 /**
@@ -151,7 +150,7 @@ public class ApiResponse {
       return new SuccessResponse<T>()
           .code(ResponseCode.SUCCESS.getCode())
           .message(ResponseCode.SUCCESS.getMessage())
-          .timestamp(DateTimeUtils.getCurrentUtcTime())
+          .timestamp(LocalDateTime.now())
           .correlationId(TraceIdUtils.getTraceId());
     }
   }
@@ -224,7 +223,7 @@ public class ApiResponse {
     // 静态工厂方法，创建实例
     public static <T> ErrorResponse<T> create() {
       return new ErrorResponse<T>()
-          .timestamp(DateTimeUtils.getCurrentUtcTime())
+          .timestamp(LocalDateTime.now())
           .correlationId(TraceIdUtils.getTraceId());
     }
   }

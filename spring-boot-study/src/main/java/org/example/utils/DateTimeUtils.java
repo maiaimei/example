@@ -4,8 +4,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import org.example.config.JacksonConfig;
 import org.springframework.util.StringUtils;
 
+/**
+ * <p> 使用 JVM 参数 `-Duser.timezone` 启动程序，例如： java -Duser.timezone=UTC MainClass， 代码无需特别处理日期时间
+ * <p> 使用 {@link JacksonConfig} 统一处理日期时间序列化与反序列化
+ */
 public final class DateTimeUtils {
 
   private DateTimeUtils() {

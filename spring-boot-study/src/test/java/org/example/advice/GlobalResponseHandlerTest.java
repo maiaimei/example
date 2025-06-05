@@ -11,14 +11,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.net.URI;
+import java.time.LocalDateTime;
 import lombok.Getter;
+import org.example.advice.GlobalResponseHandlerTest.TestConfig;
 import org.example.annotation.SkipResponseWrapper;
+import org.example.config.JacksonConfig;
 import org.example.model.response.ApiResponse;
 import org.example.model.response.ApiResponse.SuccessResponse;
+import org.example.utils.IdGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -31,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @WebMvcTest
 @ContextConfiguration(classes = {
+    TestConfig.class,
     GlobalResponseHandler.class,
     GlobalResponseHandlerTest.TestController.class
 })
@@ -188,6 +196,12 @@ class GlobalResponseHandlerTest {
     return request;
   }
 
+  @TestConfiguration
+  @Import(JacksonConfig.class)
+  static class TestConfig {
+
+  }
+
   // Test helper classes
   @RestController
   static class TestController {
@@ -207,10 +221,14 @@ class GlobalResponseHandlerTest {
   @Getter
   static class TestDto {
 
+    private final BigDecimal id;
     private final String value;
+    private final LocalDateTime createdAt;
 
     TestDto(String value) {
+      this.id = IdGenerator.nextId();
       this.value = value;
+      this.createdAt = LocalDateTime.now();
     }
 
     @Override
