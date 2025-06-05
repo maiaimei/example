@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.Getter;
 import org.example.mybatis.annotation.Id;
 import org.example.mybatis.query.filter.Condition;
+import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.SortableItem;
 import org.example.repository.BasicRepository;
 
@@ -55,12 +56,21 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
     return repository.advancedSelect(domain, conditions, null, fields);
   }
 
-  public List<T> advancedSelect(T domain, List<Condition> conditions, List<SortableItem> sorting, List<String> fields) {
+  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortableItem> sorting) {
     return repository.advancedSelect(domain, conditions, sorting, fields);
   }
 
+  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortableItem> sorting,
+      Pageable pageable) {
+    return repository.advancedSelectWithPagination(domain, conditions, sorting, fields, pageable);
+  }
+
+  public long advancedCount(T domain, List<Condition> conditions) {
+    return repository.advancedCount(domain, conditions);
+  }
+
   public void batchInsert(List<T> domains) {
-    // TODO: 分批插入
+    repository.batchInsert(domains);
   }
 
   private T createDomain() {

@@ -32,7 +32,7 @@ public class UserService extends AbstractDomainRepositoryService<User, UserRepos
             eq("isDeleted", userQueryRequest.getIsDeleted())
         ).build();
     List<String> fields = List.of("id", "username", "firstName", "lastName", "isEnabled", "isDeleted", "createAt", "updatedAt");
-    return advancedSelect(user, conditions, userQueryRequest.getSorting(), fields);
+    return advancedSelect(user, conditions, fields, userQueryRequest.getSorting());
   }
 
   public List<User> getUsers2(UserQueryRequest userQueryRequest) {
@@ -47,6 +47,6 @@ public class UserService extends AbstractDomainRepositoryService<User, UserRepos
         .andEquals("isDeleted", userQueryRequest.getIsDeleted())
         .build();
     List<String> fields = List.of("id", "username", "firstName", "lastName", "isEnabled", "isDeleted", "createAt", "updatedAt");
-    return advancedSelect(user, conditions, userQueryRequest.getSorting(), fields);
+    return advancedSelect(user, conditions, fields, userQueryRequest.getSorting());
   }
 }
