@@ -22,7 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * 全局响应处理器
  */
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "org.example.controller") // 指定basePackages避免使用swagger时报错
 public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
 
   @Override
