@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.controller.usercenter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

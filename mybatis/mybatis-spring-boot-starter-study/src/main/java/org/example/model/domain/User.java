@@ -6,7 +6,7 @@ import lombok.Data;
 import org.example.mybatis.annotation.TableName;
 
 @Data
-@TableName("USER_INFO")
+@TableName("USER_TEST")
 public class User {
 
   private BigDecimal id;

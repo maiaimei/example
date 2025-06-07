@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.controller.productcenter;
 
 import java.math.BigDecimal;
 import java.util.List;
