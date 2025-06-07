@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.util.CollectionUtils;
 
 @Configuration
@@ -50,9 +51,10 @@ public class MultipleDataSourceConfig {
     return createDruidDataSource(dataSourceProperties);
   }
 
+  @Primary
   @Bean
-  public DataSource routingDataSource(DataSource userCenterDataSource, DataSource productCenterDataSource) {
-    DynamicRoutingDataSource dynamicDataSource = new DynamicRoutingDataSource();
+  public DataSource dynamicDataSource(DataSource userCenterDataSource, DataSource productCenterDataSource) {
+    DynamicRoutingDataSource dynamicRoutingDataSource = new DynamicRoutingDataSource();
 
     // 配置数据源
     Map<Object, Object> dataSourceMap = new HashMap<>(2);
@@ -60,12 +62,12 @@ public class MultipleDataSourceConfig {
     dataSourceMap.put("productCenter", productCenterDataSource);
 
     // 设置数据源映射
-    dynamicDataSource.setTargetDataSources(dataSourceMap);
+    dynamicRoutingDataSource.setTargetDataSources(dataSourceMap);
 
     // 设置默认数据源
-    dynamicDataSource.setDefaultTargetDataSource(userCenterDataSource);
+    dynamicRoutingDataSource.setDefaultTargetDataSource(userCenterDataSource);
 
-    return dynamicDataSource;
+    return dynamicRoutingDataSource;
   }
 
   private HikariDataSource createHikariDataSource(DataSourceProperties properties) {
