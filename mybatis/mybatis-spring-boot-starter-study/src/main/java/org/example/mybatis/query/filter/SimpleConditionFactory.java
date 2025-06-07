@@ -38,8 +38,8 @@ public class SimpleConditionFactory {
     return newSimpleCondition(field, SQLOperator.IN, value, null);
   }
 
-  public static SimpleCondition inWithLimitedSize(String field, Object value) {
-    return newSimpleCondition(field, SQLOperator.IN_WITH_LIMITED_SIZE, value, null);
+  public static SimpleCondition limitedIn(String field, Object value) {
+    return newSimpleCondition(field, SQLOperator.LIMITED_IN, value, null);
   }
 
   // JSON 包含操作条件

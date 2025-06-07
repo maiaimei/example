@@ -59,8 +59,8 @@ public class QueryConditionBuilder {
     return addConditionInternal(field, SQLOperator.IN, value, null);
   }
 
-  public QueryConditionBuilder andInWithLimitedSize(String field, Object value) {
-    return addConditionInternal(field, SQLOperator.IN_WITH_LIMITED_SIZE, value, null);
+  public QueryConditionBuilder andLimitedIn(String field, Object value) {
+    return addConditionInternal(field, SQLOperator.LIMITED_IN, value, null);
   }
 
   public QueryConditionBuilder andJsonContains(String field, String value) {
