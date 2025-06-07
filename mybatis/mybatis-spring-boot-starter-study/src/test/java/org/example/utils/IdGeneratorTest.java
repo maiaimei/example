@@ -13,6 +13,14 @@ import org.junit.jupiter.api.Test;
 class IdGeneratorTest {
 
   @Test
+  void testIdGenerate() {
+    for (int i = 0; i < 10; i++) {
+      String id = IdGenerator.nextId().toPlainString();
+      System.out.println(id);
+    }
+  }
+
+  @Test
   void testIdFormat() {
     // 测试ID格式
     String id = IdGenerator.nextId().toPlainString();

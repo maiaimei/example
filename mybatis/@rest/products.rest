@@ -1,0 +1,49 @@
+@host = http://localhost:8080
+
+# 产品管理 API 文档
+
+
+### 获取产品列表
+POST {{host}}/products/list
+Content-Type: application/json
+
+{
+    "sorting": [
+        {
+            "field": "createAt",
+            "sort": "desc"
+        }
+    ],
+    "current": 1,
+    "size": 5
+}
+
+
+### 获取产品详情
+GET {{host}}/products/2025060710400222400001
+
+
+### 创建产品
+POST {{host}}/products
+Content-Type: application/json
+
+{
+    "username": "tracychen",
+    "firstName": "tracy",
+    "lastName": "Chen",
+    "password": "encrypted_password"
+}
+
+
+### 更新产品
+PUT {{host}}/products
+Content-Type: application/json
+
+{
+    "id": "2025060216252256200001",
+    "isEnabled": false
+}
+
+
+### 删除产品
+DELETE {{host}}/products/2025060216252256200001

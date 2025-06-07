@@ -22,48 +22,48 @@ import org.springframework.util.CollectionUtils;
 @ConditionalOnProperty(name = "spring.datasources.enabled", havingValue = "true", matchIfMissing = false)
 public class MultipleDataSourceConfig {
 
-  @Bean("masterDataSource")
+  @Bean("userCenterDataSource")
   @ConditionalOnProperty(name = "spring.datasources.hikari.enabled", havingValue = "true", matchIfMissing = false)
-  public DataSource masterHikariDataSource(MultipleDataSourceProperties properties) {
-    final DataSourceProperties dataSourceProperties = getDataSourceProperties("master", properties);
+  public DataSource userCenterHikariDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("userCenter", properties);
     return createHikariDataSource(dataSourceProperties);
   }
 
-  @Bean("slave1DataSource")
+  @Bean("productCenterDataSource")
   @ConditionalOnProperty(name = "spring.datasources.hikari.enabled", havingValue = "true", matchIfMissing = false)
-  public DataSource slave1HikariDataSource(MultipleDataSourceProperties properties) {
-    final DataSourceProperties dataSourceProperties = getDataSourceProperties("slave1", properties);
+  public DataSource productCenterHikariDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("productCenter", properties);
     return createHikariDataSource(dataSourceProperties);
   }
 
-  @Bean("masterDataSource")
+  @Bean("userCenterDataSource")
   @ConditionalOnProperty(name = "spring.datasources.druid.enabled", havingValue = "true", matchIfMissing = false)
-  public DataSource masterDruidDataSource(MultipleDataSourceProperties properties) {
-    final DataSourceProperties dataSourceProperties = getDataSourceProperties("master", properties);
+  public DataSource userCenterDruidDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("userCenter", properties);
     return createDruidDataSource(dataSourceProperties);
   }
 
-  @Bean("slave1DataSource")
+  @Bean("productCenterDataSource")
   @ConditionalOnProperty(name = "spring.datasources.druid.enabled", havingValue = "true", matchIfMissing = false)
-  public DataSource slave1DruidDataSource(MultipleDataSourceProperties properties) {
-    final DataSourceProperties dataSourceProperties = getDataSourceProperties("slave1", properties);
+  public DataSource productCenterDruidDataSource(MultipleDataSourceProperties properties) {
+    final DataSourceProperties dataSourceProperties = getDataSourceProperties("productCenter", properties);
     return createDruidDataSource(dataSourceProperties);
   }
 
   @Bean
-  public DataSource routingDataSource(DataSource masterDataSource, DataSource slave1DataSource) {
+  public DataSource routingDataSource(DataSource userCenterDataSource, DataSource productCenterDataSource) {
     DynamicRoutingDataSource dynamicDataSource = new DynamicRoutingDataSource();
 
     // 配置数据源
     Map<Object, Object> dataSourceMap = new HashMap<>(2);
-    dataSourceMap.put("master", masterDataSource);
-    dataSourceMap.put("slave1", slave1DataSource);
+    dataSourceMap.put("userCenter", userCenterDataSource);
+    dataSourceMap.put("productCenter", productCenterDataSource);
 
     // 设置数据源映射
     dynamicDataSource.setTargetDataSources(dataSourceMap);
 
     // 设置默认数据源
-    dynamicDataSource.setDefaultTargetDataSource(masterDataSource);
+    dynamicDataSource.setDefaultTargetDataSource(userCenterDataSource);
 
     return dynamicDataSource;
   }

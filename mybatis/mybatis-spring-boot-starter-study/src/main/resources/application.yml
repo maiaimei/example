@@ -1,14 +1,14 @@
 spring:
   # 默认数据源配置
   datasource:
-    enabled: true # 是否启用数据源配置
-    name: core # 数据源名称
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_SCHEMA_CORE} # 数据源URL，从环境变量获取
+    enabled: false # 是否启用数据源配置
+    name: userCenter # 数据源名称
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_USER_CENTER} # 数据源URL，从环境变量获取
     username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
     password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
     driver-class-name: com.mysql.cj.jdbc.Driver # 数据源驱动类
     pool: # 数据源连接池配置
-      pool-name: CoreHikariCP # 数据源连接池名称
+      pool-name: UserCenterHikariCP # 数据源连接池名称
       initial-pool-size: 5 # 初始连接池大小
       minimum-pool-size: 5 # 最小连接池大小
       maximum-pool-size: 20 # 最大连接池大小
@@ -21,41 +21,28 @@ spring:
       enabled: false # 启用Druid连接池
   # 多数据源配置
   datasources:
-    enabled: false # 是否启用多数据源
+    enabled: true # 是否启用多数据源
     shard:
-      - name: master # 数据源名称
-        url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
+      - name: userCenter # 数据源名称
+        url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_USER_CENTER} # 数据源URL，从环境变量获取
         username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
         password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
         driver-class-name: com.mysql.cj.jdbc.Driver # 数据源驱动类
         pool: # 数据源连接池配置
-          pool-name: MasterHikariCP # 数据源连接池名称
+          pool-name: UserCenterHikariCP # 数据源连接池名称
           initial-pool-size: 5 # 初始连接池大小
           minimum-pool-size: 5 # 最小连接池大小
           maximum-pool-size: 20 # 最大连接池大小
           connection-timeout-ms: 60000 # 连接超时时间
           idle-connection-check-interval-ms: 60000 # 闲置连接检查间隔
           connection-idle-timeout-ms: 300000 # 连接闲置超时时间
-      - name: slave1 # 数据源名称
-        url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
+      - name: productCenter # 数据源名称
+        url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_PRODUCT_CENTER} # 数据源URL，从环境变量获取
         username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
         password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
         driver-class-name: com.mysql.cj.jdbc.Driver # 数据源驱动类
         pool: # 数据源连接池配置
-          pool-name: Slave1HikariCP # 数据源连接池名称
-          initial-pool-size: 5 # 初始连接池大小
-          minimum-pool-size: 5 # 最小连接池大小
-          maximum-pool-size: 20 # 最大连接池大小
-          connection-timeout-ms: 60000 # 连接超时时间
-          idle-connection-check-interval-ms: 60000 # 闲置连接检查间隔
-          connection-idle-timeout-ms: 300000 # 连接闲置超时时间
-      - name: slave2 # 数据源名称
-        url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE} # 数据源URL，从环境变量获取
-        username: ${MYSQL_USERNAME} # 数据源用户名，从环境变量获取
-        password: ${MYSQL_PASSWORD} # 数据源密码，从环境变量获取
-        driver-class-name: com.mysql.cj.jdbc.Driver # 数据源驱动类
-        pool: # 数据源连接池配置
-          pool-name: Slave2HikariCP # 数据源连接池名称
+          pool-name: ProductCenterHikariCP # 数据源连接池名称
           initial-pool-size: 5 # 初始连接池大小
           minimum-pool-size: 5 # 最小连接池大小
           maximum-pool-size: 20 # 最大连接池大小
@@ -69,6 +56,7 @@ spring:
 
 logging:
   level:
+    logging.level.org.springframework.aop: DEBUG # 开启 AOP 日志
     org.example.repository: debug # Your mapper package
     org.springframework: info
     org.mybatis: debug

@@ -1,19 +1,22 @@
-package org.example.service;
+package org.example.service.usercenter;
 
 import static org.example.mybatis.query.filter.SimpleConditionFactory.eq;
 import static org.example.mybatis.query.filter.SimpleConditionFactory.like;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.example.datasource.DataSource;
 import org.example.model.domain.User;
 import org.example.model.request.UserQueryRequest;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.filter.QueryConditionBuilder;
-import org.example.repository.core.UserRepository;
+import org.example.repository.usercenter.UserRepository;
+import org.example.service.AbstractDomainRepositoryService;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@DataSource("userCenter")
 public class UserService extends AbstractDomainRepositoryService<User, UserRepository> {
 
   public UserService(UserRepository repository) {

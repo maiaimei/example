@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.example.model.domain.User;
 import org.example.model.request.UserQueryRequest;
-import org.example.service.UserService;
+import org.example.service.usercenter.UserService;
 import org.example.utils.IdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

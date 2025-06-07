@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.example.model.domain.User;
 import org.example.model.request.UserQueryRequest;
-import org.example.service.UserService;
+import org.example.service.usercenter.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

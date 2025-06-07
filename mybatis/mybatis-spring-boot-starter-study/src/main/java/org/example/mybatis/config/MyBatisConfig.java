@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement // 启用注解事务管理
 @MapperScan(value = {
-    "org.example.repository.core"
+    "org.example.repository.usercenter"
 })  // 指定Mapper接口包路径
 @ConditionalOnProperty(name = "spring.datasource.enabled", havingValue = "true", matchIfMissing = false)
 public class MyBatisConfig extends AbstractMyBatisConfig {
