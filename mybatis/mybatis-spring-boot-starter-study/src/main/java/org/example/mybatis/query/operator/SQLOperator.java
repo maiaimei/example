@@ -68,12 +68,12 @@ public enum SQLOperator {
   /**
    * {@code IN} Value in a list
    */
-  IN_WITH_LIMITED_SIZE,          // IN查询
+  LIMITED_IN,          // 有限大小的 IN查询
 
   /**
    * {@code NOT IN} Value not in a list
    */
-  NOT_IN_WITH_LIMITED_SIZE,      // NOT IN查询
+  LIMITED_NOT_IN,      // 有限大小的 NOT IN查询
 
   /**
    * {@code BETWEEN} Range query
@@ -95,12 +95,12 @@ public enum SQLOperator {
   /**
    * {@code ILIKE} Case-insensitive LIKE
    */
-  ILIKE,       // 大小写不敏感的 LIKE
+  CASE_INSENSITIVE_LIKE,       // 大小写不敏感的 LIKE
 
   /**
    * {@code NOT ILIKE} Case-insensitive NOT LIKE
    */
-  NOT_ILIKE,   // 大小写不敏感的 NOT LIKE
+  CASE_INSENSITIVE_NOT_LIKE,   // 大小写不敏感的 NOT LIKE
 
   /**
    * {@code SIMILAR TO} Regex-like pattern matching

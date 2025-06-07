@@ -1,7 +1,12 @@
-package org.example.mybatis.query.operator;
+package org.example.mybatis.query.operator.factory;
+
+import org.example.mybatis.query.operator.SQLOperator;
 
 public class PostgreSQLOperatorStrategyFactory extends SQLOperatorStrategyFactory {
 
+  /**
+   * 静态代码块，用于注册所有 SQL 操作符策略。
+   */
   static {
     registerStringOperatorStrategies();
     registerJsonOperatorStrategies();
@@ -11,10 +16,10 @@ public class PostgreSQLOperatorStrategyFactory extends SQLOperatorStrategyFactor
   }
 
   private static void registerStringOperatorStrategies() {
-    registerStrategy(SQLOperator.ILIKE, (column, index) ->
+    registerStrategy(SQLOperator.CASE_INSENSITIVE_LIKE, (column, index) ->
         String.format("%s ILIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')", column, index));
 
-    registerStrategy(SQLOperator.NOT_ILIKE, (column, index) ->
+    registerStrategy(SQLOperator.CASE_INSENSITIVE_NOT_LIKE, (column, index) ->
         String.format("%s NOT ILIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')", column, index));
 
     registerStrategy(SQLOperator.SIMILAR_TO, (column, index) ->
@@ -35,7 +40,7 @@ public class PostgreSQLOperatorStrategyFactory extends SQLOperatorStrategyFactor
     registerStrategy(SQLOperator.REGEX_NOT_MATCH_CASE_INSENSITIVE, (column, index) ->
         String.format("%s !~* #{simpleConditions[%d].value}", column, index));
   }
-
+  
   private static void registerJsonOperatorStrategies() {
     registerStrategy(SQLOperator.JSON_CONTAINS, (column, index) ->
         String.format("%s @> #{simpleConditions[%d].value}", column, index));

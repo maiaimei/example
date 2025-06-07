@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
 import org.example.mybatis.SQLHelper;
 import org.example.mybatis.query.operator.SQLOperator;
-import org.example.mybatis.query.operator.SQLOperatorStrategyFactory;
+import org.example.mybatis.query.operator.factory.SQLOperatorStrategyFactory;
 
 /**
  * 简单条件

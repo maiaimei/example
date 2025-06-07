@@ -21,7 +21,7 @@ public class SimpleConditionFactory {
 
   // 大小写不敏感模糊匹配条件
   public static SimpleCondition ilike(String field, String value) {
-    return newSimpleCondition(field, SQLOperator.ILIKE, value, null);
+    return newSimpleCondition(field, SQLOperator.CASE_INSENSITIVE_LIKE, value, null);
   }
 
   // 左模糊条件

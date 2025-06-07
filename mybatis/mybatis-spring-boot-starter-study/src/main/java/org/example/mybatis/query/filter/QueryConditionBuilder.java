@@ -44,7 +44,7 @@ public class QueryConditionBuilder {
   }
 
   public QueryConditionBuilder andIlike(String field, String value) {
-    return addConditionInternal(field, SQLOperator.ILIKE, value, null);
+    return addConditionInternal(field, SQLOperator.CASE_INSENSITIVE_LIKE, value, null);
   }
 
   public QueryConditionBuilder andStartsWith(String field, String value) {
