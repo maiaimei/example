@@ -22,29 +22,29 @@ public class ProductController {
   private ProductService productService;
 
   @PostMapping("/list")
-  public List<Product> listProducts() {
+  public List<Product> getProductList() {
     return null;
   }
 
   @GetMapping("/{id}")
   public Product getProductById(@PathVariable BigDecimal id) {
-    return productService.selectById(id);
+    return productService.getProductById(id);
   }
 
   @PostMapping
   public Product createProduct(@RequestBody Product product) {
-    productService.create(product);
+    productService.createProduct(product);
     return product;
   }
 
   @PutMapping
   public Product updataProduct(@RequestBody Product product) {
-    productService.update(product);
+    productService.updataProduct(product);
     return product;
   }
 
   @DeleteMapping("/{id}")
   public void deleteProductById(@PathVariable BigDecimal id) {
-    productService.deleteById(id);
+    productService.deleteProductById(id);
   }
 }

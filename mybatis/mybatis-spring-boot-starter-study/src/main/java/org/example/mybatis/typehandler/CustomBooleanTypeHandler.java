@@ -1,4 +1,4 @@
-package org.example.mybatis.handler;
+package org.example.mybatis.typehandler;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;

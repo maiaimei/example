@@ -15,25 +15,25 @@ public class ProductService {
   @Autowired
   private ProductRepositoryService productRepositoryService;
 
-  public void create(Product product) {
+  public Product getProductById(BigDecimal id) {
+    final Product product = new Product();
+    product.setId(id);
+    return productRepositoryService.select(product);
+  }
+
+  public void createProduct(Product product) {
     product.setId(IdGenerator.nextId());
     product.setCreateTime(LocalDateTime.now());
     productRepositoryService.create(product);
   }
 
-  public void update(Product product) {
+  public void updataProduct(Product product) {
     productRepositoryService.update(product);
   }
 
-  public void deleteById(BigDecimal id) {
+  public void deleteProductById(BigDecimal id) {
     final Product product = new Product();
     product.setId(id);
     productRepositoryService.delete(product);
-  }
-
-  public Product selectById(BigDecimal id) {
-    final Product product = new Product();
-    product.setId(id);
-    return productRepositoryService.select(product);
   }
 }

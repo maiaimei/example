@@ -38,18 +38,8 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
     repository.delete(domain);
   }
 
-  public void deleteById(BigDecimal id) {
-    final T domain = createDomainWithId(id);
-    delete(domain);
-  }
-
   public T select(T domain) {
     return repository.select(domain);
-  }
-
-  public T selectById(BigDecimal id) {
-    final T domain = createDomainWithId(id);
-    return select(domain);
   }
 
   public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields) {
@@ -71,6 +61,16 @@ public abstract class AbstractDomainRepositoryService<T, R extends BasicReposito
 
   public void batchInsert(List<T> domains) {
     repository.batchInsert(domains);
+  }
+
+  public void deleteById(BigDecimal id) {
+    final T domain = createDomainWithId(id);
+    delete(domain);
+  }
+
+  public T selectById(BigDecimal id) {
+    final T domain = createDomainWithId(id);
+    return select(domain);
   }
 
   private T createDomain() {
