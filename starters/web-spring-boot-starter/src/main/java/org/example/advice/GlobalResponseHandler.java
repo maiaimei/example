@@ -5,7 +5,7 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
 import org.example.model.ApiResponse;
-import org.example.model.BasicApiResponse;
+import org.example.model.BaseApiResponse;
 import org.example.utils.JsonUtils;
 import org.example.utils.RequestUtils;
 import org.springframework.core.MethodParameter;
@@ -104,8 +104,8 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
         return JsonUtils.toJson(ApiResponse.success(body, requestPath, requestMethod));
       }
 
-      // If the response body is already a BasicApiResponse, return it as is
-      if (body instanceof BasicApiResponse) {
+      // If the response body is already a BaseApiResponse, return it as is
+      if (body instanceof BaseApiResponse) {
         return body;
       }
 

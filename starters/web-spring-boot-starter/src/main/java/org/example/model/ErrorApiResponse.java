@@ -12,7 +12,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class ErrorApiResponse<T> implements BasicApiResponse {
+public class ErrorApiResponse<T> implements BaseApiResponse {
 
   private Integer code;
   private String message;

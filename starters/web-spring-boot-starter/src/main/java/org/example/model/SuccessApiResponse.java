@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SuccessApiResponse<T> implements BasicApiResponse {
+public class SuccessApiResponse<T> implements BaseApiResponse {
 
   private Integer code;
   private String message;

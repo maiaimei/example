@@ -2,8 +2,6 @@ package org.example.model.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 import lombok.Data;
 import org.example.mybatis.annotation.TableName;
 
@@ -39,7 +37,7 @@ public class Product {
   /**
    * 标签
    */
-  private List<String> tags;
+  private String tags;
 
   /**
    * 状态
@@ -54,7 +52,7 @@ public class Product {
   /**
    * 属性
    */
-  private Map<String, Object> properties;
+  private String properties;
 
   /**
    * 搜索向量

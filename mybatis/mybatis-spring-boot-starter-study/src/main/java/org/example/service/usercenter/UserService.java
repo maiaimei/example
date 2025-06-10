@@ -11,13 +11,13 @@ import org.example.model.request.UserQueryRequest;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.filter.QueryConditionBuilder;
 import org.example.repository.usercenter.UserRepository;
-import org.example.service.AbstractDomainRepositoryService;
+import org.example.service.AbstractBaseService;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @DataSource("userCenter")
-public class UserService extends AbstractDomainRepositoryService<User, UserRepository> {
+public class UserService extends AbstractBaseService<User, UserRepository> {
 
   public UserService(UserRepository repository) {
     super(repository);

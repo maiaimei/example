@@ -2,38 +2,39 @@ package org.example.service.productcenter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import org.example.datasource.DataSource;
 import org.example.model.domain.Product;
+import org.example.repository.productcenter.ProductRepository;
+import org.example.service.AbstractBaseService;
 import org.example.utils.IdGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@DataSource("productCenter")
-public class ProductService {
+public class ProductService extends AbstractBaseService<Product, ProductRepository> {
 
-  @Autowired
-  private ProductRepositoryService productRepositoryService;
+  public ProductService(ProductRepository repository) {
+    super(repository);
+  }
 
   public Product getProductById(BigDecimal id) {
     final Product product = new Product();
     product.setId(id);
-    return productRepositoryService.select(product);
+    return select(product);
   }
 
   public void createProduct(Product product) {
     product.setId(IdGenerator.nextId());
     product.setCreateTime(LocalDateTime.now());
-    productRepositoryService.create(product);
+    product.setIsActive(Boolean.TRUE);
+    create(product);
   }
 
-  public void updataProduct(Product product) {
-    productRepositoryService.update(product);
+  public void updateProduct(Product product) {
+    update(product);
   }
 
   public void deleteProductById(BigDecimal id) {
     final Product product = new Product();
     product.setId(id);
-    productRepositoryService.delete(product);
+    delete(product);
   }
 }

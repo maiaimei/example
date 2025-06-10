@@ -3,7 +3,7 @@ package org.example.controller.productcenter;
 import java.math.BigDecimal;
 import java.util.List;
 import org.example.model.domain.Product;
-import org.example.service.productcenter.ProductService;
+import org.example.service.productcenter.ProductBusinessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
   @Autowired
-  private ProductService productService;
+  private ProductBusinessService productBusinessService;
 
   @PostMapping("/list")
   public List<Product> getProductList() {
@@ -28,23 +28,23 @@ public class ProductController {
 
   @GetMapping("/{id}")
   public Product getProductById(@PathVariable BigDecimal id) {
-    return productService.getProductById(id);
+    return productBusinessService.getProductById(id);
   }
 
   @PostMapping
   public Product createProduct(@RequestBody Product product) {
-    productService.createProduct(product);
+    productBusinessService.createProduct(product);
     return product;
   }
 
   @PutMapping
   public Product updataProduct(@RequestBody Product product) {
-    productService.updataProduct(product);
+    productBusinessService.updateProduct(product);
     return product;
   }
 
   @DeleteMapping("/{id}")
   public void deleteProductById(@PathVariable BigDecimal id) {
-    productService.deleteProductById(id);
+    productBusinessService.deleteProductById(id);
   }
 }

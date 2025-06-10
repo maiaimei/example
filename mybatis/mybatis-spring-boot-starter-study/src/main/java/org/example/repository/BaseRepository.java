@@ -11,7 +11,7 @@ import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.SortableItem;
 
-public interface BasicRepository<T> {
+public interface BaseRepository<T> {
 
   @InsertProvider(type = SQLProvider.class, method = "insert")
   void insert(T domain);

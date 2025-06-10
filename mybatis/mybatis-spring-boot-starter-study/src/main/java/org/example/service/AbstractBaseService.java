@@ -10,16 +10,16 @@ import org.example.mybatis.annotation.Id;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.SortableItem;
-import org.example.repository.BasicRepository;
+import org.example.repository.BaseRepository;
 
 @Getter
-public abstract class AbstractDomainRepositoryService<T, R extends BasicRepository<T>> {
+public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
 
   private final R repository;
   private final Class<T> domainClass;
 
   @SuppressWarnings("unchecked")
-  public AbstractDomainRepositoryService(R repository) {
+  public AbstractBaseService(R repository) {
     this.repository = repository;
     // 获取泛型类型
     this.domainClass = (Class<T>) ((ParameterizedType) getClass()
