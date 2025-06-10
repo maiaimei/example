@@ -13,6 +13,7 @@ import org.example.exception.SystemException;
 import org.example.model.ApiResponse;
 import org.example.model.ErrorApiResponse;
 import org.example.model.ErrorField;
+import org.example.utils.RequestUtils;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(NoResourceFoundException.class)
   public ResponseEntity<?> handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
-    log.warn("Resource not found - URL: {}", request.getRequestURL());
+    log.error("Resource not found - URL: {}", RequestUtils.getUnifiedPath(request));
 
     final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.NOT_FOUND, request);
 
@@ -69,8 +70,8 @@ public class GlobalExceptionHandler {
   public ResponseEntity<?> handleHttpMessageNotReadableException(
       HttpMessageNotReadableException ex,
       HttpServletRequest request) {
-    log.warn("Message parsing error - URL: {} - Error: {}",
-        request.getRequestURL().toString(),
+    log.error("Message parsing error - URL: {} - Error: {}",
+        RequestUtils.getUnifiedPath(request),
         ex.getMostSpecificCause().getMessage());
 
     final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.BAD_REQUEST, request);
@@ -89,8 +90,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ResponseEntity<?> handleMissingServletRequestParameterException(
       MissingServletRequestParameterException ex, HttpServletRequest request) {
-    log.warn("Missing parameter - URL: {} - Parameter: {} - Type: {}",
-        request.getRequestURL().toString(),
+    log.error("Missing parameter - URL: {} - Parameter: {} - Type: {}",
+        RequestUtils.getUnifiedPath(request),
         ex.getParameterName(),
         ex.getParameterType());
 
@@ -115,8 +116,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex,
       HttpServletRequest request) {
-    log.warn("Validation failed - URL: {} - Errors: {}",
-        request.getRequestURL().toString(),
+    log.error("Validation failed - URL: {} - Errors: {}",
+        RequestUtils.getUnifiedPath(request),
         ex.getBindingResult().getFieldErrors());
 
     List<ErrorField> details = new ArrayList<>();
@@ -144,7 +145,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(BindException.class)
   public ResponseEntity<?> handleBindException(BindException ex, HttpServletRequest request) {
-    log.warn("Bind exception occurred - URL: {}", request.getRequestURL());
+    log.error("Bind exception occurred - URL: {}", RequestUtils.getUnifiedPath(request));
 
     List<ErrorField> details = new ArrayList<>();
     ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
@@ -172,8 +173,8 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(ValidationException.class)
   public ResponseEntity<?> handleValidationException(ValidationException ex, HttpServletRequest request) {
-    log.warn("Validation exception occurred - URL: {} - Error: {}",
-        request.getRequestURL().toString(),
+    log.error("Validation exception occurred - URL: {} - Error: {}",
+        RequestUtils.getUnifiedPath(request),
         ex.getMessage());
 
     // 构建字段错误详情列表
@@ -207,7 +208,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
-    log.warn("Access denied - URL: {}", request.getRequestURL());
+    log.error("Access denied - URL: {}", RequestUtils.getUnifiedPath(request));
     final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.FORBIDDEN, request);
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorApiResponse);
   }
@@ -221,7 +222,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(BusinessException.class)
   public ResponseEntity<?> handleBusinessException(BusinessException ex, HttpServletRequest request) {
-    log.warn("Business error occurred - URL: {}", request.getRequestURL(), ex);
+    log.error("Business error occurred - URL: {}", RequestUtils.getUnifiedPath(request), ex);
     final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(ex.getHttpStatus(), request);
     errorApiResponse.setError(ex.getErrorCode().toErrorInfo());
     return ResponseEntity.status(ex.getHttpStatus()).body(errorApiResponse);
@@ -236,7 +237,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(SystemException.class)
   public ResponseEntity<?> handleSystemException(SystemException ex, HttpServletRequest request) {
-    log.warn("System error occurred - URL: {}", request.getRequestURL(), ex);
+    log.error("System error occurred - URL: {}", RequestUtils.getUnifiedPath(request), ex);
     final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(ex.getHttpStatus(), request);
     errorApiResponse.setError(ex.getErrorCode().toErrorInfo());
     return ResponseEntity.status(ex.getHttpStatus()).body(errorApiResponse);
@@ -251,7 +252,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<?> handleException(Exception ex, HttpServletRequest request) {
-    log.error("Unexpected error occurred - URL: {}", request.getRequestURL(), ex);
+    log.error("Unexpected error occurred - URL: {}", RequestUtils.getUnifiedPath(request), ex);
     final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, request);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorApiResponse);
   }

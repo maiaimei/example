@@ -7,6 +7,7 @@ import org.example.annotation.SkipResponseWrapper;
 import org.example.model.ApiResponse;
 import org.example.model.BasicApiResponse;
 import org.example.utils.JsonUtils;
+import org.example.utils.RequestUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -90,7 +91,7 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
       Class<? extends HttpMessageConverter<?>> selectedConverterType,
       ServerHttpRequest request,
       ServerHttpResponse response) {
-    String requestPath = request.getURI().getPath();
+    String requestPath = RequestUtils.getUnifiedPath(request);
     String requestMethod = request.getMethod().name();
     try {
       // If the response body is null, return a success response with null data

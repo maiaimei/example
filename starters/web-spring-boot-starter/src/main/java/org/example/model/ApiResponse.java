@@ -2,6 +2,7 @@ package org.example.model;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import org.example.utils.RequestUtils;
 import org.example.utils.TraceIdUtils;
 import org.springframework.http.HttpStatus;
 
@@ -28,7 +29,7 @@ public class ApiResponse {
   }
 
   public static <T> ErrorApiResponse<T> error(HttpStatus httpStatus, HttpServletRequest request) {
-    return error(httpStatus, request.getPathInfo(), request.getMethod());
+    return error(httpStatus, RequestUtils.getUnifiedPath(request), request.getMethod());
   }
 
   public static <T> ErrorApiResponse<T> error(HttpStatus httpStatus, String path, String method) {
