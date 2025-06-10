@@ -10,7 +10,7 @@ import org.apache.ibatis.builder.SqlSourceBuilder;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DatabaseType;
 import org.example.mybatis.exception.InvalidSqlException;
-import org.example.mybatis.model.FieldValue;
+import org.example.mybatis.model.FieldMetadata;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.SortableItem;
@@ -47,17 +47,17 @@ public class SQLBuilder {
     return new SQLBuilder(shouldInitializeSql);
   }
 
-  public SQLBuilder buildInsertQuery(String tableName, List<FieldValue> fieldValues) {
+  public SQLBuilder buildInsertQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
     sql.INSERT_INTO(tableName);
-    fieldValues.forEach(field -> sql.VALUES(field.columnName(), formatParameter(field.fieldName())));
+    fieldMetadataList.forEach(fieldMetadata -> sql.VALUES(fieldMetadata.getColumnName(), formatParameter(fieldMetadata)));
     return this;
   }
 
-  public SQLBuilder buildUpdateQuery(String tableName, List<FieldValue> fieldValues) {
+  public SQLBuilder buildUpdateQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
     sql.UPDATE(tableName);
-    fieldValues.stream()
-        .filter(field -> !isPrimaryKey(field))
-        .forEach(field -> sql.SET(formatAssignment(field.columnName(), field.fieldName())));
+    fieldMetadataList.stream()
+        .filter(fieldMetadata -> !isPrimaryKey(fieldMetadata))
+        .forEach(fieldMetadata -> sql.SET(formatAssignment(fieldMetadata)));
     addPrimaryKeyCondition();
     return this;
   }
@@ -77,7 +77,7 @@ public class SQLBuilder {
     return this;
   }
 
-  public SQLBuilder buildSelectQueryWithColumns(String tableName, List<String> columns) {
+  public SQLBuilder buildSelectQueryWithSpecialColumns(String tableName, List<String> columns) {
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
     return this;
   }
@@ -87,9 +87,9 @@ public class SQLBuilder {
     return this;
   }
 
-  public SQLBuilder buildWhereClauseWithFields(List<FieldValue> fieldValues) {
-    if (!CollectionUtils.isEmpty(fieldValues)) {
-      fieldValues.forEach(field -> sql.WHERE(formatAssignment(field.columnName(), field.fieldName())));
+  public SQLBuilder buildWhereClauseWithFieldMetadataList(List<FieldMetadata> fieldMetadataList) {
+    if (!CollectionUtils.isEmpty(fieldMetadataList)) {
+      fieldMetadataList.forEach(fieldMetadata -> sql.WHERE(formatAssignment(fieldMetadata)));
     }
     return this;
   }
@@ -165,6 +165,7 @@ public class SQLBuilder {
     return sqlToUse;
   }
 
+  // Private helper methods
   private String buildDefaultBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
     String columnNames = formatBatchInsertColumns(fields);
     String values = domains.stream()
@@ -198,39 +199,38 @@ public class SQLBuilder {
         .collect(Collectors.joining(", "));
   }
 
-  // Private helper methods
-  private String formatParameter(String fieldName) {
-    return "#{%s}".formatted(fieldName);
+  private String formatParameter(FieldMetadata fieldMetadata) {
+    if (StringUtils.hasText(fieldMetadata.getColumnType())) {
+      return "CAST(#{%s} AS %s)".formatted(fieldMetadata.getFieldName(), fieldMetadata.getColumnType());
+    }
+    return "#{%s}".formatted(fieldMetadata.getFieldName());
   }
 
-  private String formatAssignment(String columnName, String fieldName) {
-    return "%s = %s".formatted(columnName, formatParameter(fieldName));
+  private String formatAssignment(FieldMetadata fieldMetadata) {
+    return "%s = %s".formatted(fieldMetadata.getColumnName(), formatParameter(fieldMetadata));
   }
 
   private String formatSelectColumns(List<String> columns) {
     return CollectionUtils.isEmpty(columns) ? "*"
         : columns.stream()
-            .map(column -> SQLHelper.formatName(SQLHelper.camelCaseToUpperSnakeCase(column)))
+            .map(SQLHelper::formatColumnName)
             .collect(Collectors.joining(", "));
   }
 
   private String formatOrderBy(List<SortableItem> sorting) {
     return sorting.stream()
-        .map(item -> "%s %s".formatted(SQLHelper.formatName(SQLHelper.camelCaseToUpperSnakeCase(item.getField())),
-            formatSortDirection(item.getSort())))
-        .collect(Collectors.joining(", "));
+        .map(item -> "%s %s".formatted(
+            SQLHelper.formatColumnName(item.getName()),
+            "DESC".equalsIgnoreCase(item.getDirection()) ? "DESC" : "ASC")
+        ).collect(Collectors.joining(", "));
   }
 
-  private String formatSortDirection(String sort) {
-    return "DESC".equalsIgnoreCase(sort) ? "DESC" : "ASC";
-  }
-
-  private boolean isPrimaryKey(FieldValue field) {
-    return PRIMARY_KEY.equals(field.fieldName());
+  private boolean isPrimaryKey(FieldMetadata fieldMetadata) {
+    return PRIMARY_KEY.equals(fieldMetadata.getFieldName());
   }
 
   private void addPrimaryKeyCondition() {
-    sql.WHERE(formatAssignment(PRIMARY_KEY, PRIMARY_KEY));
+    sql.WHERE("%s = #{%s}".formatted(SQLHelper.formatColumnName(PRIMARY_KEY), PRIMARY_KEY));
   }
 
   private void addConditions(List<Condition> conditions) {

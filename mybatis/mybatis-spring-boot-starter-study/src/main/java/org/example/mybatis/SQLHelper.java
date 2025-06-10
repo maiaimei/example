@@ -15,9 +15,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DatabaseType;
-import org.example.mybatis.annotation.ColumnName;
+import org.example.mybatis.annotation.Column;
 import org.example.mybatis.annotation.TableName;
-import org.example.mybatis.model.FieldValue;
+import org.example.mybatis.model.FieldMetadata;
 import org.springframework.util.CollectionUtils;
 
 public class SQLHelper {
@@ -35,8 +35,8 @@ public class SQLHelper {
   }
 
   // 验证域字段是否为空
-  public static void validateDomainField(List<FieldValue> fieldValueList) {
-    if (CollectionUtils.isEmpty(fieldValueList)) {
+  public static void validateDomainField(List<FieldMetadata> fieldMetadataList) {
+    if (CollectionUtils.isEmpty(fieldMetadataList)) {
       throw new IllegalArgumentException("Domain fields cannot be null or empty");
     }
   }
@@ -123,34 +123,41 @@ public class SQLHelper {
   }
 
   // 获取非空字段值
-  public static List<FieldValue> getNotNullFieldValues(Object domain) {
+  public static List<FieldMetadata> getNotNullFieldMetadataList(Object domain) {
     validateDomain(domain);
-    List<FieldValue> fieldValues = new ArrayList<>();
+    List<FieldMetadata> fieldMetadata = new ArrayList<>();
     for (Field field : getFields(domain.getClass())) {
       field.setAccessible(true);
       try {
         Object value = field.get(domain);
         if (Objects.nonNull(value)) {
-          fieldValues.add(createFieldValue(field, value));
+          fieldMetadata.add(createFieldMetadata(field, value));
         }
       } catch (IllegalAccessException e) {
         throw new RuntimeException("Failed to get field value", e);
       }
     }
-    return fieldValues;
+    return fieldMetadata;
   }
 
   // 创建字段值对象
-  private static FieldValue createFieldValue(Field field, Object value) {
-    ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
-    String columnName = Objects.nonNull(columnNameAnnotation) ? columnNameAnnotation.value()
-        : field.getName();
-    return new FieldValue(field.getName(), formatName(camelCaseToUpperSnakeCase(columnName)), value);
+  private static FieldMetadata createFieldMetadata(Field field, Object value) {
+    Column columnAnnotation = field.getAnnotation(Column.class);
+    String columnName;
+    String columnType;
+    if (Objects.nonNull(columnAnnotation)) {
+      columnName = formatColumnName(columnAnnotation.name());
+      columnType = columnAnnotation.type();
+    } else {
+      columnName = formatColumnName(field.getName());
+      columnType = null;
+    }
+    return new FieldMetadata(field.getName(), columnName, columnType, value);
   }
 
-  // 驼峰命名转大蛇形命名
-  public static String camelCaseToUpperSnakeCase(String camelCase) {
-    return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase(Locale.US);
+  // 格式化列名
+  public static String formatColumnName(String name) {
+    return formatName(camelCaseToUpperSnakeCase(name));
   }
 
   // 格式化表名或列名
@@ -159,10 +166,9 @@ public class SQLHelper {
     return DatabaseType.POSTGRESQL.getType().equals(databaseType) ? "\"" + name + "\"" : name;
   }
 
-  // 获取数据库类型
-  public static String getDatabaseTypeAsString() {
-    return Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
-        .orElse(Optional.ofNullable(System.getProperty("app.dbType")).orElse(DatabaseType.MYSQL.getType()));
+  // 驼峰命名转大蛇形命名
+  public static String camelCaseToUpperSnakeCase(String camelCase) {
+    return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase(Locale.US);
   }
 
   public static DatabaseType getDatabaseType() {
@@ -171,4 +177,11 @@ public class SQLHelper {
         .map(DatabaseType::valueOf)
         .orElse(DatabaseType.MYSQL);
   }
+
+  // 获取数据库类型
+  public static String getDatabaseTypeAsString() {
+    return Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
+        .orElse(Optional.ofNullable(System.getProperty("app.dbType")).orElse(DatabaseType.MYSQL.getType()));
+  }
+
 }

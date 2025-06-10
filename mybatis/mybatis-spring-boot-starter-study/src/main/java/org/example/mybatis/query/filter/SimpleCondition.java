@@ -30,7 +30,7 @@ public class SimpleCondition implements Condition {
 
   @Override
   public String build(AtomicInteger index) {
-    final String columnName = SQLHelper.formatName(SQLHelper.camelCaseToUpperSnakeCase(field));
+    final String columnName = SQLHelper.formatColumnName(field);
     return SQLOperatorStrategyFactory.getStrategy(operator)
         .buildCondition(columnName, index.getAndIncrement());
   }

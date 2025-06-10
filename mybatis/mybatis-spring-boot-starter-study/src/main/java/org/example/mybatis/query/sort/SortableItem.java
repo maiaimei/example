@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class SortableItem {
 
-  private String field;
-  private String sort;
+  private String name;
+  private String direction;
 }

@@ -6,10 +6,21 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation for specifying column details in SQL.
+ */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface ColumnName {
+public @interface Column {
 
-  String value();
+  /**
+   * Column name in the database
+   */
+  String name();
+
+  /**
+   * Column type (e.g., JSONB, ARRAY, etc.)
+   */
+  String type() default "";
 }

@@ -1,7 +1,7 @@
 package org.example.mybatis;
 
 import static org.example.mybatis.SQLHelper.getFields;
-import static org.example.mybatis.SQLHelper.getNotNullFieldValues;
+import static org.example.mybatis.SQLHelper.getNotNullFieldMetadataList;
 import static org.example.mybatis.SQLHelper.getTableName;
 import static org.example.mybatis.SQLHelper.validateDomain;
 import static org.example.mybatis.SQLHelper.validateDomainField;
@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
-import org.example.mybatis.model.FieldValue;
+import org.example.mybatis.model.FieldMetadata;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.Sortable;
@@ -24,17 +24,17 @@ public class SQLProvider {
   public String insert(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
-    validateDomainField(notNullFieldValues);
-    return SQLBuilder.builder().buildInsertQuery(tableName, notNullFieldValues).build();
+    final List<FieldMetadata> notNullFieldMetadataList = getNotNullFieldMetadataList(domain);
+    validateDomainField(notNullFieldMetadataList);
+    return SQLBuilder.builder().buildInsertQuery(tableName, notNullFieldMetadataList).build();
   }
 
   public String update(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
-    validateDomainField(notNullFieldValues);
-    return SQLBuilder.builder().buildUpdateQuery(tableName, notNullFieldValues).build();
+    final List<FieldMetadata> notNullFieldMetadataList = getNotNullFieldMetadataList(domain);
+    validateDomainField(notNullFieldMetadataList);
+    return SQLBuilder.builder().buildUpdateQuery(tableName, notNullFieldMetadataList).build();
   }
 
   public String delete(Object domain) {
@@ -46,10 +46,10 @@ public class SQLProvider {
   public String select(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    final List<FieldValue> notNullFieldValues = getNotNullFieldValues(domain);
+    final List<FieldMetadata> notNullFieldMetadataList = getNotNullFieldMetadataList(domain);
     return SQLBuilder.builder()
         .buildSelectQueryWithAllColumns(tableName)
-        .buildWhereClauseWithFields(notNullFieldValues)
+        .buildWhereClauseWithFieldMetadataList(notNullFieldMetadataList)
         .build();
   }
 
@@ -62,7 +62,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
 
     return SQLBuilder.builder()
-        .buildSelectQueryWithColumns(tableName, fields)
+        .buildSelectQueryWithSpecialColumns(tableName, fields)
         .buildWhereClauseWithConditions(conditions)
         .buildOrderByClause(getSorting(domain, sorting))
         .build();
@@ -78,7 +78,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
 
     return SQLBuilder.builder()
-        .buildSelectQueryWithColumns(tableName, fields)
+        .buildSelectQueryWithSpecialColumns(tableName, fields)
         .buildWhereClauseWithConditions(conditions)
         .buildOrderByClause(getSorting(domain, sorting))
         .buildPaginationClause(pageable)
