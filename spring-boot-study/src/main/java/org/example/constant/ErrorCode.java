@@ -1,4 +1,4 @@
-package org.example.constants;
+package org.example.constant;
 
 import lombok.Getter;
 import org.example.model.ErrorInfo;

@@ -1,7 +1,7 @@
 package org.example.filter;
 
-import static org.example.constants.GlobalConstants.REQUEST_HEADER_TRACE_ID;
-import static org.example.constants.GlobalConstants.TRACE_ID;
+import static org.example.constant.GlobalConstants.REQUEST_HEADER_TRACE_ID;
+import static org.example.constant.GlobalConstants.TRACE_ID;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

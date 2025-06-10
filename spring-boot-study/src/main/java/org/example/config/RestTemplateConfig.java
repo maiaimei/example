@@ -1,6 +1,6 @@
 package org.example.config;
 
-import static org.example.constants.GlobalConstants.REQUEST_HEADER_TRACE_ID;
+import static org.example.constant.GlobalConstants.REQUEST_HEADER_TRACE_ID;
 
 import java.io.IOException;
 import java.util.Collections;

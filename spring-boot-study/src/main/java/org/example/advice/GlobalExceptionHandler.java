@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.constants.ErrorCode;
+import org.example.constant.ErrorCode;
 import org.example.exception.BusinessException;
 import org.example.exception.SystemException;
 import org.example.model.ApiResponse;
