@@ -100,7 +100,7 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
 
       // If the response body is a String, convert it to JSON and wrap it in a success response
       if (body instanceof String) {
-        return JsonUtils.toJsonString(ApiResponse.success(body, requestPath, requestMethod));
+        return JsonUtils.toJson(ApiResponse.success(body, requestPath, requestMethod));
       }
 
       // If the response body is already a BasicApiResponse, return it as is

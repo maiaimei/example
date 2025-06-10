@@ -13,7 +13,6 @@ import org.example.exception.SystemException;
 import org.example.model.ApiResponse;
 import org.example.model.ErrorApiResponse;
 import org.example.model.ErrorField;
-import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,9 +35,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-  private final MessageSource fieldMessageSource;
-
-  private final MessageSource validationMessageSource;
+  // TODO: 国际化错误信息
+  //private final MessageSource fieldMessageSource;
 
   /**
    * Handles resource not found exceptions.
@@ -267,7 +265,7 @@ public class GlobalExceptionHandler {
   private String getField(String field) {
     String fieldToUse = field;
     try {
-      fieldToUse = fieldMessageSource.getMessage(field, null, null);
+      //fieldToUse = fieldMessageSource.getMessage(field, null, null);
     } catch (NoSuchMessageException e) {
       log.warn("Field message not found for key: {}", field);
     }

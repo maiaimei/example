@@ -14,15 +14,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.example.exception.JsonConvertException;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
  * JSON 工具类
  */
 @Slf4j
+@Component
 public class JsonUtils {
 
-  private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+  private static ObjectMapper objectMapper;
+
+  public JsonUtils(ObjectMapper objectMapper) {
+    JsonUtils.objectMapper = objectMapper;
+  }
 
   /**
    * 创建配置好的ObjectMapper
@@ -45,21 +52,14 @@ public class JsonUtils {
   }
 
   /**
-   * 获取ObjectMapper实例
-   */
-  public static ObjectMapper getObjectMapper() {
-    return OBJECT_MAPPER;
-  }
-
-  /**
    * 对象转JSON字符串
    */
-  public static String toJsonString(Object object) {
+  public static String toJson(Object object) {
     if (object == null) {
       return null;
     }
     try {
-      return OBJECT_MAPPER.writeValueAsString(object);
+      return JsonUtils.objectMapper.writeValueAsString(object);
     } catch (JsonProcessingException e) {
       log.error("Convert object to json string error", e);
       throw new JsonConvertException("Convert object to json string error", e);
@@ -69,12 +69,12 @@ public class JsonUtils {
   /**
    * 对象转格式化的JSON字符串
    */
-  public static String toPrettyJsonString(Object object) {
+  public static String toPrettyJson(Object object) {
     if (object == null) {
       return null;
     }
     try {
-      return OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+      return JsonUtils.objectMapper.writerWithDefaultPrettyPrinter()
           .writeValueAsString(object);
     } catch (JsonProcessingException e) {
       log.error("Convert object to pretty json string error", e);
@@ -85,12 +85,12 @@ public class JsonUtils {
   /**
    * JSON字符串转对象
    */
-  public static <T> T parseObject(String json, Class<T> clazz) {
+  public static <T> T toObject(String json, Class<T> clazz) {
     if (!StringUtils.hasText(json)) {
       return null;
     }
     try {
-      return OBJECT_MAPPER.readValue(json, clazz);
+      return JsonUtils.objectMapper.readValue(json, clazz);
     } catch (JsonProcessingException e) {
       log.error("Parse json to object error", e);
       throw new JsonConvertException("Parse json to object error", e);
@@ -100,12 +100,12 @@ public class JsonUtils {
   /**
    * JSON字符串转复杂对象
    */
-  public static <T> T parseObject(String json, TypeReference<T> typeReference) {
+  public static <T> T toObject(String json, TypeReference<T> typeReference) {
     if (!StringUtils.hasText(json)) {
       return null;
     }
     try {
-      return OBJECT_MAPPER.readValue(json, typeReference);
+      return JsonUtils.objectMapper.readValue(json, typeReference);
     } catch (JsonProcessingException e) {
       log.error("Parse json to complex object error", e);
       throw new JsonConvertException("Parse json to complex object error", e);
@@ -115,13 +115,13 @@ public class JsonUtils {
   /**
    * JSON字符串转对象列表
    */
-  public static <T> List<T> parseArray(String json, Class<T> clazz) {
+  public static <T> List<T> toList(String json, Class<T> clazz) {
     if (!StringUtils.hasText(json)) {
       return new ArrayList<>();
     }
     try {
-      return OBJECT_MAPPER.readValue(json,
-          OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, clazz));
+      return JsonUtils.objectMapper.readValue(json,
+          JsonUtils.objectMapper.getTypeFactory().constructCollectionType(List.class, clazz));
     } catch (JsonProcessingException e) {
       log.error("Parse json to array error", e);
       throw new JsonConvertException("Parse json to array error", e);
@@ -135,7 +135,7 @@ public class JsonUtils {
     if (object == null) {
       return null;
     }
-    return OBJECT_MAPPER.convertValue(object, new TypeReference<Map<String, Object>>() {
+    return JsonUtils.objectMapper.convertValue(object, new TypeReference<Map<String, Object>>() {
     });
   }
 
@@ -146,7 +146,7 @@ public class JsonUtils {
     if (map == null) {
       return null;
     }
-    return OBJECT_MAPPER.convertValue(map, clazz);
+    return JsonUtils.objectMapper.convertValue(map, clazz);
   }
 
   /**
@@ -156,7 +156,23 @@ public class JsonUtils {
     if (object == null) {
       return null;
     }
-    return OBJECT_MAPPER.convertValue(object, clazz);
+    return JsonUtils.objectMapper.convertValue(object, clazz);
+  }
+
+  /**
+   * 格式化JSON字符串
+   */
+  public static String formatJson(String json) {
+    if (!StringUtils.hasText(json)) {
+      return json;
+    }
+    try {
+      Object obj = JsonUtils.objectMapper.readValue(json, Object.class);
+      return JsonUtils.objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+    } catch (IOException e) {
+      log.error("Format json error", e);
+      throw new JsonConvertException("Format json error", e);
+    }
   }
 
   /**
@@ -167,7 +183,7 @@ public class JsonUtils {
       return false;
     }
     try {
-      OBJECT_MAPPER.readTree(json);
+      JsonUtils.objectMapper.readTree(json);
       return true;
     } catch (JsonProcessingException e) {
       return false;
@@ -179,8 +195,8 @@ public class JsonUtils {
    */
   public static JsonNode merge(String json1, String json2) {
     try {
-      JsonNode node1 = OBJECT_MAPPER.readTree(json1);
-      JsonNode node2 = OBJECT_MAPPER.readTree(json2);
+      JsonNode node1 = JsonUtils.objectMapper.readTree(json1);
+      JsonNode node2 = JsonUtils.objectMapper.readTree(json2);
       return merge(node1, node2);
     } catch (JsonProcessingException e) {
       log.error("Merge json error", e);
@@ -209,33 +225,4 @@ public class JsonUtils {
     return mainNode;
   }
 
-  /**
-   * 格式化JSON字符串
-   */
-  public static String formatJson(String json) {
-    if (!StringUtils.hasText(json)) {
-      return json;
-    }
-    try {
-      Object obj = OBJECT_MAPPER.readValue(json, Object.class);
-      return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
-    } catch (IOException e) {
-      log.error("Format json error", e);
-      throw new JsonConvertException("Format json error", e);
-    }
-  }
-
-  /**
-   * 自定义JSON转换异常
-   */
-  public static class JsonConvertException extends RuntimeException {
-
-    public JsonConvertException(String message) {
-      super(message);
-    }
-
-    public JsonConvertException(String message, Throwable cause) {
-      super(message, cause);
-    }
-  }
 }

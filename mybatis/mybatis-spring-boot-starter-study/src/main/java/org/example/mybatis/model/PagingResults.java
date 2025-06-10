@@ -1,4 +1,4 @@
-package org.example.mybatis.query.page;
+package org.example.mybatis.model;
 
 import java.util.List;
 

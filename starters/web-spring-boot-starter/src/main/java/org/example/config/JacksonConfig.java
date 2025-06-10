@@ -1,5 +1,6 @@
 package org.example.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -19,6 +20,32 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JacksonConfig {
+
+  /**
+   * 配置序列化特性
+   *
+   * @return Jackson2ObjectMapperBuilderCustomizer
+   */
+  @Bean
+  public Jackson2ObjectMapperBuilderCustomizer serializationFeaturesCustomizer() {
+    return builder -> {
+      builder.featuresToDisable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+      builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    };
+  }
+
+  /**
+   * 配置反序列化特性
+   *
+   * @return Jackson2ObjectMapperBuilderCustomizer
+   */
+  @Bean
+  public Jackson2ObjectMapperBuilderCustomizer deserializationFeaturesCustomizer() {
+    return builder -> {
+      builder.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      builder.featuresToEnable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+    };
+  }
 
   /**
    * 配置日期时间格式
