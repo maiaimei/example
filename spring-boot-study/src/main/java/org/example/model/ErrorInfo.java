@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ErrorInfo {
 
-  private Integer code;
+  private String code;
   private String message;
 }
