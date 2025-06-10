@@ -1,6 +1,7 @@
 package org.example.constants;
 
 import lombok.Getter;
+import org.example.model.ErrorInfo;
 
 /**
  * 错误码枚举 规则：
@@ -29,5 +30,17 @@ public enum ErrorCode {
   ErrorCode(int code, String message) {
     this.code = code;
     this.message = message;
+  }
+
+  /**
+   * 根据当前枚举返回对应的 ErrorInfo 对象
+   *
+   * @return ErrorInfo 对象
+   */
+  public ErrorInfo toErrorInfo() {
+    return ErrorInfo.builder()
+        .code(this.code)
+        .message(this.message)
+        .build();
   }
 }

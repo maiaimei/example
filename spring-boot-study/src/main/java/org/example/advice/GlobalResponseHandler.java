@@ -4,12 +4,12 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
-import org.example.constants.ResponseCode;
-import org.example.model.response.ApiResponse;
-import org.example.model.response.ApiResponse.BasicResponse;
+import org.example.model.ApiResponse;
+import org.example.model.BasicApiResponse;
 import org.example.utils.JsonUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -19,31 +19,48 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /**
- * 全局响应处理器
+ * GlobalResponseHandler
+ * <p>
+ * This class is a global response handler that intercepts and processes responses from controllers. It wraps the response body into
+ * a standardized API response structure unless explicitly excluded.
+ * </p>
  */
 @Slf4j
-@RestControllerAdvice(basePackages = "org.example.controller") // 指定basePackages避免使用swagger时报错
+@RestControllerAdvice(basePackages = "org.example.controller") // Specify basePackages to avoid errors with Swagger
 public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
 
+  /**
+   * Determines whether this advice is applicable for the given method return type and converter type.
+   *
+   * @param returnType    The method return type.
+   * @param converterType The converter type.
+   * @return true if the advice should be applied, false otherwise.
+   */
   @Override
   public boolean supports(MethodParameter returnType,
       Class<? extends HttpMessageConverter<?>> converterType) {
-    // 排除不需要处理的返回类型
+    // Exclude certain types and methods annotated with SkipResponseWrapper
     return !isExcludedType(returnType) && !hasSkipResponseWrapperAnnotation(returnType);
   }
 
   /**
-   * 排除不需要处理的返回类型
+   * Checks if the given return type is excluded from processing.
+   *
+   * @param returnType The method return type.
+   * @return true if the type is excluded, false otherwise.
    */
   private boolean isExcludedType(MethodParameter returnType) {
-    // 不处理以下类型
+    // Exclude specific types such as ResponseEntity and Resource
     Class<?> parameterType = returnType.getParameterType();
     return ResponseEntity.class.isAssignableFrom(parameterType) ||
         Resource.class.isAssignableFrom(parameterType);
   }
 
   /**
-   * 检查是否有跳过包装的注解
+   * Checks if the method or class has the SkipResponseWrapper annotation.
+   *
+   * @param returnType The method return type.
+   * @return true if the annotation is present, false otherwise.
    */
   private boolean hasSkipResponseWrapperAnnotation(MethodParameter returnType) {
     Method method = returnType.getMethod();
@@ -55,7 +72,17 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
         declaringClass.isAnnotationPresent(SkipResponseWrapper.class);
   }
 
-
+  /**
+   * Processes the response body before it is written to the HTTP response.
+   *
+   * @param body                  The response body.
+   * @param returnType            The method return type.
+   * @param selectedContentType   The selected content type.
+   * @param selectedConverterType The selected converter type.
+   * @param request               The server HTTP request.
+   * @param response              The server HTTP response.
+   * @return The processed response body.
+   */
   @Override
   public Object beforeBodyWrite(Object body,
       MethodParameter returnType,
@@ -63,45 +90,31 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
       Class<? extends HttpMessageConverter<?>> selectedConverterType,
       ServerHttpRequest request,
       ServerHttpResponse response) {
+    String requestPath = request.getURI().getPath();
+    String requestMethod = request.getMethod().name();
     try {
-      return processResponseBody(body, selectedContentType, request, response);
-    } catch (Exception e) {
-      return handleException(e, request);
-    }
-  }
+      // If the response body is null, return a success response with null data
+      if (Objects.isNull(body)) {
+        return ApiResponse.success(body, requestPath, requestMethod);
+      }
 
-  /**
-   * 处理响应体
-   */
-  private Object processResponseBody(Object body, MediaType selectedContentType,
-      ServerHttpRequest request, ServerHttpResponse response) {
-    String requestPath = request.getURI().getPath();
-    String requestMethod = request.getMethod().name();
+      // If the response body is a String, convert it to JSON and wrap it in a success response
+      if (body instanceof String) {
+        return JsonUtils.toJsonString(ApiResponse.success(body, requestPath, requestMethod));
+      }
 
-    if (Objects.isNull(body)) {
+      // If the response body is already a BasicApiResponse, return it as is
+      if (body instanceof BasicApiResponse) {
+        return body;
+      }
+
+      // Wrap other types of response bodies in a success response
       return ApiResponse.success(body, requestPath, requestMethod);
+    } catch (Exception e) {
+      // Log errors and return an error response
+      log.error("Error processing response body for URI: {}, Method: {}", requestPath, requestMethod, e);
+      return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, requestPath, requestMethod);
     }
-
-    if (body instanceof String) {
-      return JsonUtils.toJsonString(ApiResponse.success(body, requestPath, requestMethod));
-    }
-
-    if (body instanceof BasicResponse) {
-      return body;
-    }
-
-    return ApiResponse.success(body, requestPath, requestMethod);
-  }
-
-  /**
-   * 统一异常处理
-   */
-  private Object handleException(Exception e, ServerHttpRequest request) {
-    String requestPath = request.getURI().getPath();
-    String requestMethod = request.getMethod().name();
-
-    log.error("Error processing response body for URI: {}, Method: {}", requestPath, requestMethod, e);
-    return ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, requestPath, requestMethod);
   }
 
 }

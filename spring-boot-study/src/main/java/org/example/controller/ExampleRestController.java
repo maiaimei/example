@@ -1,6 +1,6 @@
 package org.example.controller;
 
-import org.example.model.request.dto.UserDTO;
+import org.example.model.request.UserDTO;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;

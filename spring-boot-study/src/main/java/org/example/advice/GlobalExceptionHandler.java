@@ -8,23 +8,29 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.constants.ErrorCode;
-import org.example.constants.ResponseCode;
 import org.example.exception.BusinessException;
-import org.example.model.response.ApiResponse;
-import org.example.model.response.ApiResponse.BasicResponse;
-import org.example.model.response.ApiResponse.FieldError;
+import org.example.exception.SystemException;
+import org.example.model.ApiResponse;
+import org.example.model.ErrorApiResponse;
+import org.example.model.ErrorField;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+/**
+ * GlobalExceptionHandler
+ * <p>
+ * This class handles exceptions globally for the application and provides standardized error responses.
+ * </p>
+ */
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -34,128 +40,229 @@ public class GlobalExceptionHandler {
 
   private final MessageSource validationMessageSource;
 
+  /**
+   * Handles resource not found exceptions.
+   *
+   * @param ex      NoResourceFoundException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with NOT_FOUND status
+   */
   @ExceptionHandler(NoResourceFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public BasicResponse handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
-    return ApiResponse.error(ResponseCode.NOT_FOUND, request.getPathInfo(), request.getMethod());
+  public ResponseEntity<?> handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
+    log.warn("Resource not found - URL: {}", request.getRequestURL());
+
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.NOT_FOUND, request);
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorApiResponse);
   }
 
   /**
-   * Handle HTTP message not readable exception
-   * <p> HttpMessageNotReadableException 是 Spring 框架中的一个重要异常，主要负责处理 HTTP 请求体解析失败的情况。</p>
-   * <p> 请求体缺失 </p>
-   * <p> 请求体解析失败 </p>
-   * <p> 数据类型转换错误 </p>
+   * Handles HTTP message not readable exceptions.
+   * <p> HttpMessageNotReadableException 是 Spring 框架中的一个重要异常，主要负责处理 HTTP 请求体解析失败的情况。
+   * <p> 请求体缺失
+   * <p> 请求体解析失败
+   * <p> 数据类型转换错误
+   *
+   * @param ex      HttpMessageNotReadableException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with BAD_REQUEST status
    */
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public BasicResponse handleHttpMessageNotReadableException(
+  public ResponseEntity<?> handleHttpMessageNotReadableException(
       HttpMessageNotReadableException ex,
       HttpServletRequest request) {
     log.warn("Message parsing error - URL: {} - Error: {}",
         request.getRequestURL().toString(),
         ex.getMostSpecificCause().getMessage());
 
-    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), ErrorCode.MESSAGE_PARSE_ERROR);
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.BAD_REQUEST, request);
+    errorApiResponse.setError(ErrorCode.MESSAGE_PARSE_ERROR.toErrorInfo());
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorApiResponse);
   }
 
+  /**
+   * Handles missing servlet request parameter exceptions.
+   *
+   * @param ex      MissingServletRequestParameterException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with BAD_REQUEST status
+   */
   @ExceptionHandler(MissingServletRequestParameterException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public BasicResponse handleMissingServletRequestParameterException(
+  public ResponseEntity<?> handleMissingServletRequestParameterException(
       MissingServletRequestParameterException ex, HttpServletRequest request) {
     log.warn("Missing parameter - URL: {} - Parameter: {} - Type: {}",
         request.getRequestURL().toString(),
         ex.getParameterName(),
         ex.getParameterType());
 
-    List<FieldError> details = new ArrayList<>();
-    FieldError detail = new FieldError();
+    List<ErrorField> details = new ArrayList<>();
+    ErrorField detail = new ErrorField();
     detail.setField(ex.getParameterName());
 
-    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), ErrorCode.PARAM_MISSING,
-        details);
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.BAD_REQUEST, request);
+    errorApiResponse.setError(ErrorCode.PARAM_MISSING.toErrorInfo());
+    errorApiResponse.setDetails(details);
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorApiResponse);
   }
 
   /**
-   * 处理参数验证异常
+   * Handles method argument not valid exceptions.
+   *
+   * @param ex      MethodArgumentNotValidException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with BAD_REQUEST status
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public BasicResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex,
+  public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex,
       HttpServletRequest request) {
     log.warn("Validation failed - URL: {} - Errors: {}",
         request.getRequestURL().toString(),
         ex.getBindingResult().getFieldErrors());
 
-    List<FieldError> details = new ArrayList<>();
+    List<ErrorField> details = new ArrayList<>();
     ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
       String fieldToUse = getField(fieldError.getField());
-      FieldError detail = new FieldError();
+      ErrorField detail = new ErrorField();
       detail.setField(fieldToUse);
       detail.setMessage(fieldError.getDefaultMessage());
       details.add(detail);
     });
 
-    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), ErrorCode.VALIDATION_FAILED,
-        details);
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.BAD_REQUEST, request);
+    errorApiResponse.setError(ErrorCode.VALIDATION_FAILED.toErrorInfo());
+    errorApiResponse.setDetails(details);
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorApiResponse);
   }
 
   /**
-   * 处理参数绑定异常
+   * Handles bind exceptions.
+   *
+   * @param ex      BindException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with BAD_REQUEST status
    */
   @ExceptionHandler(BindException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public BasicResponse handleBindException(BindException ex, HttpServletRequest request) {
-    List<FieldError> details = new ArrayList<>();
+  public ResponseEntity<?> handleBindException(BindException ex, HttpServletRequest request) {
+    log.warn("Bind exception occurred - URL: {}", request.getRequestURL());
+
+    List<ErrorField> details = new ArrayList<>();
     ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
       String field = fieldError.getField();
       String defaultMessage = fieldError.getDefaultMessage();
-      FieldError detail = new FieldError();
+      ErrorField detail = new ErrorField();
       detail.setField(field);
       detail.setMessage(defaultMessage);
       details.add(detail);
     });
 
-    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), details);
-  }
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.BAD_REQUEST, request);
+    errorApiResponse.setError(ErrorCode.VALIDATION_FAILED.toErrorInfo());
+    errorApiResponse.setDetails(details);
 
-  @ExceptionHandler(ValidationException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public BasicResponse handleValidationException(ValidationException ex, HttpServletRequest request) {
-    List<FieldError> details = new ArrayList<>();
-    return ApiResponse.error(ResponseCode.BAD_REQUEST, request.getPathInfo(), request.getMethod(), details);
-  }
-
-  @ExceptionHandler(AccessDeniedException.class)
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  public BasicResponse handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
-    return ApiResponse.error(ResponseCode.FORBIDDEN, request.getPathInfo(), request.getMethod());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorApiResponse);
   }
 
   /**
-   * 处理业务异常
+   * Handles validation exceptions.
+   *
+   * @param ex      ValidationException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with BAD_REQUEST status
+   */
+  @ExceptionHandler(ValidationException.class)
+  public ResponseEntity<?> handleValidationException(ValidationException ex, HttpServletRequest request) {
+    log.warn("Validation exception occurred - URL: {} - Error: {}",
+        request.getRequestURL().toString(),
+        ex.getMessage());
+
+    // 构建字段错误详情列表
+    List<ErrorField> details = new ArrayList<>();
+    if (ex instanceof jakarta.validation.ConstraintViolationException constraintViolationException) {
+
+      constraintViolationException.getConstraintViolations().forEach(violation -> {
+        String field = violation.getPropertyPath().toString();
+        String message = violation.getMessage();
+        details.add(ErrorField.builder()
+            .field(field)
+            .message(message)
+            .build());
+      });
+    }
+
+    // 构建错误响应
+    final ErrorApiResponse<List<ErrorField>> errorApiResponse = ApiResponse.error(HttpStatus.BAD_REQUEST, request);
+    errorApiResponse.setError(ErrorCode.VALIDATION_FAILED.toErrorInfo());
+    errorApiResponse.setData(details);
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorApiResponse);
+  }
+
+  /**
+   * Handles access denied exceptions.
+   *
+   * @param ex      AccessDeniedException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with FORBIDDEN status
+   */
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
+    log.warn("Access denied - URL: {}", request.getRequestURL());
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.FORBIDDEN, request);
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorApiResponse);
+  }
+
+  /**
+   * Handles business exceptions.
+   *
+   * @param ex      BusinessException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with appropriate status
    */
   @ExceptionHandler(BusinessException.class)
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public BasicResponse handleBusinessException(BusinessException ex, HttpServletRequest request) {
-    return ApiResponse.error(ex.getResponseCode(), request.getPathInfo(), request.getMethod());
+  public ResponseEntity<?> handleBusinessException(BusinessException ex, HttpServletRequest request) {
+    log.warn("Business error occurred - URL: {}", request.getRequestURL(), ex);
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(ex.getHttpStatus(), request);
+    errorApiResponse.setError(ex.getErrorCode().toErrorInfo());
+    return ResponseEntity.status(ex.getHttpStatus()).body(errorApiResponse);
   }
 
   /**
-   * 处理其他未知异常
+   * Handles system exceptions.
+   *
+   * @param ex      SystemException
+   * @param request HttpServletRequest
+   * @return ResponseEntity with appropriate status
+   */
+  @ExceptionHandler(SystemException.class)
+  public ResponseEntity<?> handleSystemException(SystemException ex, HttpServletRequest request) {
+    log.warn("System error occurred - URL: {}", request.getRequestURL(), ex);
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(ex.getHttpStatus(), request);
+    errorApiResponse.setError(ex.getErrorCode().toErrorInfo());
+    return ResponseEntity.status(ex.getHttpStatus()).body(errorApiResponse);
+  }
+
+  /**
+   * Handles unexpected exceptions.
+   *
+   * @param ex      Exception
+   * @param request HttpServletRequest
+   * @return ResponseEntity with INTERNAL_SERVER_ERROR status
    */
   @ExceptionHandler(Exception.class)
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public BasicResponse handleException(Exception ex, HttpServletRequest request) {
-    log.error("Unexpected error occurred", ex);
-    return ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, request.getPathInfo(), request.getMethod());
+  public ResponseEntity<?> handleException(Exception ex, HttpServletRequest request) {
+    log.error("Unexpected error occurred - URL: {}", request.getRequestURL(), ex);
+    final ErrorApiResponse<Object> errorApiResponse = ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, request);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorApiResponse);
   }
 
   /**
-   * 获取字段名称
+   * Retrieves the field name from the message source.
    *
-   * @param field 字段键
-   * @return 字段名称
+   * @param field Field key
+   * @return Field name
    */
   private String getField(String field) {
     String fieldToUse = field;

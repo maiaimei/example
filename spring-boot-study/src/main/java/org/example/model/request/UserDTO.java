@@ -1,4 +1,4 @@
-package org.example.model.request.dto;
+package org.example.model.request;
 
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;

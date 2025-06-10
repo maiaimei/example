@@ -1,7 +1,7 @@
 package org.example.filter;
 
-import static org.example.constants.Constants.TRACE_ID;
-import static org.example.constants.Constants.TRACE_ID_HEADER;
+import static org.example.constants.GlobalConstants.REQUEST_HEADER_TRACE_ID;
+import static org.example.constants.GlobalConstants.TRACE_ID;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,7 +34,7 @@ public class TraceIdFilter extends OncePerRequestFilter {
       TraceIdUtils.setTraceId(traceId);
 
       // 设置响应头
-      response.setHeader(TRACE_ID_HEADER, traceId);
+      response.setHeader(REQUEST_HEADER_TRACE_ID, traceId);
 
       // 设置MDC用于日志
       MDC.put(TRACE_ID, traceId);
@@ -51,7 +51,7 @@ public class TraceIdFilter extends OncePerRequestFilter {
 
   private String getOrGenerateTraceId(HttpServletRequest request) {
     // 优先从请求头获取
-    String traceId = request.getHeader(TRACE_ID_HEADER);
+    String traceId = request.getHeader(REQUEST_HEADER_TRACE_ID);
 
     // 如果请求头中没有，则从请求参数获取
     if (!StringUtils.hasText(traceId)) {

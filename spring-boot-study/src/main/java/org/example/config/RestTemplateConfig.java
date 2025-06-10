@@ -1,6 +1,6 @@
 package org.example.config;
 
-import static org.example.constants.Constants.TRACE_ID_HEADER;
+import static org.example.constants.GlobalConstants.REQUEST_HEADER_TRACE_ID;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class RestTemplateConfig {
 
       // 添加traceId到请求头
       request.getHeaders().add(
-          TRACE_ID_HEADER,
+          REQUEST_HEADER_TRACE_ID,
           TraceIdUtils.getTraceId());
 
       return execution.execute(request, body);
