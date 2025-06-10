@@ -1,5 +1,6 @@
 package org.example.mybatis.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import java.util.List;
 import org.apache.ibatis.logging.slf4j.Slf4jImpl;
@@ -8,42 +9,71 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.example.mybatis.interceptor.ConditionInterceptor;
 import org.example.mybatis.typehandler.BigDecimalArrayTypeHandler;
-import org.example.mybatis.typehandler.CustomBooleanTypeHandler;
+import org.example.mybatis.typehandler.BigDecimalListTypeHandler;
+import org.example.mybatis.typehandler.BooleanTypeHandler;
+import org.example.mybatis.typehandler.JsonTypeHandler;
 
 public abstract class AbstractMyBatisConfig {
 
   protected Configuration getConfiguration() {
-    // 设置MyBatis配置
     Configuration configuration = new Configuration();
-    configuration.setMapUnderscoreToCamelCase(true); // 开启驼峰命名转换，相当于 yaml 配置的
-    // mybatis.configuration.map-underscore-to-camel-case
-    configuration.setLogImpl(Slf4jImpl.class); // 设置日志实现，相当于 yaml 配置的 mybatis.configuration.log-impl
-    configuration.setCacheEnabled(false); // 关闭二级缓存，禁用所有语句的缓存
-    // configuration.setLocalCacheScope(LocalCacheScope.STATEMENT); // 禁用本地缓存
+    configureSettings(configuration);
+    registerTypeHandlers(configuration.getTypeHandlerRegistry());
+    configuration.addInterceptor(new ConditionInterceptor());
+    return configuration;
+  }
+
+  /**
+   * 配置 MyBatis 基本设置
+   */
+  private void configureSettings(Configuration configuration) {
+    configuration.setMapUnderscoreToCamelCase(true); // 开启驼峰命名转换
+    configuration.setLogImpl(Slf4jImpl.class); // 设置日志实现
+    configuration.setCacheEnabled(false); // 关闭二级缓存
     configuration.setLazyLoadingEnabled(false); // 关闭懒加载
     configuration.setAggressiveLazyLoading(false); // 关闭积极加载
+  }
 
-    final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-
+  /**
+   * 注册自定义 TypeHandler
+   */
+  private void registerTypeHandlers(TypeHandlerRegistry typeHandlerRegistry) {
     // 注册 CustomBooleanTypeHandler
-    typeHandlerRegistry.register(Boolean.class, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(Boolean.class, JdbcType.BOOLEAN, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(Boolean.class, JdbcType.BIT, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(Boolean.class, JdbcType.TINYINT, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(Boolean.class, JdbcType.VARCHAR, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(boolean.class, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(boolean.class, JdbcType.BOOLEAN, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(boolean.class, JdbcType.BIT, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(boolean.class, JdbcType.TINYINT, CustomBooleanTypeHandler.class);
-    typeHandlerRegistry.register(boolean.class, JdbcType.VARCHAR, CustomBooleanTypeHandler.class);
+    registerBooleanTypeHandlers(typeHandlerRegistry);
 
-    // 注册 BigDecimalArrayTypeHandler
-    typeHandlerRegistry.register(List.class, JdbcType.ARRAY, BigDecimalArrayTypeHandler.class);
+    // 注册 BigDecimal 处理器
     typeHandlerRegistry.register(BigDecimal[].class, JdbcType.ARRAY, BigDecimalArrayTypeHandler.class);
+    typeHandlerRegistry.register(List.class, JdbcType.ARRAY, BigDecimalListTypeHandler.class);
 
-    configuration.addInterceptor(new ConditionInterceptor());
+    // 注册通用的 JSON 处理器
+    registerJsonTypeHandlers(typeHandlerRegistry);
+  }
 
-    return configuration;
+  /**
+   * 注册 Boolean 类型处理器
+   */
+  private void registerBooleanTypeHandlers(TypeHandlerRegistry typeHandlerRegistry) {
+    Class<?>[] booleanTypes = {Boolean.class, boolean.class};
+    JdbcType[] jdbcTypes = {JdbcType.BOOLEAN, JdbcType.BIT, JdbcType.TINYINT, JdbcType.VARCHAR};
+
+    for (Class<?> type : booleanTypes) {
+      typeHandlerRegistry.register(type, BooleanTypeHandler.class);
+      for (JdbcType jdbcType : jdbcTypes) {
+        typeHandlerRegistry.register(type, jdbcType, BooleanTypeHandler.class);
+      }
+    }
+  }
+
+  /**
+   * 注册 JSON 类型处理器
+   */
+  private void registerJsonTypeHandlers(TypeHandlerRegistry typeHandlerRegistry) {
+    typeHandlerRegistry.register(List.class, JdbcType.VARCHAR, new JsonTypeHandler<>(new TypeReference<List<String>>() {
+    }));
+    typeHandlerRegistry.register(List.class, JdbcType.VARCHAR, new JsonTypeHandler<>(new TypeReference<List<Integer>>() {
+    }));
+    typeHandlerRegistry.register(List.class, JdbcType.VARCHAR, new JsonTypeHandler<>(new TypeReference<List<BigDecimal>>() {
+    }));
   }
 
   // protected PageInterceptor getPageInterceptor(String databaseType) {

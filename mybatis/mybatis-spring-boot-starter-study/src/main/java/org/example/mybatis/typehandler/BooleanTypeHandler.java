@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
-public class CustomBooleanTypeHandler extends BaseTypeHandler<Boolean> {
+public class BooleanTypeHandler extends BaseTypeHandler<Boolean> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Boolean parameter, JdbcType jdbcType) throws SQLException {
