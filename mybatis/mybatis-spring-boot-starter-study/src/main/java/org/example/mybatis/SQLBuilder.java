@@ -32,9 +32,46 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public final class SQLBuilder {
 
+  // === Database Constants ===
   private static final String PRIMARY_KEY = "id";
-  private static final String COUNT_COLUMN = "COUNT(1)";
-  private static final String ALL_COLUMNS = "*";
+  private static final String COLUMN_COUNT = "COUNT(1)";
+  private static final String COLUMN_ALL = "*";
+
+  // === SQL Keywords ===
+  private static final String KEYWORD_ASC = "ASC";
+  private static final String KEYWORD_DESC = "DESC";
+
+  // === Database Specific SQL Templates ===
+  private static final String TPL_INSERT_STANDARD = "INSERT INTO %s (%s) VALUES %s";
+  private static final String TPL_INSERT_ORACLE = "INSERT ALL %s SELECT * FROM dual";
+  private static final String TPL_INSERT_ORACLE_INTO = "INTO %s (%s) VALUES (%s) ";
+  private static final String ORACLE_INSERT_ALL = "INSERT ALL";
+  private static final String ORACLE_SELECT_FROM_DUAL = "SELECT * FROM dual";
+
+  // === Pagination Templates ===
+  private static final String TPL_PAGINATION_MYSQL = "LIMIT %d, %d";
+  private static final String TPL_PAGINATION_ORACLE = "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY";
+  private static final String TPL_PAGINATION_POSTGRESQL = "LIMIT %d OFFSET %d";
+
+  // === XML Tags ===
+  private static final String XML_SCRIPT_START = "<script>";
+  private static final String XML_SCRIPT_END = "</script>";
+
+  // === Formatting Constants ===
+  private static final String COMMA_SEPARATOR = ", ";
+  private static final String SPACE_SEPARATOR = " ";
+  private static final String PARAMETER_PLACEHOLDER = "#{%s}";
+  private static final String CAST_PATTERN = "CAST(%s AS %s)";
+  private static final String ASSIGNMENT_PATTERN = "%s = %s";
+
+  // === Error Messages ===
+  private static final String ERROR_TABLE_NAME_EMPTY = "Table name cannot be empty";
+  private static final String ERROR_TABLE_NAME_INVALID = "Invalid table name format";
+  private static final String ERROR_BATCH_SIZE_EXCEEDED = "Batch size exceeds limit of %d";
+  private static final String ERROR_SQL_LENGTH_EXCEEDED = "Generated SQL exceeds maximum length of %d";
+  private static final String ERROR_PAGE_SIZE_INVALID = "Page size must be positive";
+  private static final String ERROR_PAGE_NUMBER_INVALID = "Page number must be positive";
+  private static final String ERROR_UNSUPPORTED_DB_TYPE = "Unsupported database type: %s";
 
   private SQLBuilder() {
     throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
@@ -73,7 +110,7 @@ public final class SQLBuilder {
 
   public static String buildSelectQueryWithFieldConditions(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
-    sql.SELECT(ALL_COLUMNS).FROM(tableName);
+    sql.SELECT(COLUMN_ALL).FROM(tableName);
     if (!CollectionUtils.isEmpty(fieldMetadataList)) {
       fieldMetadataList.forEach(fieldMetadata -> sql.WHERE(formatColumnAssignment(fieldMetadata)));
     }
@@ -82,7 +119,7 @@ public final class SQLBuilder {
 
   public static String buildSelectQueryWithConditions(String tableName, List<Condition> conditions) {
     final SQL sql = new SQL();
-    sql.SELECT(ALL_COLUMNS).FROM(tableName);
+    sql.SELECT(COLUMN_ALL).FROM(tableName);
     appendWhereConditions(sql, conditions);
     return formatSqlWithXmlWrapper(sql.toString());
   }
@@ -113,7 +150,7 @@ public final class SQLBuilder {
     String sqlToUse = sql.toString();
     String paginationClause = buildDatabaseSpecificPagination(pageable);
     if (StringUtils.hasText(paginationClause)) {
-      sqlToUse = sqlToUse + " " + paginationClause;
+      sqlToUse = sqlToUse + SPACE_SEPARATOR + paginationClause;
     }
     return formatSqlWithXmlWrapper(sqlToUse);
   }
@@ -132,17 +169,17 @@ public final class SQLBuilder {
 
     return switch (databaseType) {
       case DatabaseType.MYSQL -> // MySQL使用 LIMIT offset, size
-          "LIMIT %d, %d".formatted(offset, pageSize);
+          TPL_PAGINATION_MYSQL.formatted(offset, pageSize);
       case DatabaseType.ORACLE -> // Oracle 12c+: OFFSET n ROWS FETCH NEXT n ROWS ONLY
-          "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY".formatted(offset, pageSize);
+          TPL_PAGINATION_ORACLE.formatted(offset, pageSize);
       case DatabaseType.POSTGRESQL -> // PostgreSQL使用 LIMIT size OFFSET offset
-          "LIMIT %d OFFSET  %d".formatted(pageSize, offset);
+          TPL_PAGINATION_POSTGRESQL.formatted(pageSize, offset);
     };
   }
 
   public static String buildCountQueryWithConditions(String tableName, List<Condition> conditions) {
     final SQL sql = new SQL();
-    sql.SELECT(COUNT_COLUMN).FROM(tableName);
+    sql.SELECT(COLUMN_COUNT).FROM(tableName);
     appendWhereConditions(sql, conditions);
     return formatSqlWithXmlWrapper(sql.toString());
   }
@@ -160,60 +197,65 @@ public final class SQLBuilder {
     String columnNames = formatColumnNames(fields);
     String values = domains.stream()
         .map(domain -> formatParameterPlaceholders(fields))
-        .collect(Collectors.joining(", "));
-    return "INSERT INTO %s (%s) VALUES %s".formatted(tableName, columnNames, values);
+        .collect(Collectors.joining(COMMA_SEPARATOR));
+    return TPL_INSERT_STANDARD.formatted(tableName, columnNames, values);
   }
 
   private static String buildOracleBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
-    StringBuilder sqlBuilder = new StringBuilder("INSERT ALL ");
+    StringBuilder sqlBuilder = new StringBuilder(ORACLE_INSERT_ALL);
+    sqlBuilder.append(SPACE_SEPARATOR);
     domains.forEach(domain -> sqlBuilder.append(buildOracleInsertClause(tableName, fields, domain)));
-    sqlBuilder.append("SELECT * FROM dual");
+    sqlBuilder.append(ORACLE_SELECT_FROM_DUAL);
     return sqlBuilder.toString();
   }
 
   private static String buildOracleInsertClause(String tableName, List<Field> fields, Object domain) {
     String columnNames = formatColumnNames(fields);
     String values = formatParameterPlaceholders(fields);
-    return "INTO %s (%s) VALUES (%s) ".formatted(tableName, columnNames, values);
+    return TPL_INSERT_ORACLE_INTO.formatted(tableName, columnNames, values);
   }
 
   private static String formatColumnNames(List<Field> fields) {
     return fields.stream()
         .map(Field::getName)
-        .collect(Collectors.joining(", "));
+        .collect(Collectors.joining(COMMA_SEPARATOR));
   }
 
   private static String formatParameterPlaceholders(List<Field> fields) {
     return fields.stream()
         .map(field -> "#{domain.%s}".formatted(field.getName()))
-        .collect(Collectors.joining(", "));
+        .collect(Collectors.joining(COMMA_SEPARATOR));
   }
 
   private static String formatColumnAssignment(FieldMetadata fieldMetadata) {
-    return "%s = %s".formatted(fieldMetadata.getColumnName(), formatParameterWithType(fieldMetadata));
+    return ASSIGNMENT_PATTERN.formatted(fieldMetadata.getColumnName(), formatParameterWithType(fieldMetadata));
   }
 
   private static String formatParameterWithType(FieldMetadata fieldMetadata) {
     if (StringUtils.hasText(fieldMetadata.getColumnType())) {
-      return "CAST(#{%s} AS %s)".formatted(fieldMetadata.getFieldName(), fieldMetadata.getColumnType());
+      return CAST_PATTERN.formatted(formatParameter(fieldMetadata.getFieldName()), fieldMetadata.getColumnType());
     }
-    return "#{%s}".formatted(fieldMetadata.getFieldName());
+    return formatParameter(fieldMetadata.getFieldName());
+  }
+
+  private static String formatParameter(String name) {
+    return PARAMETER_PLACEHOLDER.formatted(name);
   }
 
   private static String formatSelectColumns(List<String> columns) {
     if (CollectionUtils.isEmpty(columns)) {
       return "*";
     }
-    return columns.stream().map(SQLHelper::formatColumnName).collect(Collectors.joining(", "));
+    return columns.stream().map(SQLHelper::formatColumnName).collect(Collectors.joining(COMMA_SEPARATOR));
   }
 
   private static String formatSqlWithXmlWrapper(String sql) {
     if (!StringUtils.hasText(sql)) {
       throw new SQLBuildException("SQL statement cannot be empty or null");
     }
-    String sqlToUse = "<script>%s</script>".formatted(sql);
+    String sqlToUse = XML_SCRIPT_START + sql + XML_SCRIPT_END;
     if (log.isDebugEnabled()) {
-      log.debug("==>  Preparing: {}", SqlSourceBuilder.removeExtraWhitespaces(sqlToUse));
+      log.debug("==>  Generated SQL: {}", SqlSourceBuilder.removeExtraWhitespaces(sqlToUse));
     }
     return sqlToUse;
   }
@@ -250,10 +292,11 @@ public final class SQLBuilder {
       final String orderByClause = sorts.stream()
           .map(sortableItem -> {
                 final String columnName = SQLHelper.formatColumnName(sortableItem.getName());
-                final String columnDirection = "DESC".equalsIgnoreCase(sortableItem.getDirection()) ? "DESC" : "ASC";
+                final String columnDirection = KEYWORD_DESC.equalsIgnoreCase(sortableItem.getDirection()) ? KEYWORD_DESC :
+                    KEYWORD_ASC;
                 return "%s %s".formatted(columnName, columnDirection);
               }
-          ).collect(Collectors.joining(", "));
+          ).collect(Collectors.joining(COMMA_SEPARATOR));
       sql.ORDER_BY(orderByClause);
     }
   }
