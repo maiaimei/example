@@ -14,9 +14,7 @@ import org.apache.ibatis.annotations.Param;
 import org.example.mybatis.model.FieldMetadata;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.page.Pageable;
-import org.example.mybatis.query.sort.Sortable;
 import org.example.mybatis.query.sort.SortableItem;
-import org.springframework.util.CollectionUtils;
 
 @Slf4j
 public class SQLProvider {
@@ -24,89 +22,63 @@ public class SQLProvider {
   public String insert(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    final List<FieldMetadata> notNullFieldMetadataList = getNotNullFieldMetadataList(domain);
-    validateDomainField(notNullFieldMetadataList);
-    return SQLBuilder.builder().buildInsertQuery(tableName, notNullFieldMetadataList).build();
+    final List<FieldMetadata> fieldMetadataList = getNotNullFieldMetadataList(domain);
+    validateDomainField(fieldMetadataList);
+    return SQLBuilder.builder().buildInsertQuery(tableName, fieldMetadataList).build();
   }
 
   public String update(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    final List<FieldMetadata> notNullFieldMetadataList = getNotNullFieldMetadataList(domain);
-    validateDomainField(notNullFieldMetadataList);
-    return SQLBuilder.builder().buildUpdateQuery(tableName, notNullFieldMetadataList).build();
+    final List<FieldMetadata> fieldMetadataList = getNotNullFieldMetadataList(domain);
+    validateDomainField(fieldMetadataList);
+    return SQLBuilder.builder().buildUpdateQuery(tableName, fieldMetadataList).build();
   }
 
   public String delete(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().buildDeleteQuery(tableName).buildWhereClauseWithPrimaryKey().build();
+    return SQLBuilder.builder().buildDeleteQueryByPrimaryKey(tableName).build();
   }
 
   public String select(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    final List<FieldMetadata> notNullFieldMetadataList = getNotNullFieldMetadataList(domain);
-    return SQLBuilder.builder()
-        .buildSelectQueryWithAllColumns(tableName)
-        .buildWhereClauseWithFieldMetadataList(notNullFieldMetadataList)
-        .build();
+    final List<FieldMetadata> fieldMetadataList = getNotNullFieldMetadataList(domain);
+    return SQLBuilder.builder().buildSimpleSelectQuery(tableName, fieldMetadataList).build();
   }
 
   public String advancedSelect(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions,
-      @Param("sorting") List<SortableItem> sorting,
+      @Param("sorts") List<SortableItem> sorts,
       @Param("fields") List<String> fields) {
     validateDomain(domain);
-
     final String tableName = getTableName(domain.getClass());
-
-    return SQLBuilder.builder()
-        .buildSelectQueryWithSpecialColumns(tableName, fields)
-        .buildWhereClauseWithConditions(conditions)
-        .buildOrderByClause(getSorting(domain, sorting))
-        .build();
+    return SQLBuilder.builder().buildAdvancedSelectQuery(tableName, fields, conditions, sorts).build();
   }
 
   public String advancedSelectWithPagination(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions,
-      @Param("sorting") List<SortableItem> sorting,
+      @Param("sorts") List<SortableItem> sorts,
       @Param("fields") List<String> fields,
       @Param("paging") Pageable pageable) {
     validateDomain(domain);
-
     final String tableName = getTableName(domain.getClass());
-
-    return SQLBuilder.builder()
-        .buildSelectQueryWithSpecialColumns(tableName, fields)
-        .buildWhereClauseWithConditions(conditions)
-        .buildOrderByClause(getSorting(domain, sorting))
-        .buildPaginationClause(pageable)
-        .build();
+    return SQLBuilder.builder().buildPaginationSelectQuery(tableName, fields, conditions, sorts, pageable).build();
   }
 
   public String advancedCount(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions) {
     validateDomain(domain);
-
     final String tableName = getTableName(domain.getClass());
-
-    return SQLBuilder.builder()
-        .buildCountQuery(tableName)
-        .buildWhereClauseWithConditions(conditions)
-        .build();
+    return SQLBuilder.builder().buildCountQuery(tableName, conditions).build();
   }
 
   public String advancedDelete(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions) {
     validateDomain(domain);
-
     final String tableName = getTableName(domain.getClass());
-
-    return SQLBuilder.builder()
-        .buildDeleteQuery(tableName)
-        .buildWhereClauseWithConditions(conditions)
-        .build();
+    return SQLBuilder.builder().buildDeleteQueryByConditions(tableName, conditions).build();
   }
 
   public String batchInsert(@Param("domains") List<Object> domains) {
@@ -120,7 +92,7 @@ public class SQLProvider {
     final List<Field> fields = getFields(firstDomainClass);
 
     // 使用 SQLBuilder 构建批量插入 SQL
-    return SQLBuilder.builder(false).buildBatchInsertQuery(tableName, fields, domains).build();
+    return SQLBuilder.builder().buildBatchInsertQuery(tableName, fields, domains).build();
   }
 
   public String batchUpdate(@Param("domains") List<Object> domains) {
@@ -129,12 +101,4 @@ public class SQLProvider {
     // TODO: batchUpdate
     return null;
   }
-
-  private List<SortableItem> getSorting(Object object, List<SortableItem> sorting) {
-    if (CollectionUtils.isEmpty(sorting) && object instanceof Sortable sortable) {
-      return sortable.getSorting();
-    }
-    return sorting;
-  }
-
 }
