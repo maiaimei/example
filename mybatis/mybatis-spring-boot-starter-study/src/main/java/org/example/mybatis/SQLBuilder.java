@@ -26,7 +26,7 @@ public class SQLBuilder {
   private static final String PRIMARY_KEY = "id";
   private static final String COUNT_COLUMN = "COUNT(1)";
   private static final String ALL_COLUMNS = "*";
-  
+
   private SQLBuilder() {
   }
 
@@ -204,7 +204,7 @@ public class SQLBuilder {
 
     final DatabaseType databaseType = SQLHelper.getDatabaseType();
     final int currentPageNumber = Math.max(1, pageable.getCurrentPageNumber());
-    final int pageSize = pageable.getPageSize();
+    final int pageSize = Math.max(1, pageable.getPageSize());
 
     // 计算偏移量
     final int offset = (currentPageNumber - 1) * pageSize;
@@ -221,7 +221,7 @@ public class SQLBuilder {
 
   private String formatSql(String sql) {
     if (!StringUtils.hasText(sql)) {
-      throw new InvalidSqlException();
+      throw new InvalidSqlException("SQL statement cannot be empty or null");
     }
     String sqlToUse = "<script>%s</script>".formatted(sql);
     if (log.isDebugEnabled()) {
