@@ -18,86 +18,107 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * SQL Builder Class
+ * Utility class for building SQL queries. This class provides static methods to generate various types of SQL queries including
+ * INSERT, UPDATE, DELETE, and SELECT statements.
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * String insertSql = SQLBuilder.buildInsertQuery("users", fieldMetadataList);
+ * String selectSql = SQLBuilder.buildPaginationSelectQuery("users", columns, conditions, sorts, pageable);
+ * </pre>
+ *
+ * <p>Note: This class is thread-safe as it contains only static methods and immutable state.</p>
  */
 @Slf4j
-public class SQLBuilder {
+public final class SQLBuilder {
 
   private static final String PRIMARY_KEY = "id";
   private static final String COUNT_COLUMN = "COUNT(1)";
   private static final String ALL_COLUMNS = "*";
 
   private SQLBuilder() {
+    throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
   }
 
-  public static SQLBuilder builder() {
-    return new SQLBuilder();
-  }
-
-  public String buildInsertQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
+  public static String buildInsertQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
     sql.INSERT_INTO(tableName);
-    fieldMetadataList.forEach(fieldMetadata -> sql.VALUES(fieldMetadata.getColumnName(), formatParameter(fieldMetadata)));
-    return formatSql(sql.toString());
+    fieldMetadataList.forEach(fieldMetadata -> sql.VALUES(fieldMetadata.getColumnName(), formatParameterWithType(fieldMetadata)));
+    return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public String buildUpdateQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
+  public static String buildUpdateQueryByPrimaryKey(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
     sql.UPDATE(tableName);
     fieldMetadataList.stream()
         .filter(fieldMetadata -> !isPrimaryKey(fieldMetadata))
-        .forEach(fieldMetadata -> sql.SET(formatAssignment(fieldMetadata)));
+        .forEach(fieldMetadata -> sql.SET(formatColumnAssignment(fieldMetadata)));
     appendPrimaryKeyCondition(sql);
-    return formatSql(sql.toString());
+    return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public String buildDeleteQueryByPrimaryKey(String tableName) {
+  public static String buildDeleteQueryByPrimaryKey(String tableName) {
     final SQL sql = new SQL();
     sql.DELETE_FROM(tableName);
     appendPrimaryKeyCondition(sql);
-    return formatSql(sql.toString());
+    return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public String buildDeleteQueryByConditions(String tableName, List<Condition> conditions) {
+  public static String buildDeleteQueryWithConditions(String tableName, List<Condition> conditions) {
     final SQL sql = new SQL();
     sql.DELETE_FROM(tableName);
-    appendWhereClause(sql, conditions);
-    return formatSql(sql.toString());
+    appendWhereConditions(sql, conditions);
+    return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public String buildSimpleSelectQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
+  public static String buildSelectQueryWithFieldConditions(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
     sql.SELECT(ALL_COLUMNS).FROM(tableName);
     if (!CollectionUtils.isEmpty(fieldMetadataList)) {
-      fieldMetadataList.forEach(fieldMetadata -> sql.WHERE(formatAssignment(fieldMetadata)));
+      fieldMetadataList.forEach(fieldMetadata -> sql.WHERE(formatColumnAssignment(fieldMetadata)));
     }
-    return formatSql(sql.toString());
+    return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public String buildAdvancedSelectQuery(String tableName, List<String> columns, List<Condition> conditions,
+  public static String buildSelectQueryWithConditions(String tableName, List<Condition> conditions) {
+    final SQL sql = new SQL();
+    sql.SELECT(ALL_COLUMNS).FROM(tableName);
+    appendWhereConditions(sql, conditions);
+    return formatSqlWithXmlWrapper(sql.toString());
+  }
+
+  public static String buildSelectQueryWithColumnsAndConditions(String tableName, List<String> columns,
+      List<Condition> conditions) {
+    final SQL sql = new SQL();
+    sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
+    appendWhereConditions(sql, conditions);
+    return formatSqlWithXmlWrapper(sql.toString());
+  }
+
+  public static String buildSelectQueryWithSort(String tableName, List<String> columns, List<Condition> conditions,
       List<SortableItem> sorts) {
     final SQL sql = new SQL();
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
-    appendWhereClause(sql, conditions);
-    appendOrderByClause(sql, sorts);
-    return formatSql(sql.toString());
+    appendWhereConditions(sql, conditions);
+    appendSortingCriteria(sql, sorts);
+    return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public String buildPaginationSelectQuery(String tableName, List<String> columns, List<Condition> conditions,
+  public static String buildSelectQueryWithPagination(String tableName, List<String> columns, List<Condition> conditions,
       List<SortableItem> sorts, Pageable pageable) {
     final SQL sql = new SQL();
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
-    appendWhereClause(sql, conditions);
-    appendOrderByClause(sql, sorts);
+    appendWhereConditions(sql, conditions);
+    appendSortingCriteria(sql, sorts);
     String sqlToUse = sql.toString();
-    String paginationClause = buildPaginationClause(pageable);
+    String paginationClause = buildDatabaseSpecificPagination(pageable);
     if (StringUtils.hasText(paginationClause)) {
       sqlToUse = sqlToUse + " " + paginationClause;
     }
-    return formatSql(sqlToUse);
+    return formatSqlWithXmlWrapper(sqlToUse);
   }
 
-  private String buildPaginationClause(Pageable pageable) {
+  private static String buildDatabaseSpecificPagination(Pageable pageable) {
     if (Objects.isNull(pageable)) {
       return null;
     }
@@ -119,74 +140,74 @@ public class SQLBuilder {
     };
   }
 
-  public String buildCountQuery(String tableName, List<Condition> conditions) {
+  public static String buildCountQueryWithConditions(String tableName, List<Condition> conditions) {
     final SQL sql = new SQL();
     sql.SELECT(COUNT_COLUMN).FROM(tableName);
-    appendWhereClause(sql, conditions);
-    return formatSql(sql.toString());
+    appendWhereConditions(sql, conditions);
+    return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public String buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
+  public static String buildDatabaseSpecificBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
     final DatabaseType databaseType = SQLHelper.getDatabaseType();
     return switch (databaseType) {
-      case DatabaseType.MYSQL, DatabaseType.POSTGRESQL -> buildDefaultBatchInsertQuery(tableName, fields, domains);
-      case DatabaseType.ORACLE -> buildOracleBatchInsertQuery(tableName, fields, domains);
+      case DatabaseType.MYSQL, DatabaseType.POSTGRESQL -> buildStandardBatchInsert(tableName, fields, domains);
+      case DatabaseType.ORACLE -> buildOracleBatchInsert(tableName, fields, domains);
     };
   }
 
   // Private helper methods
-  private String buildDefaultBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
-    String columnNames = formatBatchInsertColumns(fields);
+  private static String buildStandardBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
+    String columnNames = formatColumnNames(fields);
     String values = domains.stream()
-        .map(domain -> formatBatchInsertValues(fields))
+        .map(domain -> formatParameterPlaceholders(fields))
         .collect(Collectors.joining(", "));
     return "INSERT INTO %s (%s) VALUES %s".formatted(tableName, columnNames, values);
   }
 
-  private String buildOracleBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
+  private static String buildOracleBatchInsert(String tableName, List<Field> fields, List<Object> domains) {
     StringBuilder sqlBuilder = new StringBuilder("INSERT ALL ");
-    domains.forEach(domain -> sqlBuilder.append(formatOracleBatchInsertClause(tableName, fields, domain)));
+    domains.forEach(domain -> sqlBuilder.append(buildOracleInsertClause(tableName, fields, domain)));
     sqlBuilder.append("SELECT * FROM dual");
     return sqlBuilder.toString();
   }
 
-  private String formatOracleBatchInsertClause(String tableName, List<Field> fields, Object domain) {
-    String columnNames = formatBatchInsertColumns(fields);
-    String values = formatBatchInsertValues(fields);
+  private static String buildOracleInsertClause(String tableName, List<Field> fields, Object domain) {
+    String columnNames = formatColumnNames(fields);
+    String values = formatParameterPlaceholders(fields);
     return "INTO %s (%s) VALUES (%s) ".formatted(tableName, columnNames, values);
   }
 
-  private String formatBatchInsertColumns(List<Field> fields) {
+  private static String formatColumnNames(List<Field> fields) {
     return fields.stream()
         .map(Field::getName)
         .collect(Collectors.joining(", "));
   }
 
-  private String formatBatchInsertValues(List<Field> fields) {
+  private static String formatParameterPlaceholders(List<Field> fields) {
     return fields.stream()
         .map(field -> "#{domain.%s}".formatted(field.getName()))
         .collect(Collectors.joining(", "));
   }
 
-  private String formatAssignment(FieldMetadata fieldMetadata) {
-    return "%s = %s".formatted(fieldMetadata.getColumnName(), formatParameter(fieldMetadata));
+  private static String formatColumnAssignment(FieldMetadata fieldMetadata) {
+    return "%s = %s".formatted(fieldMetadata.getColumnName(), formatParameterWithType(fieldMetadata));
   }
 
-  private String formatParameter(FieldMetadata fieldMetadata) {
+  private static String formatParameterWithType(FieldMetadata fieldMetadata) {
     if (StringUtils.hasText(fieldMetadata.getColumnType())) {
       return "CAST(#{%s} AS %s)".formatted(fieldMetadata.getFieldName(), fieldMetadata.getColumnType());
     }
     return "#{%s}".formatted(fieldMetadata.getFieldName());
   }
 
-  private String formatSelectColumns(List<String> columns) {
+  private static String formatSelectColumns(List<String> columns) {
     if (CollectionUtils.isEmpty(columns)) {
       return "*";
     }
     return columns.stream().map(SQLHelper::formatColumnName).collect(Collectors.joining(", "));
   }
 
-  private String formatSql(String sql) {
+  private static String formatSqlWithXmlWrapper(String sql) {
     if (!StringUtils.hasText(sql)) {
       throw new SQLBuildException("SQL statement cannot be empty or null");
     }
@@ -197,15 +218,15 @@ public class SQLBuilder {
     return sqlToUse;
   }
 
-  private boolean isPrimaryKey(FieldMetadata fieldMetadata) {
+  private static boolean isPrimaryKey(FieldMetadata fieldMetadata) {
     return PRIMARY_KEY.equals(fieldMetadata.getFieldName());
   }
 
-  private void appendPrimaryKeyCondition(SQL sql) {
+  private static void appendPrimaryKeyCondition(SQL sql) {
     sql.WHERE("%s = #{%s}".formatted(SQLHelper.formatColumnName(PRIMARY_KEY), PRIMARY_KEY));
   }
 
-  private void appendWhereClause(SQL sql, List<Condition> conditions) {
+  private static void appendWhereConditions(SQL sql, List<Condition> conditions) {
     if (!CollectionUtils.isEmpty(conditions)) {
       AtomicInteger index = new AtomicInteger(0);
       try {
@@ -224,7 +245,7 @@ public class SQLBuilder {
     }
   }
 
-  private void appendOrderByClause(SQL sql, List<SortableItem> sorts) {
+  private static void appendSortingCriteria(SQL sql, List<SortableItem> sorts) {
     if (!CollectionUtils.isEmpty(sorts)) {
       final String orderByClause = sorts.stream()
           .map(sortableItem -> {

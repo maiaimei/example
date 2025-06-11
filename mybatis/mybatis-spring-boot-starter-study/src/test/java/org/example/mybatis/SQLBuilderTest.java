@@ -24,7 +24,7 @@ public class SQLBuilderTest {
         .andWhere("age", SQLOperator.BETWEEN, 18, 30)
         .andWhere("role", SQLOperator.IN, Arrays.asList(1, 2, 3))
         .andWhere("deleted_at", SQLOperator.IS_NULL, null).build();
-    String sql = SQLBuilder.builder().buildAdvancedSelectQuery("users", null, conditions, null).build();
+    String sql = SQLBuilder.buildSelectQueryWithSort("users", null, conditions, null);
     log.info("\n{}", sql);
   }
 }
