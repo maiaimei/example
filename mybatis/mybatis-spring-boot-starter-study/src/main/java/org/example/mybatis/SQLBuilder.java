@@ -97,6 +97,28 @@ public class SQLBuilder {
     return formatSql(sqlToUse);
   }
 
+  private String buildPaginationClause(Pageable pageable) {
+    if (Objects.isNull(pageable)) {
+      return null;
+    }
+
+    final DatabaseType databaseType = SQLHelper.getDatabaseType();
+    final int currentPageNumber = Math.max(1, pageable.getCurrentPageNumber());
+    final int pageSize = Math.max(1, pageable.getPageSize());
+
+    // 计算偏移量
+    final int offset = (currentPageNumber - 1) * pageSize;
+
+    return switch (databaseType) {
+      case DatabaseType.MYSQL -> // MySQL使用 LIMIT offset, size
+          "LIMIT %d, %d".formatted(offset, pageSize);
+      case DatabaseType.ORACLE -> // Oracle 12c+: OFFSET n ROWS FETCH NEXT n ROWS ONLY
+          "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY".formatted(offset, pageSize);
+      case DatabaseType.POSTGRESQL -> // PostgreSQL使用 LIMIT size OFFSET offset
+          "LIMIT %d OFFSET  %d".formatted(pageSize, offset);
+    };
+  }
+
   public String buildCountQuery(String tableName, List<Condition> conditions) {
     final SQL sql = new SQL();
     sql.SELECT(COUNT_COLUMN).FROM(tableName);
@@ -164,6 +186,17 @@ public class SQLBuilder {
     return columns.stream().map(SQLHelper::formatColumnName).collect(Collectors.joining(", "));
   }
 
+  private String formatSql(String sql) {
+    if (!StringUtils.hasText(sql)) {
+      throw new InvalidSqlException("SQL statement cannot be empty or null");
+    }
+    String sqlToUse = "<script>%s</script>".formatted(sql);
+    if (log.isDebugEnabled()) {
+      log.debug("==>  Preparing: {}", SqlSourceBuilder.removeExtraWhitespaces(sqlToUse));
+    }
+    return sqlToUse;
+  }
+
   private boolean isPrimaryKey(FieldMetadata fieldMetadata) {
     return PRIMARY_KEY.equals(fieldMetadata.getFieldName());
   }
@@ -195,39 +228,6 @@ public class SQLBuilder {
           ).collect(Collectors.joining(", "));
       sql.ORDER_BY(orderByClause);
     }
-  }
-
-  public String buildPaginationClause(Pageable pageable) {
-    if (Objects.isNull(pageable)) {
-      return null;
-    }
-
-    final DatabaseType databaseType = SQLHelper.getDatabaseType();
-    final int currentPageNumber = Math.max(1, pageable.getCurrentPageNumber());
-    final int pageSize = Math.max(1, pageable.getPageSize());
-
-    // 计算偏移量
-    final int offset = (currentPageNumber - 1) * pageSize;
-
-    return switch (databaseType) {
-      case DatabaseType.MYSQL -> // MySQL使用 LIMIT offset, size
-          "LIMIT %d, %d".formatted(offset, pageSize);
-      case DatabaseType.ORACLE -> // Oracle 12c+: OFFSET n ROWS FETCH NEXT n ROWS ONLY
-          "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY".formatted(offset, pageSize);
-      case DatabaseType.POSTGRESQL -> // PostgreSQL使用 LIMIT size OFFSET offset
-          "LIMIT %d OFFSET  %d".formatted(pageSize, offset);
-    };
-  }
-
-  private String formatSql(String sql) {
-    if (!StringUtils.hasText(sql)) {
-      throw new InvalidSqlException("SQL statement cannot be empty or null");
-    }
-    String sqlToUse = "<script>%s</script>".formatted(sql);
-    if (log.isDebugEnabled()) {
-      log.debug("==>  Preparing: {}", SqlSourceBuilder.removeExtraWhitespaces(sqlToUse));
-    }
-    return sqlToUse;
   }
 
 }
