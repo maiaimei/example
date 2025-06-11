@@ -26,9 +26,7 @@ public class SQLBuilder {
   private static final String PRIMARY_KEY = "id";
   private static final String COUNT_COLUMN = "COUNT(1)";
   private static final String ALL_COLUMNS = "*";
-
-  private String sqlAsString;
-
+  
   private SQLBuilder() {
   }
 
@@ -36,100 +34,82 @@ public class SQLBuilder {
     return new SQLBuilder();
   }
 
-  public SQLBuilder buildInsertQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
+  public String buildInsertQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
     sql.INSERT_INTO(tableName);
     fieldMetadataList.forEach(fieldMetadata -> sql.VALUES(fieldMetadata.getColumnName(), formatParameter(fieldMetadata)));
-    sqlAsString = sql.toString();
-    return this;
+    return formatSql(sql.toString());
   }
 
-  public SQLBuilder buildUpdateQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
+  public String buildUpdateQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
     sql.UPDATE(tableName);
     fieldMetadataList.stream()
         .filter(fieldMetadata -> !isPrimaryKey(fieldMetadata))
         .forEach(fieldMetadata -> sql.SET(formatAssignment(fieldMetadata)));
     appendPrimaryKeyCondition(sql);
-    sqlAsString = sql.toString();
-    return this;
+    return formatSql(sql.toString());
   }
 
-  public SQLBuilder buildDeleteQueryByPrimaryKey(String tableName) {
+  public String buildDeleteQueryByPrimaryKey(String tableName) {
     final SQL sql = new SQL();
     sql.DELETE_FROM(tableName);
     appendPrimaryKeyCondition(sql);
-    sqlAsString = sql.toString();
-    return this;
+    return formatSql(sql.toString());
   }
 
-  public SQLBuilder buildDeleteQueryByConditions(String tableName, List<Condition> conditions) {
+  public String buildDeleteQueryByConditions(String tableName, List<Condition> conditions) {
     final SQL sql = new SQL();
     sql.DELETE_FROM(tableName);
     appendWhereClause(sql, conditions);
-    sqlAsString = sql.toString();
-    return this;
+    return formatSql(sql.toString());
   }
 
-  public SQLBuilder buildSimpleSelectQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
+  public String buildSimpleSelectQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
     sql.SELECT(ALL_COLUMNS).FROM(tableName);
     if (!CollectionUtils.isEmpty(fieldMetadataList)) {
       fieldMetadataList.forEach(fieldMetadata -> sql.WHERE(formatAssignment(fieldMetadata)));
     }
-    sqlAsString = sql.toString();
-    return this;
+    return formatSql(sql.toString());
   }
 
-  public SQLBuilder buildAdvancedSelectQuery(String tableName, List<String> columns, List<Condition> conditions,
+  public String buildAdvancedSelectQuery(String tableName, List<String> columns, List<Condition> conditions,
       List<SortableItem> sorts) {
     final SQL sql = new SQL();
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
     appendWhereClause(sql, conditions);
     appendOrderByClause(sql, sorts);
-    sqlAsString = sql.toString();
-    return this;
+    return formatSql(sql.toString());
   }
 
-  public SQLBuilder buildPaginationSelectQuery(String tableName, List<String> columns, List<Condition> conditions,
+  public String buildPaginationSelectQuery(String tableName, List<String> columns, List<Condition> conditions,
       List<SortableItem> sorts, Pageable pageable) {
     final SQL sql = new SQL();
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
     appendWhereClause(sql, conditions);
     appendOrderByClause(sql, sorts);
-    sqlAsString = sql.toString();
+    String sqlToUse = sql.toString();
     String paginationClause = buildPaginationClause(pageable);
     if (StringUtils.hasText(paginationClause)) {
-      sqlAsString = sqlAsString + " " + paginationClause;
+      sqlToUse = sqlToUse + " " + paginationClause;
     }
-    return this;
+    return formatSql(sqlToUse);
   }
 
-  public SQLBuilder buildCountQuery(String tableName, List<Condition> conditions) {
+  public String buildCountQuery(String tableName, List<Condition> conditions) {
     final SQL sql = new SQL();
     sql.SELECT(COUNT_COLUMN).FROM(tableName);
     appendWhereClause(sql, conditions);
-    sqlAsString = sql.toString();
-    return this;
+    return formatSql(sql.toString());
   }
 
-  public SQLBuilder buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
+  public String buildBatchInsertQuery(String tableName, List<Field> fields, List<Object> domains) {
     final DatabaseType databaseType = SQLHelper.getDatabaseType();
-    sqlAsString = switch (databaseType) {
+    return switch (databaseType) {
       case DatabaseType.MYSQL, DatabaseType.POSTGRESQL -> buildDefaultBatchInsertQuery(tableName, fields, domains);
       case DatabaseType.ORACLE -> buildOracleBatchInsertQuery(tableName, fields, domains);
     };
-    return this;
-  }
-
-  public String build() {
-    String sqlToUse = sqlAsString;
-    if (!StringUtils.hasText(sqlToUse)) {
-      throw new InvalidSqlException();
-    }
-    sqlToUse = wrapSqlWithScriptTag(sqlToUse);
-    debugSql(sqlToUse);
-    return sqlToUse;
   }
 
   // Private helper methods
@@ -239,13 +219,15 @@ public class SQLBuilder {
     };
   }
 
-  private String wrapSqlWithScriptTag(String sqlToUse) {
-    return "<script>%s</script>".formatted(sqlToUse);
-  }
-
-  private void debugSql(String sqlToUse) {
+  private String formatSql(String sql) {
+    if (!StringUtils.hasText(sql)) {
+      throw new InvalidSqlException();
+    }
+    String sqlToUse = "<script>%s</script>".formatted(sql);
     if (log.isDebugEnabled()) {
       log.debug("==>  Preparing: {}", SqlSourceBuilder.removeExtraWhitespaces(sqlToUse));
     }
+    return sqlToUse;
   }
+
 }

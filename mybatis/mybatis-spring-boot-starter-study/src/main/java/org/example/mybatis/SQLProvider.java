@@ -24,7 +24,7 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     final List<FieldMetadata> fieldMetadataList = getNotNullFieldMetadataList(domain);
     validateDomainField(fieldMetadataList);
-    return SQLBuilder.builder().buildInsertQuery(tableName, fieldMetadataList).build();
+    return SQLBuilder.builder().buildInsertQuery(tableName, fieldMetadataList);
   }
 
   public String update(Object domain) {
@@ -32,20 +32,20 @@ public class SQLProvider {
     final String tableName = getTableName(domain.getClass());
     final List<FieldMetadata> fieldMetadataList = getNotNullFieldMetadataList(domain);
     validateDomainField(fieldMetadataList);
-    return SQLBuilder.builder().buildUpdateQuery(tableName, fieldMetadataList).build();
+    return SQLBuilder.builder().buildUpdateQuery(tableName, fieldMetadataList);
   }
 
   public String delete(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().buildDeleteQueryByPrimaryKey(tableName).build();
+    return SQLBuilder.builder().buildDeleteQueryByPrimaryKey(tableName);
   }
 
   public String select(Object domain) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     final List<FieldMetadata> fieldMetadataList = getNotNullFieldMetadataList(domain);
-    return SQLBuilder.builder().buildSimpleSelectQuery(tableName, fieldMetadataList).build();
+    return SQLBuilder.builder().buildSimpleSelectQuery(tableName, fieldMetadataList);
   }
 
   public String advancedSelect(@Param("domain") Object domain,
@@ -54,7 +54,7 @@ public class SQLProvider {
       @Param("fields") List<String> fields) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().buildAdvancedSelectQuery(tableName, fields, conditions, sorts).build();
+    return SQLBuilder.builder().buildAdvancedSelectQuery(tableName, fields, conditions, sorts);
   }
 
   public String advancedSelectWithPagination(@Param("domain") Object domain,
@@ -64,21 +64,21 @@ public class SQLProvider {
       @Param("paging") Pageable pageable) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().buildPaginationSelectQuery(tableName, fields, conditions, sorts, pageable).build();
+    return SQLBuilder.builder().buildPaginationSelectQuery(tableName, fields, conditions, sorts, pageable);
   }
 
   public String advancedCount(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().buildCountQuery(tableName, conditions).build();
+    return SQLBuilder.builder().buildCountQuery(tableName, conditions);
   }
 
   public String advancedDelete(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.builder().buildDeleteQueryByConditions(tableName, conditions).build();
+    return SQLBuilder.builder().buildDeleteQueryByConditions(tableName, conditions);
   }
 
   public String batchInsert(@Param("domains") List<Object> domains) {
@@ -92,7 +92,7 @@ public class SQLProvider {
     final List<Field> fields = getFields(firstDomainClass);
 
     // 使用 SQLBuilder 构建批量插入 SQL
-    return SQLBuilder.builder().buildBatchInsertQuery(tableName, fields, domains).build();
+    return SQLBuilder.builder().buildBatchInsertQuery(tableName, fields, domains);
   }
 
   public String batchUpdate(@Param("domains") List<Object> domains) {
