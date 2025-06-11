@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.builder.SqlSourceBuilder;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DatabaseType;
-import org.example.mybatis.exception.InvalidSqlException;
+import org.example.mybatis.exception.SQLBuildException;
 import org.example.mybatis.model.FieldMetadata;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.page.Pageable;
@@ -188,7 +188,7 @@ public class SQLBuilder {
 
   private String formatSql(String sql) {
     if (!StringUtils.hasText(sql)) {
-      throw new InvalidSqlException("SQL statement cannot be empty or null");
+      throw new SQLBuildException("SQL statement cannot be empty or null");
     }
     String sqlToUse = "<script>%s</script>".formatted(sql);
     if (log.isDebugEnabled()) {
@@ -208,12 +208,19 @@ public class SQLBuilder {
   private void appendWhereClause(SQL sql, List<Condition> conditions) {
     if (!CollectionUtils.isEmpty(conditions)) {
       AtomicInteger index = new AtomicInteger(0);
-      conditions.forEach(condition -> {
-        String whereSql = condition.build(index);
-        if (StringUtils.hasText(whereSql)) {
-          sql.WHERE(whereSql);
-        }
-      });
+      try {
+        conditions.forEach(condition -> {
+          if (condition == null) {
+            throw new IllegalArgumentException("Condition cannot be null");
+          }
+          String whereSql = condition.build(index);
+          if (StringUtils.hasText(whereSql)) {
+            sql.WHERE(whereSql);
+          }
+        });
+      } catch (Exception e) {
+        throw new SQLBuildException("Error building WHERE clause", e);
+      }
     }
   }
 
