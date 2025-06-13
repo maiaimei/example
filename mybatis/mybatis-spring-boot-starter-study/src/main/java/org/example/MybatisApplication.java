@@ -11,9 +11,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 //        pattern = "org.example.*.productcenter.*"
 //    )
 //)
-public class MainApplication {
+public class MybatisApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(MainApplication.class, args);
+    SpringApplication.run(MybatisApplication.class, args);
   }
 }

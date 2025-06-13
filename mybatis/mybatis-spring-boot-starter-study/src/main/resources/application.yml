@@ -54,12 +54,13 @@ spring:
     druid:
       enabled: false # 启用Druid连接池
 
+# Spring日志配置
 logging:
   level:
-    logging.level.org.springframework.aop: DEBUG # 开启 AOP 日志
-    org.example.repository: debug # Your mapper package
     org.springframework: info
-    org.mybatis: debug
+    logging.level.org.springframework.aop: DEBUG # 开启 AOP 日志
     java.sql: debug # SQL语句和参数
+    org.mybatis: debug
     org.apache.ibatis: debug
     org.example.mybatis: debug
+    org.example.repository: debug # 设置包路径的日志级别为debug

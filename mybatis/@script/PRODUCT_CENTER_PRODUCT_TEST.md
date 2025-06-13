@@ -58,7 +58,7 @@ PostgreSQL版本:
 ```sql
 -- 建表语句
 CREATE TABLE "PRODUCT_TEST" (
-    "ID" NUMBER(22) PRIMARY KEY,
+    "ID" NUMERIC(22) PRIMARY KEY,
     "PRODUCT_NAME" VARCHAR(100) NOT NULL,
     "PRICE" DECIMAL(10,2),
     "STOCK_QUANTITY" INTEGER,
@@ -88,5 +88,39 @@ INSERT INTO "PRODUCT_TEST" ("ID", "PRODUCT_NAME", "PRICE", "STOCK_QUANTITY", "DE
 
 INSERT INTO "PRODUCT_TEST" ("ID", "PRODUCT_NAME", "PRICE", "STOCK_QUANTITY", "DESCRIPTION", "TAGS", "STATUS", "CREATE_TIME", "PROPERTIES", "SEARCH_VECTOR", "IS_ACTIVE") VALUES
 (2025060710400222400004, 'AirPods Pro', 249.99, 200, 'Wireless earbuds', '["audio", "apple"]', 'IN_STOCK', '2024-01-03 14:00:00', '{"color": "white", "wireless": true}', to_tsvector('english', 'audio apple airpods'), false);
+
+-- 首先为现有表添加新的数组类型字段
+ALTER TABLE "PRODUCT_TEST" 
+ADD COLUMN "CATEGORIES" VARCHAR[] DEFAULT '{}';
+
+-- 更新现有记录的数组字段
+UPDATE "PRODUCT_TEST" 
+SET "CATEGORIES" = ARRAY['electronics', 'mobile']
+WHERE "ID" = 2025060710400222400001;
+
+UPDATE "PRODUCT_TEST" 
+SET "CATEGORIES" = ARRAY['electronics', 'mobile']
+WHERE "ID" = 2025060710400222400002;
+
+UPDATE "PRODUCT_TEST" 
+SET "CATEGORIES" = ARRAY['electronics', 'computers']
+WHERE "ID" = 2025060710400222400003;
+
+UPDATE "PRODUCT_TEST" 
+SET "CATEGORIES" = ARRAY['electronics', 'audio']
+WHERE "ID" = 2025060710400222400004;
+
+-- 如果需要为数组字段创建索引（可选）
+CREATE INDEX "IDX_PRODUCT_CATEGORIES" ON "PRODUCT_TEST" USING GIN("CATEGORIES");
+
+
+-- 查找包含特定类别的产品
+SELECT * FROM "PRODUCT_TEST" WHERE 'electronics' = ANY("CATEGORIES");
+
+-- 查找包含多个特定类别的产品
+SELECT * FROM "PRODUCT_TEST" WHERE "CATEGORIES" @> ARRAY['electronics', 'mobile'];
+
+-- 查找类别数组长度
+SELECT "PRODUCT_NAME", array_length("CATEGORIES", 1) FROM "PRODUCT_TEST";
 ```
 

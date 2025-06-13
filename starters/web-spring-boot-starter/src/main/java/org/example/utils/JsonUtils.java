@@ -2,12 +2,9 @@ package org.example.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,26 +26,6 @@ public class JsonUtils {
 
   public JsonUtils(ObjectMapper objectMapper) {
     JsonUtils.objectMapper = objectMapper;
-  }
-
-  /**
-   * 创建配置好的ObjectMapper
-   */
-  private static ObjectMapper createObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    // 配置序列化特性
-    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-    // 配置反序列化特性
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-
-    // 注册Java8时间模块
-    objectMapper.registerModule(new JavaTimeModule());
-
-    return objectMapper;
   }
 
   /**

@@ -1,0 +1,46 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:${POSTGRESQL_PORT:5432}/${POSTGRESQL_PRODUCT_CENTER:postgres}?reWriteBatchedInserts=true&socketTimeout=30&connectTimeout=10
+    username: ${POSTGRESQL_USERNAME:postgres}
+    password: ${POSTGRESQL_PASSWORD:postgres}
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      # 连接池基本配置
+      minimum-idle: 5
+      maximum-pool-size: 15
+      idle-timeout: 30000
+      pool-name: HikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      # 验证查询
+      connection-test-query: SELECT 1
+      # 自动提交
+      auto-commit: true
+      # 连接初始化 SQL
+      connection-init-sql: SET TIME ZONE 'UTC'
+      # 验证超时时间
+      validation-timeout: 5000
+      # 允许连接池暂停
+      allow-pool-suspension: false
+      # 注册 JMX MBeans
+      register-mbeans: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  type-aliases-package: org.example.model.domain
+#  type-handlers-package: org.example.handler
+
+# Spring日志配置
+logging:
+  level:
+    org.springframework: info
+    logging.level.org.springframework.aop: DEBUG # 开启 AOP 日志
+    java.sql: debug # SQL语句和参数
+    org.hibernate.type.descriptor.sql.BasicBinder: trace # 显示SQL参数
+    org.mybatis: debug
+    org.apache.ibatis: debug
+    com.baomidou.mybatisplus: debug
+    org.example.mapper: debug # 设置包路径的日志级别为debug

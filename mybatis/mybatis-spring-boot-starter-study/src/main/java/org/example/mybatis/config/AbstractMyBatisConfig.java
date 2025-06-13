@@ -1,6 +1,5 @@
 package org.example.mybatis.config;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import java.util.List;
 import org.apache.ibatis.logging.slf4j.Slf4jImpl;
@@ -11,7 +10,6 @@ import org.example.mybatis.interceptor.ConditionInterceptor;
 import org.example.mybatis.typehandler.BigDecimalArrayTypeHandler;
 import org.example.mybatis.typehandler.BigDecimalListTypeHandler;
 import org.example.mybatis.typehandler.BooleanTypeHandler;
-import org.example.mybatis.typehandler.JsonTypeHandler;
 
 public abstract class AbstractMyBatisConfig {
 
@@ -44,9 +42,6 @@ public abstract class AbstractMyBatisConfig {
     // 注册 BigDecimal 处理器
     typeHandlerRegistry.register(BigDecimal[].class, JdbcType.ARRAY, BigDecimalArrayTypeHandler.class);
     typeHandlerRegistry.register(List.class, JdbcType.ARRAY, BigDecimalListTypeHandler.class);
-
-    // 注册通用的 JSON 处理器
-    registerJsonTypeHandlers(typeHandlerRegistry);
   }
 
   /**
@@ -64,18 +59,6 @@ public abstract class AbstractMyBatisConfig {
     }
   }
 
-  /**
-   * 注册 JSON 类型处理器
-   */
-  private void registerJsonTypeHandlers(TypeHandlerRegistry typeHandlerRegistry) {
-    typeHandlerRegistry.register(List.class, JdbcType.VARCHAR, new JsonTypeHandler<>(new TypeReference<List<String>>() {
-    }));
-    typeHandlerRegistry.register(List.class, JdbcType.VARCHAR, new JsonTypeHandler<>(new TypeReference<List<Integer>>() {
-    }));
-    typeHandlerRegistry.register(List.class, JdbcType.VARCHAR, new JsonTypeHandler<>(new TypeReference<List<BigDecimal>>() {
-    }));
-  }
-
   // protected PageInterceptor getPageInterceptor(String databaseType) {
   // // 配置分页插件
   // Properties properties = new Properties();
@@ -87,4 +70,14 @@ public abstract class AbstractMyBatisConfig {
   // pageInterceptor.setProperties(properties);
   // return pageInterceptor;
   // }
+
+//  @Bean
+//  public ConfigurationCustomizer configurationCustomizer() {
+//    return configuration -> {
+//      // 注册类型处理器
+//      configuration.getTypeHandlerRegistry().register(JsonbTypeHandler.class);
+//      configuration.getTypeHandlerRegistry().register(ListTypeHandler.class);
+//      configuration.getTypeHandlerRegistry().register(TextTypeHandler.class);
+//    };
+//  }
 }

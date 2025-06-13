@@ -28,10 +28,14 @@ POST {{host}}/products
 Content-Type: application/json
 
 {
-    "username": "tracychen",
-    "firstName": "tracy",
-    "lastName": "Chen",
-    "password": "encrypted_password"
+    "productName": "iPhone 13 x",
+    "price": "899.99",
+    "stockQuantity": 100,
+    "description": "iPhone x",
+    "tags": "[\"phone\", \"apple\", \"5G\"]",
+    "status": "IN_STOCK",
+    "properties": "{\"color\": \"black\", \"storage\": \"128GB\"}",
+    "searchVector": "phone apple mobile"
 }
 
 
@@ -40,10 +44,11 @@ PUT {{host}}/products
 Content-Type: application/json
 
 {
-    "id": "2025060216252256200001",
-    "isEnabled": false
+    "id": "2025061014034510200002",
+    "stockQuantity": 100,
+    "isActive": false
 }
 
 
 ### 删除产品
-DELETE {{host}}/products/2025060216252256200001
+DELETE {{host}}/products/2025061014034510200002
