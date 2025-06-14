@@ -13,10 +13,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import org.example.datasource.DataSourceContextHolder;
-import org.example.datasource.DatabaseType;
 import org.example.mybatis.annotation.TableColumn;
 import org.example.mybatis.annotation.TableName;
+import org.example.mybatis.constant.DatabaseType;
 import org.example.mybatis.model.FieldMetadata;
 import org.springframework.util.CollectionUtils;
 
@@ -172,16 +171,18 @@ public class SQLHelper {
   }
 
   public static DatabaseType getDatabaseType() {
-    return Optional.ofNullable(getDatabaseTypeAsString())
-        .map(String::toUpperCase)
-        .map(DatabaseType::valueOf)
-        .orElse(DatabaseType.MYSQL);
+//    return Optional.ofNullable(getDatabaseTypeAsString())
+//        .map(String::toUpperCase)
+//        .map(DatabaseType::valueOf)
+//        .orElse(DatabaseType.MYSQL);
+    return DatabaseType.MYSQL;
   }
 
   // 获取数据库类型
   public static String getDatabaseTypeAsString() {
-    return Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
-        .orElse(Optional.ofNullable(System.getProperty("app.dbType")).orElse(DatabaseType.MYSQL.getType()));
+//    return Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
+//        .orElse(Optional.ofNullable(System.getProperty("app.dbType")).orElse(DatabaseType.MYSQL.getType()));
+    return DatabaseType.MYSQL.getType();
   }
 
 }
