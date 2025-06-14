@@ -6,7 +6,7 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.Getter;
-import org.example.mybatis.annotation.Id;
+import org.example.mybatis.annotation.TableId;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.query.page.Pageable;
 import org.example.mybatis.query.sort.SortableItem;
@@ -107,7 +107,7 @@ public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
   private Field findIdField(Class<?> clazz) {
     // 1. 首先查找带有 @Id 注解的字段
     for (Field field : clazz.getDeclaredFields()) {
-      if (field.isAnnotationPresent(Id.class)) {
+      if (field.isAnnotationPresent(TableId.class)) {
         return field;
       }
     }

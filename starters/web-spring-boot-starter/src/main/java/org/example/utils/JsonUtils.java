@@ -36,7 +36,7 @@ public class JsonUtils {
       return null;
     }
     try {
-      return JsonUtils.objectMapper.writeValueAsString(object);
+      return getObjectMapper().writeValueAsString(object);
     } catch (JsonProcessingException e) {
       log.error("Convert object to json string error", e);
       throw new JsonConvertException("Convert object to json string error", e);
@@ -51,7 +51,7 @@ public class JsonUtils {
       return null;
     }
     try {
-      return JsonUtils.objectMapper.writerWithDefaultPrettyPrinter()
+      return getObjectMapper().writerWithDefaultPrettyPrinter()
           .writeValueAsString(object);
     } catch (JsonProcessingException e) {
       log.error("Convert object to pretty json string error", e);
@@ -67,7 +67,7 @@ public class JsonUtils {
       return null;
     }
     try {
-      return JsonUtils.objectMapper.readValue(json, clazz);
+      return getObjectMapper().readValue(json, clazz);
     } catch (JsonProcessingException e) {
       log.error("Parse json to object error", e);
       throw new JsonConvertException("Parse json to object error", e);
@@ -82,7 +82,7 @@ public class JsonUtils {
       return null;
     }
     try {
-      return JsonUtils.objectMapper.readValue(json, typeReference);
+      return getObjectMapper().readValue(json, typeReference);
     } catch (JsonProcessingException e) {
       log.error("Parse json to complex object error", e);
       throw new JsonConvertException("Parse json to complex object error", e);
@@ -97,8 +97,8 @@ public class JsonUtils {
       return new ArrayList<>();
     }
     try {
-      return JsonUtils.objectMapper.readValue(json,
-          JsonUtils.objectMapper.getTypeFactory().constructCollectionType(List.class, clazz));
+      return getObjectMapper().readValue(json,
+          getObjectMapper().getTypeFactory().constructCollectionType(List.class, clazz));
     } catch (JsonProcessingException e) {
       log.error("Parse json to array error", e);
       throw new JsonConvertException("Parse json to array error", e);
@@ -112,7 +112,7 @@ public class JsonUtils {
     if (object == null) {
       return null;
     }
-    return JsonUtils.objectMapper.convertValue(object, new TypeReference<Map<String, Object>>() {
+    return getObjectMapper().convertValue(object, new TypeReference<Map<String, Object>>() {
     });
   }
 
@@ -123,7 +123,7 @@ public class JsonUtils {
     if (map == null) {
       return null;
     }
-    return JsonUtils.objectMapper.convertValue(map, clazz);
+    return getObjectMapper().convertValue(map, clazz);
   }
 
   /**
@@ -133,7 +133,7 @@ public class JsonUtils {
     if (object == null) {
       return null;
     }
-    return JsonUtils.objectMapper.convertValue(object, clazz);
+    return getObjectMapper().convertValue(object, clazz);
   }
 
   /**
@@ -144,8 +144,8 @@ public class JsonUtils {
       return json;
     }
     try {
-      Object obj = JsonUtils.objectMapper.readValue(json, Object.class);
-      return JsonUtils.objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+      Object obj = getObjectMapper().readValue(json, Object.class);
+      return getObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(obj);
     } catch (IOException e) {
       log.error("Format json error", e);
       throw new JsonConvertException("Format json error", e);
@@ -160,7 +160,7 @@ public class JsonUtils {
       return false;
     }
     try {
-      JsonUtils.objectMapper.readTree(json);
+      getObjectMapper().readTree(json);
       return true;
     } catch (JsonProcessingException e) {
       return false;
@@ -172,8 +172,8 @@ public class JsonUtils {
    */
   public static JsonNode merge(String json1, String json2) {
     try {
-      JsonNode node1 = JsonUtils.objectMapper.readTree(json1);
-      JsonNode node2 = JsonUtils.objectMapper.readTree(json2);
+      JsonNode node1 = getObjectMapper().readTree(json1);
+      JsonNode node2 = getObjectMapper().readTree(json2);
       return merge(node1, node2);
     } catch (JsonProcessingException e) {
       log.error("Merge json error", e);
@@ -200,6 +200,10 @@ public class JsonUtils {
       }
     }
     return mainNode;
+  }
+
+  public static ObjectMapper getObjectMapper() {
+    return JsonUtils.objectMapper;
   }
 
 }

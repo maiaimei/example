@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.example.datasource.DataSourceContextHolder;
 import org.example.datasource.DatabaseType;
-import org.example.mybatis.annotation.Column;
+import org.example.mybatis.annotation.TableColumn;
 import org.example.mybatis.annotation.TableName;
 import org.example.mybatis.model.FieldMetadata;
 import org.springframework.util.CollectionUtils;
@@ -142,11 +142,11 @@ public class SQLHelper {
 
   // 创建字段值对象
   private static FieldMetadata createFieldMetadata(Field field, Object value) {
-    Column columnAnnotation = field.getAnnotation(Column.class);
+    TableColumn columnAnnotation = field.getAnnotation(TableColumn.class);
     String columnName;
     String columnType;
     if (Objects.nonNull(columnAnnotation)) {
-      columnName = formatColumnName(columnAnnotation.name());
+      columnName = formatColumnName(columnAnnotation.value());
       columnType = columnAnnotation.type();
     } else {
       columnName = formatColumnName(field.getName());

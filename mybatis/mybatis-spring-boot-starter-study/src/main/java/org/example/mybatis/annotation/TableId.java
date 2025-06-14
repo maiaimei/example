@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 // 自定义Id注解
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Id {
+public @interface TableId {
 
+  String value();
 }

@@ -2,12 +2,14 @@ package org.example.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import java.math.BigDecimal;
+import java.util.List;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+import org.example.handler.SqlArrayToListTypeHandler;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +41,11 @@ public class MybatisPlusConfig {
     return configuration -> {
       // 注册类型处理器
       final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-      typeHandlerRegistry.register(JacksonTypeHandler.class);
+
+      // 注册 SqlArrayToListTypeHandler 处理 List<?>
+      typeHandlerRegistry.register(List.class, new SqlArrayToListTypeHandler<>(String.class));
+      typeHandlerRegistry.register(List.class, new SqlArrayToListTypeHandler<>(Integer.class));
+      typeHandlerRegistry.register(List.class, new SqlArrayToListTypeHandler<>(BigDecimal.class));
     };
   }
 }
