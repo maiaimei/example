@@ -9,7 +9,8 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import java.math.BigDecimal;
 import java.util.List;
 import org.apache.ibatis.type.TypeHandlerRegistry;
-import org.example.handler.SqlArrayToListTypeHandler;
+import org.example.handler.GenericArrayTypeHandler;
+import org.example.handler.GenericListTypeHandler;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,10 +43,14 @@ public class MybatisPlusConfig {
       // 注册类型处理器
       final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
 
-      // 注册 SqlArrayToListTypeHandler 处理 List<?>
-      typeHandlerRegistry.register(List.class, new SqlArrayToListTypeHandler<>(String.class));
-      typeHandlerRegistry.register(List.class, new SqlArrayToListTypeHandler<>(Integer.class));
-      typeHandlerRegistry.register(List.class, new SqlArrayToListTypeHandler<>(BigDecimal.class));
+      typeHandlerRegistry.register(List.class, new GenericListTypeHandler<>(String.class));
+      typeHandlerRegistry.register(List.class, new GenericListTypeHandler<>(Integer.class));
+      typeHandlerRegistry.register(List.class, new GenericListTypeHandler<>(BigDecimal.class));
+
+      typeHandlerRegistry.register(String[].class, new GenericArrayTypeHandler<>(String.class));
+      typeHandlerRegistry.register(Integer[].class, new GenericArrayTypeHandler<>(Integer.class));
+      typeHandlerRegistry.register(BigDecimal[].class, new GenericArrayTypeHandler<>(BigDecimal.class));
+
     };
   }
 }

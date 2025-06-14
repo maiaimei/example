@@ -28,6 +28,15 @@ public class Example {
   @TableField(value = "\"STRING_LIST\"")
   private List<String> stringList;
 
+  @TableField(value = "\"INTEGER_ARRAY\"")
+  private Integer[] integerArray;
+
+  @TableField(value = "\"BIG_DECIMAL_ARRAY\"")
+  private BigDecimal[] bigDecimalArray;
+
+  @TableField(value = "\"STRING_ARRAY\"")
+  private String[] stringArray;
+
   @TableField(value = "\"CREATED_AT\"")
   private LocalDateTime createdAt;
 }
