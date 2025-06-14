@@ -1,0 +1,57 @@
+@host = http://localhost:8080
+
+# Example API 文档
+
+
+### List Example
+POST {{host}}/examples/list
+Content-Type: application/json
+
+{
+	"data": {
+		"filter": {
+			"name": "test"
+		},
+		"sort": [{
+				"name": "createdAt",
+				"direction": "desc"
+			}],
+		"page": {
+			"current": 1,
+			"size": 5
+		}
+	}
+}
+
+
+### Get Example
+GET {{host}}/examples/2025061410335517500004
+
+
+### Create Example
+POST {{host}}/examples
+Content-Type: application/json
+
+{
+    "name": "test",
+    "integerList": [1,2],
+    "bigDecimalList": ["2025061407061648800001", "2025061407061648800002"],
+    "stringList": ["1", "2"],
+    "integerArray": [1,2],
+    "bigDecimalArray": ["2025061407061648800001", "2025061407061648800002"],
+    "stringArray": ["1", "2"]
+}
+
+
+### Update Example
+PUT {{host}}/examples
+Content-Type: application/json
+
+{
+    "id": "2025061410335517500004",
+    "name": "test update"
+}
+
+
+### Delete Example
+DELETE {{host}}/examples/2025061410335517500004
