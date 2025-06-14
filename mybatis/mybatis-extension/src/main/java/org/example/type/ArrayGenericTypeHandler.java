@@ -1,4 +1,4 @@
-package org.example.handler;
+package org.example.type;
 
 import java.sql.Array;
 import java.sql.CallableStatement;

@@ -9,8 +9,8 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import java.math.BigDecimal;
 import java.util.List;
 import org.apache.ibatis.type.TypeHandlerRegistry;
-import org.example.handler.ArrayGenericTypeHandler;
-import org.example.handler.ListGenericTypeHandler;
+import org.example.type.ArrayGenericTypeHandler;
+import org.example.type.ListGenericTypeHandler;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
