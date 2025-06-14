@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
 import org.example.mybatis.SQLHelper;
 import org.example.mybatis.query.operator.SQLOperator;
+import org.example.mybatis.query.operator.SQLOperatorStrategy;
 import org.example.mybatis.query.operator.SQLOperatorStrategyFactory;
 
 /**
@@ -30,9 +31,12 @@ public class SimpleCondition implements Condition {
 
   @Override
   public String build(AtomicInteger index) {
-    final String columnName = SQLHelper.formatColumnName(field);
-    return SQLOperatorStrategyFactory.getStrategy(operator)
-        .buildCondition(columnName, index.getAndIncrement());
+    final SQLOperatorStrategy strategy = SQLOperatorStrategyFactory.getStrategy(operator);
+    return strategy.buildCondition(this, index.getAndIncrement());
+  }
+
+  public String getColumnName() {
+    return SQLHelper.formatColumnName(field);
   }
 
 }

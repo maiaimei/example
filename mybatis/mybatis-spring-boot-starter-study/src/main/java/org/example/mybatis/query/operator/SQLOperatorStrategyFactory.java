@@ -63,7 +63,8 @@ public class SQLOperatorStrategyFactory {
    * 注册范围操作符的策略，例如 BETWEEN、IN、NOT_IN 等。
    */
   private static void registerRangeOperatorStrategies() {
-    registerStrategy(SQLOperator.BETWEEN, (column, index) -> String.format(BETWEEN_FORMAT, column, index, index));
+    registerStrategy(SQLOperator.BETWEEN,
+        (condition, index) -> String.format(BETWEEN_FORMAT, condition.getColumnName(), index, index));
     registerInOperatorStrategy(SQLOperator.IN, "IN");
     registerInOperatorStrategy(SQLOperator.NOT_IN, "NOT IN");
 
@@ -82,14 +83,14 @@ public class SQLOperatorStrategyFactory {
    * @param keyword  对应的 SQL 关键字，例如 "IN" 或 "NOT IN"
    */
   private static void registerInOperatorStrategy(SQLOperator operator, String keyword) {
-    registerStrategy(operator, (column, index) -> String.format(IN_FORMAT,
+    registerStrategy(operator, (condition, index) -> String.format(IN_FORMAT,
         index, index, MAX_IN_SIZE,
         index,
-        MAX_IN_SIZE, column, keyword, column, keyword,
+        MAX_IN_SIZE, condition.getColumnName(), keyword, condition.getColumnName(), keyword,
         MAX_IN_SIZE,
         MAX_IN_SIZE, MAX_IN_SIZE - 1, index,
         MAX_IN_SIZE, MAX_IN_SIZE - 1, index,
-        column, keyword, index));
+        condition.getColumnName(), keyword, index));
   }
 
   private static void registerJsonOperatorStrategies() {
@@ -125,7 +126,7 @@ public class SQLOperatorStrategyFactory {
    * @param format   格式化字符串，用于生成 SQL 片段
    */
   public static void registerStrategy(SQLOperator operator, String format) {
-    registerStrategy(operator, (column, index) -> String.format(format, column, index));
+    registerStrategy(operator, (condition, index) -> String.format(format, condition.getColumnName(), index));
   }
 
   /**
