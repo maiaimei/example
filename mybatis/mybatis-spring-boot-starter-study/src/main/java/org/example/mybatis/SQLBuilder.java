@@ -9,11 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.builder.SqlSourceBuilder;
 import org.apache.ibatis.jdbc.SQL;
 import org.example.datasource.DatabaseType;
+import org.example.model.PageCriteria;
+import org.example.model.SortCriteria;
 import org.example.mybatis.exception.SQLBuildException;
 import org.example.mybatis.model.FieldMetadata;
 import org.example.mybatis.query.filter.Condition;
-import org.example.mybatis.query.page.Pageable;
-import org.example.mybatis.query.sort.SortableItem;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -133,7 +133,7 @@ public final class SQLBuilder {
   }
 
   public static String buildSelectQueryWithSort(String tableName, List<String> columns, List<Condition> conditions,
-      List<SortableItem> sorts) {
+      List<SortCriteria> sorts) {
     final SQL sql = new SQL();
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
     appendWhereConditions(sql, conditions);
@@ -142,27 +142,27 @@ public final class SQLBuilder {
   }
 
   public static String buildSelectQueryWithPagination(String tableName, List<String> columns, List<Condition> conditions,
-      List<SortableItem> sorts, Pageable pageable) {
+      List<SortCriteria> sorts, PageCriteria page) {
     final SQL sql = new SQL();
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
     appendWhereConditions(sql, conditions);
     appendSortingCriteria(sql, sorts);
     String sqlToUse = sql.toString();
-    String paginationClause = buildDatabaseSpecificPagination(pageable);
+    String paginationClause = buildDatabaseSpecificPagination(page);
     if (StringUtils.hasText(paginationClause)) {
       sqlToUse = sqlToUse + SPACE_SEPARATOR + paginationClause;
     }
     return formatSqlWithXmlWrapper(sqlToUse);
   }
 
-  private static String buildDatabaseSpecificPagination(Pageable pageable) {
-    if (Objects.isNull(pageable)) {
+  private static String buildDatabaseSpecificPagination(PageCriteria page) {
+    if (Objects.isNull(page)) {
       return null;
     }
 
     final DatabaseType databaseType = SQLHelper.getDatabaseType();
-    final int currentPageNumber = Math.max(1, pageable.getCurrentPageNumber());
-    final int pageSize = Math.max(1, pageable.getPageSize());
+    final int currentPageNumber = Math.max(1, page.getCurrent());
+    final int pageSize = Math.max(1, page.getSize());
 
     // 计算偏移量
     final int offset = (currentPageNumber - 1) * pageSize;
@@ -287,7 +287,7 @@ public final class SQLBuilder {
     }
   }
 
-  private static void appendSortingCriteria(SQL sql, List<SortableItem> sorts) {
+  private static void appendSortingCriteria(SQL sql, List<SortCriteria> sorts) {
     if (!CollectionUtils.isEmpty(sorts)) {
       final String orderByClause = sorts.stream()
           .map(sortableItem -> {

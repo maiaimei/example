@@ -25,7 +25,7 @@ Content-Type: application/json
 
 
 ### Get Example
-GET {{host}}/examples/2025061410335517500004
+GET {{host}}/examples/2025061410465014500011
 
 
 ### Create Example
@@ -48,10 +48,10 @@ PUT {{host}}/examples
 Content-Type: application/json
 
 {
-    "id": "2025061410335517500004",
+    "id": "2025061410465014500011",
     "name": "test update"
 }
 
 
 ### Delete Example
-DELETE {{host}}/examples/2025061410335517500004
+DELETE {{host}}/examples/2025061410465014500011

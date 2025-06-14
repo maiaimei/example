@@ -1,4 +1,4 @@
-package org.example.repository;
+package org.example.mybatis.repository;
 
 import java.util.List;
 import org.apache.ibatis.annotations.DeleteProvider;
@@ -6,10 +6,10 @@ import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
+import org.example.model.PageCriteria;
+import org.example.model.SortCriteria;
 import org.example.mybatis.SQLProvider;
 import org.example.mybatis.query.filter.Condition;
-import org.example.mybatis.query.page.Pageable;
-import org.example.mybatis.query.sort.SortableItem;
 
 public interface BaseRepository<T> {
 
@@ -28,15 +28,15 @@ public interface BaseRepository<T> {
   @SelectProvider(type = SQLProvider.class, method = "advancedSelect")
   List<T> advancedSelect(@Param("domain") T domain,
       @Param("conditions") List<Condition> conditions,
-      @Param("sorting") List<SortableItem> sorting,
+      @Param("sorts") List<SortCriteria> sorts,
       @Param("fields") List<String> fields);
 
   @SelectProvider(type = SQLProvider.class, method = "advancedSelectWithPagination")
   List<T> advancedSelectWithPagination(@Param("domain") T domain,
       @Param("conditions") List<Condition> conditions,
-      @Param("sorting") List<SortableItem> sorting,
+      @Param("sorts") List<SortCriteria> sorts,
       @Param("fields") List<String> fields,
-      @Param("paging") Pageable pageable);
+      @Param("page") PageCriteria page);
 
   @SelectProvider(type = SQLProvider.class, method = "advancedCount")
   long advancedCount(@Param("domain") T domain,

@@ -11,10 +11,10 @@ import java.lang.reflect.Field;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
+import org.example.model.PageCriteria;
+import org.example.model.SortCriteria;
 import org.example.mybatis.model.FieldMetadata;
 import org.example.mybatis.query.filter.Condition;
-import org.example.mybatis.query.page.Pageable;
-import org.example.mybatis.query.sort.SortableItem;
 
 @Slf4j
 public class SQLProvider {
@@ -50,7 +50,7 @@ public class SQLProvider {
 
   public String advancedSelect(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions,
-      @Param("sorts") List<SortableItem> sorts,
+      @Param("sorts") List<SortCriteria> sorts,
       @Param("fields") List<String> fields) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
@@ -59,12 +59,12 @@ public class SQLProvider {
 
   public String advancedSelectWithPagination(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions,
-      @Param("sorts") List<SortableItem> sorts,
+      @Param("sorts") List<SortCriteria> sorts,
       @Param("fields") List<String> fields,
-      @Param("paging") Pageable pageable) {
+      @Param("page") PageCriteria page) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.buildSelectQueryWithPagination(tableName, fields, conditions, sorts, pageable);
+    return SQLBuilder.buildSelectQueryWithPagination(tableName, fields, conditions, sorts, page);
   }
 
   public String advancedCount(@Param("domain") Object domain,

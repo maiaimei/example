@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.mybatis.service;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -6,11 +6,11 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.Getter;
+import org.example.model.PageCriteria;
+import org.example.model.SortCriteria;
 import org.example.mybatis.annotation.TableId;
 import org.example.mybatis.query.filter.Condition;
-import org.example.mybatis.query.page.Pageable;
-import org.example.mybatis.query.sort.SortableItem;
-import org.example.repository.BaseRepository;
+import org.example.mybatis.repository.BaseRepository;
 
 @Getter
 public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
@@ -46,13 +46,13 @@ public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
     return repository.advancedSelect(domain, conditions, null, fields);
   }
 
-  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortableItem> sorting) {
-    return repository.advancedSelect(domain, conditions, sorting, fields);
+  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortCriteria> sorts) {
+    return repository.advancedSelect(domain, conditions, sorts, fields);
   }
 
-  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortableItem> sorting,
-      Pageable pageable) {
-    return repository.advancedSelectWithPagination(domain, conditions, sorting, fields, pageable);
+  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortCriteria> sorts,
+      PageCriteria page) {
+    return repository.advancedSelectWithPagination(domain, conditions, sorts, fields, page);
   }
 
   public long advancedCount(T domain, List<Condition> conditions) {
