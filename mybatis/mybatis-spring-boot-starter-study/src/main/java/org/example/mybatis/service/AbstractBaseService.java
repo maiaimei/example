@@ -4,10 +4,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.function.Function;
 import lombok.Getter;
 import org.example.model.PageCriteria;
+import org.example.model.PageableSearchResult;
 import org.example.model.SortCriteria;
 import org.example.mybatis.annotation.TableId;
 import org.example.mybatis.query.filter.Condition;
@@ -54,9 +58,17 @@ public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
     return repository.advancedSelect(domain, conditions, sorts, fields, null);
   }
 
-  public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortCriteria> sorts,
-      PageCriteria page) {
-    return repository.advancedSelect(domain, conditions, sorts, fields, page);
+  public <U> PageableSearchResult<U> advancedSelect(T domain, List<Condition> conditions, List<String> fields,
+      List<SortCriteria> sorts, PageCriteria page, Function<T, U> domainConversionFunction) {
+    final long total = repository.advancedCount(domain, conditions);
+    final List<T> list = repository.advancedSelect(domain, conditions, sorts, fields, page);
+    PageableSearchResult<U> result = new PageableSearchResult<>();
+    result.setTotalRecords(total);
+    result.setTotalPages((long) Math.ceil((double) total / page.getSize()));
+    result.setCurrentPageNumber(page.getCurrent());
+    result.setPageSize(page.getSize());
+    result.setRecords(Optional.ofNullable(list).orElseGet(ArrayList::new).stream().map(domainConversionFunction).toList());
+    return result;
   }
 
   public long advancedCount(T domain, List<Condition> conditions) {
