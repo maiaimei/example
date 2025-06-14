@@ -44,7 +44,7 @@ public class QueryConditionBuilder {
   }
 
   public QueryConditionBuilder andIlike(String field, String value) {
-    return addConditionInternal(field, SQLOperator.CASE_INSENSITIVE_LIKE, value, null);
+    return addConditionInternal(field, SQLOperator.LIKE_CASE_INSENSITIVE, value, null);
   }
 
   public QueryConditionBuilder andStartsWith(String field, String value) {
@@ -57,10 +57,6 @@ public class QueryConditionBuilder {
 
   public QueryConditionBuilder andIn(String field, Object value) {
     return addConditionInternal(field, SQLOperator.IN, value, null);
-  }
-
-  public QueryConditionBuilder andLimitedIn(String field, Object value) {
-    return addConditionInternal(field, SQLOperator.LIMITED_IN, value, null);
   }
 
   public QueryConditionBuilder andJsonContains(String field, String value) {

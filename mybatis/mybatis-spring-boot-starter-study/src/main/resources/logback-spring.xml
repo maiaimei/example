@@ -24,24 +24,24 @@
   <!-- MyBatis日志配置 -->
   <logger name="org.mybatis" level="DEBUG" additivity="false">
     <appender-ref ref="CONSOLE"/>
-    <appender-ref ref="FILE"/>
+    <!--<appender-ref ref="FILE"/>-->
   </logger>
 
   <!-- SQL语句和参数 -->
   <logger name="java.sql" level="DEBUG" additivity="false">
     <appender-ref ref="CONSOLE"/>
-    <appender-ref ref="FILE"/>
+    <!--<appender-ref ref="FILE"/>-->
   </logger>
 
   <!-- 你的项目包路径 -->
   <logger name="org.example.repository" level="DEBUG" additivity="false">
     <appender-ref ref="CONSOLE"/>
-    <appender-ref ref="FILE"/>
+    <!--<appender-ref ref="FILE"/>-->
   </logger>
 
   <!-- 根日志级别 -->
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
-    <appender-ref ref="FILE"/>
+    <!--<appender-ref ref="FILE"/>-->
   </root>
 </configuration>

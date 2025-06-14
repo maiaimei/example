@@ -21,7 +21,7 @@ public class SimpleConditionFactory {
 
   // 大小写不敏感模糊匹配条件
   public static SimpleCondition ilike(String field, String value) {
-    return newSimpleCondition(field, SQLOperator.CASE_INSENSITIVE_LIKE, value, null);
+    return newSimpleCondition(field, SQLOperator.LIKE_CASE_INSENSITIVE, value, null);
   }
 
   // 左模糊条件
@@ -36,10 +36,6 @@ public class SimpleConditionFactory {
 
   public static SimpleCondition in(String field, Object value) {
     return newSimpleCondition(field, SQLOperator.IN, value, null);
-  }
-
-  public static SimpleCondition limitedIn(String field, Object value) {
-    return newSimpleCondition(field, SQLOperator.LIMITED_IN, value, null);
   }
 
   // JSON 包含操作条件
