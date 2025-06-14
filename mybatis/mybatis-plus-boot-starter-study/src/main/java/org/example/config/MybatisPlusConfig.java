@@ -1,10 +1,13 @@
 package org.example.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,11 +34,12 @@ public class MybatisPlusConfig {
     return interceptor;
   }
 
-//  @Bean
-//  public ConfigurationCustomizer configurationCustomizer() {
-//    return configuration -> {
-//      // 注册类型处理器
-//      configuration.getTypeHandlerRegistry().register(JsonTypeHandler.class);
-//    };
-//  }
+  @Bean
+  public ConfigurationCustomizer configurationCustomizer() {
+    return configuration -> {
+      // 注册类型处理器
+      final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+      typeHandlerRegistry.register(JacksonTypeHandler.class);
+    };
+  }
 }

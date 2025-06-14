@@ -4,11 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 import lombok.Data;
 
 @Data
@@ -35,11 +32,12 @@ public class Product {
 
   /**
    * 产品分类
+   * 使用 JacksonTypeHandler 处理 JSON 数组
    * 数据类型: ARRAY, VARCHAR[]
    * 示例值: ARRAY['electronics', 'computers']
    */
-  @TableField(value = "\"CATEGORIES\"", typeHandler = JacksonTypeHandler.class)
-  private List<String> categories;
+  @TableField(value = "\"CATEGORIES\"")
+  private String categories;
 
   /**
    * 产品标签
@@ -51,11 +49,12 @@ public class Product {
 
   /**
    * 产品属性
+   * 使用 JacksonTypeHandler 处理 JSON 对象
    * 数据类型: JSONB
    * 示例值: {"color": "silver", "ram": "16GB"}
    */
-  @TableField(value = "\"PROPERTIES\"", typeHandler = JacksonTypeHandler.class)
-  private Map<String, Object> properties;
+  @TableField(value = "\"PROPERTIES\"")
+  private String properties;
 
 
   /**
