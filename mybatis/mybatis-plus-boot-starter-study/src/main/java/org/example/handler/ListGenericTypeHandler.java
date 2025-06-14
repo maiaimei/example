@@ -8,17 +8,19 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import org.apache.ibatis.type.JdbcType;
 
-public class GenericListTypeHandler<T> extends AbstractGenericTypeHandler<List<T>> {
+@SuppressWarnings("unchecked")
+public class ListGenericTypeHandler<T> extends AbstractGenericTypeHandler<List<T>> {
 
-  public GenericListTypeHandler(Class<T> type) {
+  public ListGenericTypeHandler(Class<T> type) {
     super(type);
   }
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, List<T> parameter, JdbcType jdbcType) throws SQLException {
-    if (parameter != null) {
+    if (Objects.nonNull(parameter)) {
       String arrayTypeName = resolveTypeName(type);
       Object[] array = parameter.toArray();
       ps.setArray(i, ps.getConnection().createArrayOf(arrayTypeName, array));

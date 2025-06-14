@@ -6,17 +6,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Objects;
 import org.apache.ibatis.type.JdbcType;
 
-public class GenericArrayTypeHandler<T> extends AbstractGenericTypeHandler<T[]> {
+@SuppressWarnings("unchecked")
+public class ArrayGenericTypeHandler<T> extends AbstractGenericTypeHandler<T[]> {
 
-  public GenericArrayTypeHandler(Class<T> type) {
+  public ArrayGenericTypeHandler(Class<T> type) {
     super(type);
   }
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, T[] parameter, JdbcType jdbcType) throws SQLException {
-    if (parameter != null) {
+    if (Objects.nonNull(parameter)) {
       String arrayTypeName = resolveTypeName(type);
       ps.setArray(i, ps.getConnection().createArrayOf(arrayTypeName, parameter));
     } else {
