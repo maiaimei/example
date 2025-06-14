@@ -108,7 +108,7 @@ public final class SQLBuilder {
     return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public static String buildSelectQueryWithFieldConditions(String tableName, List<FieldMetadata> fieldMetadataList) {
+  public static String buildSelectQuery(String tableName, List<FieldMetadata> fieldMetadataList) {
     final SQL sql = new SQL();
     sql.SELECT(COLUMN_ALL).FROM(tableName);
     if (!CollectionUtils.isEmpty(fieldMetadataList)) {
@@ -117,40 +117,18 @@ public final class SQLBuilder {
     return formatSqlWithXmlWrapper(sql.toString());
   }
 
-  public static String buildSelectQueryWithConditions(String tableName, List<Condition> conditions) {
-    final SQL sql = new SQL();
-    sql.SELECT(COLUMN_ALL).FROM(tableName);
-    appendWhereConditions(sql, conditions);
-    return formatSqlWithXmlWrapper(sql.toString());
-  }
-
-  public static String buildSelectQueryWithColumnsAndConditions(String tableName, List<String> columns,
-      List<Condition> conditions) {
-    final SQL sql = new SQL();
-    sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
-    appendWhereConditions(sql, conditions);
-    return formatSqlWithXmlWrapper(sql.toString());
-  }
-
-  public static String buildSelectQueryWithSort(String tableName, List<String> columns, List<Condition> conditions,
-      List<SortCriteria> sorts) {
-    final SQL sql = new SQL();
-    sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
-    appendWhereConditions(sql, conditions);
-    appendSortingCriteria(sql, sorts);
-    return formatSqlWithXmlWrapper(sql.toString());
-  }
-
-  public static String buildSelectQueryWithPagination(String tableName, List<String> columns, List<Condition> conditions,
+  public static String buildAdvancedSelectQuery(String tableName, List<String> columns, List<Condition> conditions,
       List<SortCriteria> sorts, PageCriteria page) {
     final SQL sql = new SQL();
     sql.SELECT(formatSelectColumns(columns)).FROM(tableName);
     appendWhereConditions(sql, conditions);
     appendSortingCriteria(sql, sorts);
     String sqlToUse = sql.toString();
-    String paginationClause = buildDatabaseSpecificPagination(page);
-    if (StringUtils.hasText(paginationClause)) {
-      sqlToUse = sqlToUse + SPACE_SEPARATOR + paginationClause;
+    if (Objects.nonNull(page)) {
+      String paginationClause = buildDatabaseSpecificPagination(page);
+      if (StringUtils.hasText(paginationClause)) {
+        sqlToUse = sqlToUse + SPACE_SEPARATOR + paginationClause;
+      }
     }
     return formatSqlWithXmlWrapper(sqlToUse);
   }

@@ -45,26 +45,17 @@ public class SQLProvider {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
     final List<FieldMetadata> fieldMetadataList = getNotNullFieldMetadataList(domain);
-    return SQLBuilder.buildSelectQueryWithFieldConditions(tableName, fieldMetadataList);
+    return SQLBuilder.buildSelectQuery(tableName, fieldMetadataList);
   }
 
   public String advancedSelect(@Param("domain") Object domain,
-      @Param("conditions") List<Condition> conditions,
-      @Param("sorts") List<SortCriteria> sorts,
-      @Param("fields") List<String> fields) {
-    validateDomain(domain);
-    final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.buildSelectQueryWithSort(tableName, fields, conditions, sorts);
-  }
-
-  public String advancedSelectWithPagination(@Param("domain") Object domain,
       @Param("conditions") List<Condition> conditions,
       @Param("sorts") List<SortCriteria> sorts,
       @Param("fields") List<String> fields,
       @Param("page") PageCriteria page) {
     validateDomain(domain);
     final String tableName = getTableName(domain.getClass());
-    return SQLBuilder.buildSelectQueryWithPagination(tableName, fields, conditions, sorts, page);
+    return SQLBuilder.buildAdvancedSelectQuery(tableName, fields, conditions, sorts, page);
   }
 
   public String advancedCount(@Param("domain") Object domain,

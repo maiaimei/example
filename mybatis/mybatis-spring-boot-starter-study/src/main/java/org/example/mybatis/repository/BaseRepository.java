@@ -23,16 +23,10 @@ public interface BaseRepository<T> {
   void delete(T domain);
 
   @SelectProvider(type = SQLProvider.class, method = "select")
-  T select(T domain);
+  List<T> select(T domain);
 
   @SelectProvider(type = SQLProvider.class, method = "advancedSelect")
   List<T> advancedSelect(@Param("domain") T domain,
-      @Param("conditions") List<Condition> conditions,
-      @Param("sorts") List<SortCriteria> sorts,
-      @Param("fields") List<String> fields);
-
-  @SelectProvider(type = SQLProvider.class, method = "advancedSelectWithPagination")
-  List<T> advancedSelectWithPagination(@Param("domain") T domain,
       @Param("conditions") List<Condition> conditions,
       @Param("sorts") List<SortCriteria> sorts,
       @Param("fields") List<String> fields,

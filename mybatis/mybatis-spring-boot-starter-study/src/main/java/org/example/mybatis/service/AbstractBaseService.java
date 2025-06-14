@@ -5,16 +5,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 import lombok.Getter;
 import org.example.model.PageCriteria;
 import org.example.model.SortCriteria;
 import org.example.mybatis.annotation.TableId;
 import org.example.mybatis.query.filter.Condition;
 import org.example.mybatis.repository.BaseRepository;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 
-@Getter
 public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
 
+  @Getter
   private final R repository;
   private final Class<T> domainClass;
 
@@ -38,21 +42,21 @@ public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
     repository.delete(domain);
   }
 
-  public T select(T domain) {
+  public List<T> select(T domain) {
     return repository.select(domain);
   }
 
   public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields) {
-    return repository.advancedSelect(domain, conditions, null, fields);
+    return repository.advancedSelect(domain, conditions, null, fields, null);
   }
 
   public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortCriteria> sorts) {
-    return repository.advancedSelect(domain, conditions, sorts, fields);
+    return repository.advancedSelect(domain, conditions, sorts, fields, null);
   }
 
   public List<T> advancedSelect(T domain, List<Condition> conditions, List<String> fields, List<SortCriteria> sorts,
       PageCriteria page) {
-    return repository.advancedSelectWithPagination(domain, conditions, sorts, fields, page);
+    return repository.advancedSelect(domain, conditions, sorts, fields, page);
   }
 
   public long advancedCount(T domain, List<Condition> conditions) {
@@ -65,12 +69,28 @@ public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
 
   public void deleteById(BigDecimal id) {
     final T domain = createDomainWithId(id);
-    delete(domain);
+    repository.delete(domain);
   }
 
   public T selectById(BigDecimal id) {
     final T domain = createDomainWithId(id);
-    return select(domain);
+    final List<T> domains = repository.select(domain);
+    return getFirstDomain(domains);
+  }
+
+  public T selectOne(T domain, List<Condition> conditions, List<String> fields) {
+    final List<T> domains = repository.advancedSelect(domain, conditions, null, fields, null);
+    return getFirstDomain(domains);
+  }
+
+  private T getFirstDomain(List<T> domains) {
+    if (CollectionUtils.isEmpty(domains)) {
+      throw new NoSuchElementException("No domain found");
+    }
+    if (domains.size() > 1) {
+      throw new IllegalStateException("Multiple domains found");
+    }
+    return domains.get(0);
   }
 
   private T createDomain() {
@@ -87,16 +107,8 @@ public abstract class AbstractBaseService<T, R extends BaseRepository<T>> {
 
     // 查找并设置id字段
     Field idField = findIdField(domainClass);
-    if (idField != null) {
-      idField.setAccessible(true);
-      try {
-        idField.set(domain, id);
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException("Failed to set ID field in domain class: %s".formatted(domainClass.getName()), e);
-      }
-    } else {
-      throw new IllegalStateException("No ID field found in domain class: %s".formatted(domainClass.getName()));
-    }
+    Assert.notNull(idField, "No ID field found in domain class: %s".formatted(domainClass.getName()));
+    ReflectionUtils.setField(idField, domain, id);
 
     return domain;
   }
