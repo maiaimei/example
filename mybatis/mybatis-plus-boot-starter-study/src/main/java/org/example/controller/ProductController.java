@@ -3,10 +3,14 @@ package org.example.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.math.BigDecimal;
+import org.example.model.ApiRequest;
+import org.example.model.PageableSearchRequest;
 import org.example.model.domain.Product;
+import org.example.model.request.ProductFilterCriteria;
 import org.example.service.ProductService;
 import org.example.utils.IdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,28 +18,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/products")
 public class ProductController {
 
   @Autowired
   private ProductService productService;
 
   // 分页查询产品
-  @GetMapping
-  public Page<Product> list(@RequestParam(defaultValue = "1") Integer current,
-      @RequestParam(defaultValue = "10") Integer size,
-      @RequestParam(required = false) String productName) {
-    Page<Product> page = new Page<>(current, size);
+  @PostMapping("/list")
+  public Page<Product> list(@RequestBody ApiRequest<PageableSearchRequest<ProductFilterCriteria>> request) {
+    final PageableSearchRequest<ProductFilterCriteria> searchRequest = request.getData();
+    final ProductFilterCriteria filter = searchRequest.getFilter();
+    Page<Product> page = new Page<>(searchRequest.getPage().getCurrent(), searchRequest.getPage().getSize());
     LambdaQueryWrapper<Product> queryWrapper = new LambdaQueryWrapper<>();
-
-    if (productName != null && !productName.isEmpty()) {
-      queryWrapper.like(Product::getProductName, productName);
-    }
-
+    queryWrapper.like(StringUtils.hasText(filter.getProductName()), Product::getProductName, filter.getProductName());
     return productService.page(page, queryWrapper);
   }
 
@@ -54,9 +53,8 @@ public class ProductController {
   }
 
   // 更新产品
-  @PutMapping("/{id}")
-  public boolean update(@PathVariable BigDecimal id, @RequestBody Product product) {
-    product.setId(id);
+  @PutMapping
+  public boolean update(@RequestBody Product product) {
     return productService.updateById(product);
   }
 

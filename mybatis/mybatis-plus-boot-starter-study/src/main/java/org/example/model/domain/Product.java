@@ -1,74 +1,96 @@
 package org.example.model.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
-@TableName("PRODUCT_TEST")
+@TableName("\"PRODUCT_TEST\"")
 public class Product {
 
   /**
-   * 主键ID
+   * 产品编号
    */
-  @TableId(type = IdType.INPUT)
+  @TableId(value = "\"ID\"", type = IdType.INPUT)
   private BigDecimal id;
 
   /**
    * 产品名称
    */
+  @TableField(value = "\"PRODUCT_NAME\"")
   private String productName;
 
-//  /**
-//   * 价格
-//   */
-//  private BigDecimal price;
-//
-//  /**
-//   * 库存数量
-//   */
-//  private Integer stockQuantity;
-//
-//  /**
-//   * 描述
-//   */
-//  private String description;
-//
-//  /**
-//   * 标签
-//   */
-//  private String tags;
-//
-//  /**
-//   * 状态
-//   */
-//  private String status;
-//
-//  /**
-//   * 创建时间
-//   */
-//  private LocalDateTime createTime;
-//
-//  /**
-//   * 属性
-//   */
-//  private String properties;
-//
-//  /**
-//   * 搜索向量
-//   */
-//  private String searchVector;
-//
-//  /**
-//   * 是否激活
-//   */
-//  private Boolean isActive;
-//
-//  /**
-//   * 分类
-//   */
-//  @TableField(typeHandler = JacksonTypeHandler.class)
-//  private List<String> categories; // 使用 JSON 存储
+  /**
+   * 产品描述
+   */
+  @TableField(value = "\"DESCRIPTION\"")
+  private String description;
+
+  /**
+   * 产品分类
+   * 数据类型: ARRAY, VARCHAR[]
+   * 示例值: ARRAY['electronics', 'computers']
+   */
+  @TableField(value = "\"CATEGORIES\"", typeHandler = JacksonTypeHandler.class)
+  private List<String> categories;
+
+  /**
+   * 产品标签
+   * 数据类型: JSONB
+   * 示例值: ["laptop", "apple"]
+   */
+  @TableField(value = "\"TAGS\"")
+  private String tags;
+
+  /**
+   * 产品属性
+   * 数据类型: JSONB
+   * 示例值: {"color": "silver", "ram": "16GB"}
+   */
+  @TableField(value = "\"PROPERTIES\"", typeHandler = JacksonTypeHandler.class)
+  private Map<String, Object> properties;
+
+
+  /**
+   * 搜索向量
+   */
+  @TableField(value = "\"SEARCH_VECTOR\"")
+  private String searchVector;
+
+  /**
+   * 产品价格
+   */
+  @TableField(value = "\"PRICE\"")
+  private BigDecimal price;
+
+  /**
+   * 库存数量
+   */
+  @TableField(value = "\"STOCK_QUANTITY\"")
+  private Integer stockQuantity;
+
+  /**
+   * 产品状态
+   */
+  @TableField(value = "\"STATUS\"")
+  private String status;
+
+  /**
+   * 是否激活
+   */
+  @TableField(value = "\"IS_ACTIVE\"")
+  private Boolean isActive;
+
+  /**
+   * 创建时间
+   */
+  @TableField(value = "\"CREATE_TIME\"")
+  private LocalDateTime createTime;
 }

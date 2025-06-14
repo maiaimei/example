@@ -8,14 +8,19 @@ POST {{host}}/products/list
 Content-Type: application/json
 
 {
-    "sorting": [
-        {
-            "field": "createAt",
-            "sort": "desc"
-        }
-    ],
-    "current": 1,
-    "size": 5
+	"data": {
+		"filter": {
+			"productName": "iPhone"
+		},
+		"sort": [{
+				"name": "createAt",
+				"direction": "desc"
+			}],
+		"page": {
+			"current": 1,
+			"size": 5
+		}
+	}
 }
 
 
