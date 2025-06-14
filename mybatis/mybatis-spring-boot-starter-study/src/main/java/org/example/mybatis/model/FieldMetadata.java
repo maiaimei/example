@@ -18,6 +18,11 @@ public class FieldMetadata {
   private String fieldName;
 
   /**
+   * Value of the field in the Java object
+   */
+  private Object fieldValue;
+
+  /**
    * Name of the column in the database
    */
   private String columnName;
@@ -26,9 +31,4 @@ public class FieldMetadata {
    * Type of the column in the database
    */
   private String columnType;
-
-  /**
-   * Value of the field
-   */
-  private Object value;
 }

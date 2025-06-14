@@ -1,17 +1,11 @@
 package org.example.mybatis.interceptor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.plugin.Interceptor;
-import org.apache.ibatis.plugin.Intercepts;
-import org.apache.ibatis.plugin.Invocation;
-import org.apache.ibatis.plugin.Signature;
+import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 import org.apache.ibatis.session.ResultHandler;
@@ -31,7 +25,6 @@ public class ConditionInterceptor implements Interceptor {
 
   private static final List<String> INTERCEPTED_METHOD_SUFFIXES = Arrays.asList(
       "advancedSelect",
-      "advancedSelectWithPagination",
       "advancedCount",
       "advancedDelete"
   );

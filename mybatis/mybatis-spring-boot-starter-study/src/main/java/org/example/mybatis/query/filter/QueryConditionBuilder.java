@@ -1,8 +1,6 @@
 package org.example.mybatis.query.filter;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import lombok.Builder;
 import lombok.Data;
 import org.example.mybatis.query.operator.LogicalOperator;
@@ -57,6 +55,10 @@ public class QueryConditionBuilder {
 
   public QueryConditionBuilder andIn(String field, Object value) {
     return addConditionInternal(field, SQLOperator.IN, value, null);
+  }
+
+  public QueryConditionBuilder andJsonTextEquals(String field, String value, String jsonPath) {
+    return addConditionInternal(field, SQLOperator.JSONB_TEXT_EQUALS, value, Map.of("jsonPath", jsonPath));
   }
 
   public QueryConditionBuilder andJsonContains(String field, String value) {

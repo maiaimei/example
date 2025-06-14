@@ -96,9 +96,12 @@ public class SQLOperatorStrategyFactory {
   private static void registerJsonOperatorStrategies() {
     registerStrategy(SQLOperator.JSON_CONTAINS, JSON_CONTAINS_FORMAT);
     registerStrategy(SQLOperator.JSON_CONTAINED_BY, JSON_CONTAINED_BY_FORMAT);
-    registerStrategy(SQLOperator.JSON_EXISTS, JSON_EXISTS_FORMAT);
-    registerStrategy(SQLOperator.JSON_EXISTS_ANY, JSON_EXISTS_ANY_FORMAT);
-    registerStrategy(SQLOperator.JSON_EXISTS_ALL, JSON_EXISTS_ALL_FORMAT);
+    registerStrategy(SQLOperator.JSONB_TEXT_EQUALS,
+        ((condition, index) -> String.format(
+            JSONB_TEXT_EQ_FORMAT.replace("#{jsonPath}", condition.getMap().get("jsonPath").toString()),
+            condition.getColumnName(), index)));
+    registerStrategy(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
+    registerStrategy(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);
   }
 
   private static void registerArrayOperatorStrategies() {

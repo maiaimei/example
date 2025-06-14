@@ -1,5 +1,6 @@
 package org.example.mybatis.query.filter;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
 import org.example.mybatis.SQLHelper;
@@ -17,6 +18,7 @@ public class SimpleCondition implements Condition {
   private SQLOperator operator;
   private Object value;
   private Object secondValue; // 用于 BETWEEN 等操作符
+  private Map<String, Object> map;
 
   public SimpleCondition(String field, SQLOperator operator, Object value) {
     this.field = field;
@@ -27,6 +29,11 @@ public class SimpleCondition implements Condition {
   public SimpleCondition(String field, SQLOperator operator, Object value, Object secondValue) {
     this(field, operator, value);
     this.secondValue = secondValue;
+  }
+
+  public SimpleCondition(String field, SQLOperator operator, Object value, Map<String, Object> map) {
+    this(field, operator, value);
+    this.map = map;
   }
 
   @Override

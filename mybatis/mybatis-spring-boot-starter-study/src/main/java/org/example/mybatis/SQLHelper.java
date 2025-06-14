@@ -3,21 +3,14 @@ package org.example.mybatis;
 import java.beans.Transient;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.example.mybatis.annotation.TableColumn;
 import org.example.mybatis.annotation.TableName;
 import org.example.mybatis.constant.DatabaseType;
 import org.example.mybatis.model.FieldMetadata;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 public class SQLHelper {
 
@@ -145,13 +138,14 @@ public class SQLHelper {
     String columnName;
     String columnType;
     if (Objects.nonNull(columnAnnotation)) {
-      columnName = formatColumnName(columnAnnotation.value());
+      columnName = StringUtils.hasText(columnAnnotation.value()) ? formatColumnName(columnAnnotation.value())
+          : formatColumnName(field.getName());
       columnType = columnAnnotation.type();
     } else {
       columnName = formatColumnName(field.getName());
       columnType = null;
     }
-    return new FieldMetadata(field.getName(), columnName, columnType, value);
+    return new FieldMetadata(field.getName(), value, columnName, columnType);
   }
 
   // 格式化列名
@@ -175,14 +169,14 @@ public class SQLHelper {
 //        .map(String::toUpperCase)
 //        .map(DatabaseType::valueOf)
 //        .orElse(DatabaseType.MYSQL);
-    return DatabaseType.MYSQL;
+    return DatabaseType.POSTGRESQL;
   }
 
   // 获取数据库类型
   public static String getDatabaseTypeAsString() {
 //    return Optional.ofNullable(DataSourceContextHolder.getDataSourceType())
 //        .orElse(Optional.ofNullable(System.getProperty("app.dbType")).orElse(DatabaseType.MYSQL.getType()));
-    return DatabaseType.MYSQL.getType();
+    return DatabaseType.POSTGRESQL.getType();
   }
 
 }

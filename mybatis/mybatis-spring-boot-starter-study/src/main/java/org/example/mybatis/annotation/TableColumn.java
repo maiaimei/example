@@ -1,10 +1,6 @@
 package org.example.mybatis.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 import org.springframework.core.annotation.AliasFor;
 
 /**
@@ -14,18 +10,18 @@ import org.springframework.core.annotation.AliasFor;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface TableColumn {
-  
+
   /**
    * Column name in the database
    */
   @AliasFor("value")
-  String name();
+  String name() default "";
 
   /**
    * Column name in the database
    */
   @AliasFor("name")
-  String value();
+  String value() default "";
 
   /**
    * Column type (e.g., JSONB, ARRAY, etc.)

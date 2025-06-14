@@ -2,6 +2,7 @@ package org.example.config;
 
 import java.util.List;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+import org.example.mybatis.interceptor.ConditionInterceptor;
 import org.example.type.ListGenericTypeHandler;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
@@ -17,8 +18,9 @@ public class MyBatisConfig {
   @Bean
   public ConfigurationCustomizer configurationCustomizer() {
     return configuration -> {
-      final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+      configuration.addInterceptor(new ConditionInterceptor());
 
+      final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
       typeHandlerRegistry.register(List.class, new ListGenericTypeHandler<>(String.class));
     };
   }

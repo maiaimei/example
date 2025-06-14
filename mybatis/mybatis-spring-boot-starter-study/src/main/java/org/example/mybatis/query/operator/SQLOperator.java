@@ -123,6 +123,26 @@ public enum SQLOperator {
   REGEX_NOT_MATCH_CASE_INSENSITIVE, // 大小写不敏感的正则不匹配
 
   // JSON Operators
+  JSONB_TEXT_EQUALS,
+
+  JSONB_TEXT_LIKE,
+
+  JSONB_TEXT_NOT_LIKE,
+
+  JSONB_PATH_EXISTS,
+
+  JSONB_PATH_EXISTS_ANY,
+
+  JSONB_PATH_EXISTS_ALL,
+
+  JSONB_ARRAY_CONTAINS,
+
+  JSONB_ARRAY_LIKE,
+
+  JSONB_OBJECT_ARRAY_EQUALS,
+
+  JSONB_OBJECT_ARRAY_LIKE,
+
   /**
    * {@code @>} JSON contains
    */
@@ -132,21 +152,6 @@ public enum SQLOperator {
    * {@code <@} JSON contained by
    */
   JSON_CONTAINED_BY, // JSON 被包含操作
-
-  /**
-   * {@code ?} JSON key exists
-   */
-  JSON_EXISTS,      // JSON 键存在
-
-  /**
-   * {@code ?|} JSON any key exists
-   */
-  JSON_EXISTS_ANY,  // JSON 键中任意一个存在
-
-  /**
-   * {@code ?&} JSON all keys exist
-   */
-  JSON_EXISTS_ALL,   // JSON 键全部存在
 
   // Array Operators
   /**
