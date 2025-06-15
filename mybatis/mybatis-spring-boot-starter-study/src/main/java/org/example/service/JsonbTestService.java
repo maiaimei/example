@@ -25,8 +25,8 @@ public class JsonbTestService extends AbstractBaseService<JsonbTest, JsonbTestRe
         //.andJsonbTextNotLike("data", "Tom", "name")
         //.andJsonbArrayContains("data", "important", "tags")
         //.andJsonbArrayLike("data", "view", "tags")
-        .andJsonbObjectArrayEquals("data", "Product1", "items", "name")
-        .andJsonbObjectArrayLike("data", "Product", "items", "name")
+        //.andJsonbObjectArrayEquals("data", "Product1", "items", "name")
+        //.andJsonbObjectArrayLike("data", "Product", "items", "name")
         .build();
     return advancedSelect(jsonbTest, conditions, null);
   }

@@ -56,6 +56,11 @@ public enum SQLOperator {
   ENDS_WITH,   // 右模糊
 
   /**
+   * {@code BETWEEN} Range query
+   */
+  BETWEEN,     // 范围查询
+
+  /**
    * {@code IN} Value in a list
    */
   IN,          // IN查询
@@ -64,11 +69,6 @@ public enum SQLOperator {
    * {@code NOT IN} Value not in a list
    */
   NOT_IN,      // NOT IN查询
-
-  /**
-   * {@code BETWEEN} Range query
-   */
-  BETWEEN,     // 范围查询
 
   /**
    * {@code IS NULL} Check if value is null
@@ -92,36 +92,6 @@ public enum SQLOperator {
    */
   NOT_LIKE_CASE_INSENSITIVE,   // 大小写不敏感的 NOT LIKE
 
-  /**
-   * {@code SIMILAR TO} Regex-like pattern matching
-   */
-  SIMILAR_TO,  // 正则匹配
-
-  /**
-   * {@code NOT SIMILAR TO} Regex-like pattern not matching
-   */
-  NOT_SIMILAR_TO, // 正则不匹配
-
-  /**
-   * {@code ~} Regex Match
-   */
-  REGEX_MATCH, // 正则匹配
-
-  /**
-   * {@code ~*} Case-insensitive Regex Match
-   */
-  REGEX_MATCH_CASE_INSENSITIVE, // 大小写不敏感的正则匹配
-
-  /**
-   * {@code !~} Regex Not Match
-   */
-  REGEX_NOT_MATCH, // 正则不匹配
-
-  /**
-   * {@code !~*} Case-insensitive Regex Not Match
-   */
-  REGEX_NOT_MATCH_CASE_INSENSITIVE, // 大小写不敏感的正则不匹配
-
   // JSON Operators
   JSONB_TEXT_EQUALS,
 
@@ -137,80 +107,9 @@ public enum SQLOperator {
 
   JSONB_OBJECT_ARRAY_LIKE,
 
-  /**
-   * {@code @>} JSON contains
-   */
-  JSON_CONTAINS,  // JSON 包含操作
-
-  /**
-   * {@code <@} JSON contained by
-   */
-  JSON_CONTAINED_BY, // JSON 被包含操作
-
   // Array Operators
-  /**
-   * {@code =} Array equality
-   */
-  ARRAY_EQUALS, // 数组相等
-
-  /**
-   * {@code <>} Array inequality
-   */
-  ARRAY_NOT_EQUALS, // 数组不相等
-
   /**
    * {@code @>} Array contains
    */
-  ARRAY_CONTAINS, // 数组包含
-
-  /**
-   * {@code <@} Array contained by
-   */
-  ARRAY_CONTAINED_BY, // 数组被包含
-
-  /**
-   * {@code &&} Array overlap
-   */
-  ARRAY_OVERLAP, // 数组重叠
-
-  // Range Operators
-  /**
-   * {@code @>} Range contains element or range
-   */
-  RANGE_CONTAINS, // 范围包含元素或范围
-
-  /**
-   * {@code <@} Range contained by another range
-   */
-  RANGE_CONTAINED_BY, // 范围被另一个范围包含
-
-  /**
-   * {@code &&} Range overlap
-   */
-  RANGE_OVERLAP, // 范围重叠
-
-  /**
-   * {@code <<} Range strictly left of another range
-   */
-  RANGE_LEFT, // 范围严格在另一个范围左侧
-
-  /**
-   * {@code >>} Range strictly right of another range
-   */
-  RANGE_RIGHT, // 范围严格在另一个范围右侧
-
-  /**
-   * {@code -|-} Range adjacent to another range
-   */
-  RANGE_ADJACENT, // 范围与另一个范围相邻
-
-  /**
-   * {@code IS DISTINCT FROM} Check if values are distinct
-   */
-  IS_DISTINCT_FROM, // 判断值是否不同
-
-  /**
-   * {@code IS NOT DISTINCT FROM} Check if values are not distinct
-   */
-  IS_NOT_DISTINCT_FROM // 判断值是否不不同
+  ARRAY_CONTAINS // 数组包含
 }

@@ -61,7 +61,6 @@ public final class SQLOperatorFormat {
           SELECT 1 FROM jsonb_array_elements_text(%s->'${simpleConditions[%d].parameters.jsonPath}') elem\s
           WHERE LOWER(elem) = LOWER(#{simpleConditions[%d].value})
       )""";
-
   public static final String JSONB_ARRAY_LIKE_FORMAT = """
       EXISTS (
           SELECT 1 FROM jsonb_array_elements_text(%s->'${simpleConditions[%d].parameters.jsonPath}') elem\s
@@ -81,25 +80,6 @@ public final class SQLOperatorFormat {
           WHERE LOWER(obj->>'${simpleConditions[%d].parameters.nestedField}') LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))
       )""";
 
-  public static final String SIMILAR_TO_FORMAT = "%s SIMILAR TO #{simpleConditions[%d].value}";
-  public static final String NOT_SIMILAR_TO_FORMAT = "%s NOT SIMILAR TO #{simpleConditions[%d].value}";
-  public static final String REGEX_MATCH_FORMAT = "%s ~ #{simpleConditions[%d].value}";
-  public static final String REGEX_MATCH_CASE_INSENSITIVE_FORMAT = "%s ~* #{simpleConditions[%d].value}";
-  public static final String REGEX_NOT_MATCH_FORMAT = "%s !~ #{simpleConditions[%d].value}";
-  public static final String REGEX_NOT_MATCH_CASE_INSENSITIVE_FORMAT = "%s !~* #{simpleConditions[%d].value}";
-  public static final String RANGE_CONTAINS_FORMAT = "%s @> #{simpleConditions[%d].value}";
-  public static final String RANGE_CONTAINED_BY_FORMAT = "%s <@ #{simpleConditions[%d].value}";
-  public static final String RANGE_OVERLAP_FORMAT = "%s && #{simpleConditions[%d].value}";
-  public static final String RANGE_LEFT_FORMAT = "%s << #{simpleConditions[%d].value}";
-  public static final String RANGE_RIGHT_FORMAT = "%s >> #{simpleConditions[%d].value}";
-  public static final String RANGE_ADJACENT_FORMAT = "%s -|- #{simpleConditions[%d].value}";
-  public static final String JSON_CONTAINS_FORMAT = "%s @> #{simpleConditions[%d].value}";
-  public static final String JSON_CONTAINED_BY_FORMAT = "%s <@ #{simpleConditions[%d].value}";
-  public static final String ARRAY_EQUALS_FORMAT = "%s = #{simpleConditions[%d].value}";
-  public static final String ARRAY_NOT_EQUALS_FORMAT = "%s <> #{simpleConditions[%d].value}";
-  public static final String ARRAY_CONTAINS_FORMAT = "%s @> #{simpleConditions[%d].value}";
-  public static final String ARRAY_CONTAINED_BY_FORMAT = "%s <@ #{simpleConditions[%d].value}";
-  public static final String ARRAY_OVERLAP_FORMAT = "%s && #{simpleConditions[%d].value}";
-  public static final String IS_DISTINCT_FROM_FORMAT = "%s IS DISTINCT FROM #{simpleConditions[%d].value}";
-  public static final String IS_NOT_DISTINCT_FROM_FORMAT = "%s IS NOT DISTINCT FROM #{simpleConditions[%d].value}";
+  public static final String ARRAY_CONTAINS_FORMAT = """
+      %s @> <foreach collection='simpleConditions[%d].value' item='item' open='ARRAY[' separator=',' close=']'>#{item}</foreach>""";
 }

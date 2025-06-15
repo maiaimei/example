@@ -45,34 +45,20 @@ public class SQLOperatorStrategyFactory {
    */
   private static void registerStringOperatorStrategies() {
     registerStrategy(SQLOperator.LIKE, LIKE_FORMAT);
+    registerStrategy(SQLOperator.NOT_LIKE, NOT_LIKE_FORMAT);
     registerStrategy(SQLOperator.STARTS_WITH, STARTS_WITH_FORMAT);
     registerStrategy(SQLOperator.ENDS_WITH, ENDS_WITH_FORMAT);
-    registerStrategy(SQLOperator.NOT_LIKE, NOT_LIKE_FORMAT);
-
     registerStrategy(SQLOperator.LIKE_CASE_INSENSITIVE, LIKE_CASE_INSENSITIVE_FORMAT);
     registerStrategy(SQLOperator.NOT_LIKE_CASE_INSENSITIVE, NOT_LIKE_CASE_INSENSITIVE_FORMAT);
-    registerStrategy(SQLOperator.SIMILAR_TO, SIMILAR_TO_FORMAT);
-    registerStrategy(SQLOperator.NOT_SIMILAR_TO, NOT_SIMILAR_TO_FORMAT);
-    registerStrategy(SQLOperator.REGEX_MATCH, REGEX_MATCH_FORMAT);
-    registerStrategy(SQLOperator.REGEX_MATCH_CASE_INSENSITIVE, REGEX_MATCH_CASE_INSENSITIVE_FORMAT);
-    registerStrategy(SQLOperator.REGEX_NOT_MATCH, REGEX_NOT_MATCH_FORMAT);
-    registerStrategy(SQLOperator.REGEX_NOT_MATCH_CASE_INSENSITIVE, REGEX_NOT_MATCH_CASE_INSENSITIVE_FORMAT);
   }
 
   /**
    * 注册范围操作符的策略，例如 BETWEEN、IN、NOT_IN 等。
    */
   private static void registerRangeOperatorStrategies() {
-    registerStrategyWithIndexes(SQLOperator.BETWEEN, BETWEEN_FORMAT);
+    registerStrategy(SQLOperator.BETWEEN, BETWEEN_FORMAT);
     registerInOperatorStrategy(SQLOperator.IN, "IN");
     registerInOperatorStrategy(SQLOperator.NOT_IN, "NOT IN");
-
-    registerStrategy(SQLOperator.RANGE_CONTAINS, RANGE_CONTAINS_FORMAT);
-    registerStrategy(SQLOperator.RANGE_CONTAINED_BY, RANGE_CONTAINED_BY_FORMAT);
-    registerStrategy(SQLOperator.RANGE_OVERLAP, RANGE_OVERLAP_FORMAT);
-    registerStrategy(SQLOperator.RANGE_LEFT, RANGE_LEFT_FORMAT);
-    registerStrategy(SQLOperator.RANGE_RIGHT, RANGE_RIGHT_FORMAT);
-    registerStrategy(SQLOperator.RANGE_ADJACENT, RANGE_ADJACENT_FORMAT);
   }
 
   /**
@@ -93,24 +79,17 @@ public class SQLOperatorStrategyFactory {
   }
 
   private static void registerJsonOperatorStrategies() {
-    registerStrategy(SQLOperator.JSON_CONTAINS, JSON_CONTAINS_FORMAT);
-    registerStrategy(SQLOperator.JSON_CONTAINED_BY, JSON_CONTAINED_BY_FORMAT);
-    
-    registerStrategyWithIndexes(SQLOperator.JSONB_TEXT_EQUALS, JSONB_TEXT_EQ_FORMAT);
-    registerStrategyWithIndexes(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
-    registerStrategyWithIndexes(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);
-    registerStrategyWithIndexes(SQLOperator.JSONB_ARRAY_CONTAINS, JSONB_ARRAY_CONTAINS_FORMAT);
-    registerStrategyWithIndexes(SQLOperator.JSONB_ARRAY_LIKE, JSONB_ARRAY_LIKE_FORMAT);
-    registerStrategyWithIndexes(SQLOperator.JSONB_OBJECT_ARRAY_EQUALS, JSONB_OBJECT_ARRAY_EQ_FORMAT);
-    registerStrategyWithIndexes(SQLOperator.JSONB_OBJECT_ARRAY_LIKE, JSONB_OBJECT_ARRAY_LIKE_FORMAT);
+    registerStrategy(SQLOperator.JSONB_TEXT_EQUALS, JSONB_TEXT_EQ_FORMAT);
+    registerStrategy(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
+    registerStrategy(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);
+    registerStrategy(SQLOperator.JSONB_ARRAY_CONTAINS, JSONB_ARRAY_CONTAINS_FORMAT);
+    registerStrategy(SQLOperator.JSONB_ARRAY_LIKE, JSONB_ARRAY_LIKE_FORMAT);
+    registerStrategy(SQLOperator.JSONB_OBJECT_ARRAY_EQUALS, JSONB_OBJECT_ARRAY_EQ_FORMAT);
+    registerStrategy(SQLOperator.JSONB_OBJECT_ARRAY_LIKE, JSONB_OBJECT_ARRAY_LIKE_FORMAT);
   }
 
   private static void registerArrayOperatorStrategies() {
-    registerStrategy(SQLOperator.ARRAY_EQUALS, ARRAY_EQUALS_FORMAT);
-    registerStrategy(SQLOperator.ARRAY_NOT_EQUALS, ARRAY_NOT_EQUALS_FORMAT);
     registerStrategy(SQLOperator.ARRAY_CONTAINS, ARRAY_CONTAINS_FORMAT);
-    registerStrategy(SQLOperator.ARRAY_CONTAINED_BY, ARRAY_CONTAINED_BY_FORMAT);
-    registerStrategy(SQLOperator.ARRAY_OVERLAP, ARRAY_OVERLAP_FORMAT);
   }
 
   /**
@@ -119,8 +98,6 @@ public class SQLOperatorStrategyFactory {
   private static void registerOtherOperatorStrategies() {
     registerStrategy(SQLOperator.IS_NULL, IS_NULL_FORMAT);
     registerStrategy(SQLOperator.IS_NOT_NULL, IS_NOT_NULL_FORMAT);
-    registerStrategy(SQLOperator.IS_DISTINCT_FROM, IS_DISTINCT_FROM_FORMAT);
-    registerStrategy(SQLOperator.IS_NOT_DISTINCT_FROM, IS_NOT_DISTINCT_FROM_FORMAT);
   }
 
   /**
@@ -130,10 +107,6 @@ public class SQLOperatorStrategyFactory {
    * @param format   格式化字符串，用于生成 SQL 片段
    */
   public static void registerStrategy(SQLOperator operator, String format) {
-    registerStrategy(operator, (condition, index) -> String.format(format, condition.getColumnName(), index));
-  }
-
-  public static void registerStrategyWithIndexes(SQLOperator operator, String format) {
     // 获取条件数量
     final int count = getSimpleConditionsCount(format);
     // 注册策略
@@ -147,16 +120,6 @@ public class SQLOperatorStrategyFactory {
       }
       return String.format(format, params);
     });
-  }
-
-  private static int getSimpleConditionsCount(String format) {
-    int count = 0;
-    int pos = 0;
-    while ((pos = format.indexOf("[%d]", pos)) != -1) {
-      count++;
-      pos += 4;
-    }
-    return count;
   }
 
   /**
@@ -186,6 +149,16 @@ public class SQLOperatorStrategyFactory {
       throw new UnsupportedOperationException("Unsupported SQL operator: %s".formatted(operator));
     }
     return strategy;
+  }
+
+  public static int getSimpleConditionsCount(String format) {
+    int count = 0;
+    int pos = 0;
+    while ((pos = format.indexOf("[%d]", pos)) != -1) {
+      count++;
+      pos += 4;
+    }
+    return count;
   }
 
 }
