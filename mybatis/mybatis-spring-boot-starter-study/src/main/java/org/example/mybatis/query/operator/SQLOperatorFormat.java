@@ -44,6 +44,35 @@ public final class SQLOperatorFormat {
   public static final String LIKE_CASE_INSENSITIVE_FORMAT = "%s ILIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')";
   public static final String NOT_LIKE_CASE_INSENSITIVE_FORMAT = "%s NOT ILIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')";
 
+  // JSONB 包含操作符 @> (contains)
+  public static final String JSONB_CONTAINS_FORMAT =
+      """
+              <choose>
+                  <!-- 处理单个对象的情况 -->
+                  <when test="simpleConditions[%d].value instanceof String">
+                      %s @> #{simpleConditions[%d].value}::jsonb
+                  </when>
+                  <!-- 处理Map或复杂对象的情况 -->
+                  <when test="simpleConditions[%d].value instanceof Map">
+                      %s @> to_jsonb(#{simpleConditions[%d].value})
+                  </when>
+                  <!-- 处理数组/集合的情况 -->
+                  <when test="simpleConditions[%d].value instanceof Collection">
+                      <foreach collection="simpleConditions[%d].value" item="item" separator=" AND ">
+                          %s @> to_jsonb(#{item})
+                      </foreach>
+                  </when>
+                  <otherwise>
+                      %s @> to_jsonb(#{simpleConditions[%d].value})
+                  </otherwise>
+              </choose>
+          """;
+
+  // 支持嵌套路径查询的版本
+  public static final String JSONB_NESTED_CONTAINS_FORMAT = """
+          %s #> '{${simpleConditions[%d].parameters.jsonPath}}' @> #{simpleConditions[%d].value}::jsonb
+      """;
+
   // JSONB Text Operators (忽略大小写)
   public static final String JSONB_TEXT_EQ_FORMAT =
       """

@@ -79,6 +79,8 @@ public class SQLOperatorStrategyFactory {
   }
 
   private static void registerJsonOperatorStrategies() {
+    registerStrategy(SQLOperator.JSONB_CONTAINS, JSONB_CONTAINS_FORMAT);
+    registerStrategy(SQLOperator.JSONB_NESTED_CONTAINS, JSONB_NESTED_CONTAINS_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_EQUALS, JSONB_TEXT_EQ_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);

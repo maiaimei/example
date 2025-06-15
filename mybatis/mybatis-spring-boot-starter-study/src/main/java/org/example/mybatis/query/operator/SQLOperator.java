@@ -93,6 +93,10 @@ public enum SQLOperator {
   NOT_LIKE_CASE_INSENSITIVE,   // 大小写不敏感的 NOT LIKE
 
   // JSON Operators
+  JSONB_CONTAINS,
+
+  JSONB_NESTED_CONTAINS,
+
   JSONB_TEXT_EQUALS,
 
   JSONB_TEXT_LIKE,

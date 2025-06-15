@@ -90,6 +90,14 @@ public class QueryConditionBuilder {
     return addSimpleCondition(SimpleConditionFactory.notIn(field, value));
   }
 
+  public QueryConditionBuilder andJsonbContains(String field, Object value) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbContains(field, value));
+  }
+
+  public QueryConditionBuilder andJsonbNestedContains(String field, String value, String jsonPath) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbNestedContains(field, value, jsonPath));
+  }
+
   public QueryConditionBuilder andJsonbTextEquals(String field, String value, String jsonPath) {
     return addSimpleCondition(SimpleConditionFactory.jsonbTextEquals(field, value, jsonPath));
   }
