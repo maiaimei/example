@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:${POSTGRESQL_PORT:5432}/${POSTGRESQL_PRODUCT_CENTER:postgres}?reWriteBatchedInserts=true&socketTimeout=30&connectTimeout=10
+    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:${POSTGRESQL_PORT:5432}/${POSTGRESQL_TEST_DB:postgres}?reWriteBatchedInserts=true&socketTimeout=30&connectTimeout=10
     username: ${POSTGRESQL_USERNAME:postgres}
     password: ${POSTGRESQL_PASSWORD:postgres}
     type: com.zaxxer.hikari.HikariDataSource

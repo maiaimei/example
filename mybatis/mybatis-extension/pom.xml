@@ -13,6 +13,8 @@
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <mybatis.version>3.5.16</mybatis.version>
+    <jackson-core.version>2.18.3</jackson-core.version>
+    <jackson-databind.version>2.18.3</jackson-databind.version>
   </properties>
 
   <dependencies>
@@ -21,6 +23,16 @@
       <artifactId>mybatis</artifactId>
       <version>${mybatis.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson-core.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson-databind.version}</version>
     </dependency>
   </dependencies>
 

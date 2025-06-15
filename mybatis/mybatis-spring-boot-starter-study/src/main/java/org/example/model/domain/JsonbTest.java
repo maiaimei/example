@@ -12,5 +12,8 @@ public class JsonbTest {
   private BigDecimal id;
 
   @TableColumn(type = "JSONB")
-  private String data;
+  private String stringData;
+
+  @TableColumn(type = "JSONB")
+  private Person personData;
 }

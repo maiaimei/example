@@ -1,20 +1,15 @@
 package org.example.type;
 
-import java.sql.Array;
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import org.apache.ibatis.type.JdbcType;
 
 @SuppressWarnings("unchecked")
-public class ListGenericTypeHandler<T> extends AbstractGenericTypeHandler<List<T>> {
+public class ListTypeHandler<T> extends AbstractGenericTypeHandler<List<T>> {
 
-  public ListGenericTypeHandler(Class<T> type) {
+  public ListTypeHandler(Class<T> type) {
     super(type);
   }
 

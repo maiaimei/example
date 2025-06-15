@@ -1,18 +1,13 @@
 package org.example.type;
 
-import java.sql.Array;
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.Objects;
 import org.apache.ibatis.type.JdbcType;
 
 @SuppressWarnings("unchecked")
-public class ArrayGenericTypeHandler<T> extends AbstractGenericTypeHandler<T[]> {
+public class ArrayTypeHandler<T> extends AbstractGenericTypeHandler<T[]> {
 
-  public ArrayGenericTypeHandler(Class<T> type) {
+  public ArrayTypeHandler(Class<T> type) {
     super(type);
   }
 
