@@ -8,7 +8,7 @@ GET {{host}}/array
 
 
 ### Get
-GET {{host}}/array/2025061510264938800002
+GET {{host}}/array/2025061514380649000004
 
 
 ### Create
@@ -54,9 +54,24 @@ PUT {{host}}/array
 Content-Type: application/json
 
 {
-    
-}
+    "id": "2025061514380649000004",
+    "integerArray": [
+      11,
+      22,
+      33
+    ],
+    "bigDecimalArray": [
+      "1",
+      "2",
+      "3"
+    ],
+    "stringArray": [
+      "a",
+      "b",
+      "c"
+    ]
+  }
 
 
 ### Delete
-DELETE {{host}}/array/2025061510281855900004
+DELETE {{host}}/array/2025061513304855800002

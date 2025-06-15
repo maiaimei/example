@@ -1,34 +1,36 @@
 package org.example.type;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.*;
+import java.util.List;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
 /**
- * JSON类型处理器
+ * JSON List类型处理器
  *
- * @param <T> 目标类型
+ * @param <T> 列表元素类型
  */
-public class JsonTypeHandler<T> extends BaseTypeHandler<T> {
+public class JsonListTypeHandler<T> extends BaseTypeHandler<List<T>> {
 
-  private final Class<T> type;
+  private final JavaType javaType;
   private final ObjectMapper objectMapper;
 
-  public JsonTypeHandler(Class<T> type, ObjectMapper objectMapper) {
+  public JsonListTypeHandler(Class<T> type, ObjectMapper objectMapper) {
     if (type == null) {
       throw new IllegalArgumentException("Type argument cannot be null");
     }
     if (objectMapper == null) {
       throw new IllegalArgumentException("ObjectMapper argument cannot be null");
     }
-    this.type = type;
     this.objectMapper = objectMapper;
+    this.javaType = objectMapper.getTypeFactory().constructCollectionType(List.class, type);
   }
 
   @Override
-  public void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType)
+  public void setNonNullParameter(PreparedStatement ps, int i, List<T> parameter, JdbcType jdbcType)
       throws SQLException {
     if (parameter == null) {
       ps.setNull(i, Types.OTHER);
@@ -38,33 +40,33 @@ public class JsonTypeHandler<T> extends BaseTypeHandler<T> {
       String json = objectMapper.writeValueAsString(parameter);
       ps.setObject(i, json, Types.OTHER);
     } catch (JsonProcessingException e) {
-      throw new SQLException("Failed to convert object to json", e);
+      throw new SQLException("Failed to convert List to json", e);
     }
   }
 
   @Override
-  public T getNullableResult(ResultSet rs, String columnName) throws SQLException {
+  public List<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
     return parse(rs.getString(columnName));
   }
 
   @Override
-  public T getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+  public List<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
     return parse(rs.getString(columnIndex));
   }
 
   @Override
-  public T getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+  public List<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
     return parse(cs.getString(columnIndex));
   }
 
-  private T parse(String json) throws SQLException {
+  private List<T> parse(String json) throws SQLException {
     if (json == null) {
       return null;
     }
     try {
-      return objectMapper.readValue(json, type);
+      return objectMapper.readValue(json, javaType);
     } catch (JsonProcessingException e) {
-      throw new SQLException("Failed to parse json: " + json, e);
+      throw new SQLException("Failed to parse json array: " + json, e);
     }
   }
 }
