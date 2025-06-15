@@ -10,6 +10,7 @@ public class SimpleConditionFactory {
   private static final String START_VALUE = "startValue";
   private static final String END_VALUE = "endValue";
   private static final String JSON_PATH = "jsonPath";
+  private static final String NESTED_FIELD = "nestedField";
 
   public static SimpleCondition eq(String field, Object value) {
     return newSimpleCondition(field, SQLOperator.EQ, value);
@@ -41,6 +42,32 @@ public class SimpleConditionFactory {
 
   public static SimpleCondition jsonbTextEquals(String field, String value, String jsonPath) {
     return newSimpleCondition(field, SQLOperator.JSONB_TEXT_EQUALS, value, Map.of(JSON_PATH, jsonPath));
+  }
+
+  public static SimpleCondition jsonbTextLike(String field, String value, String jsonPath) {
+    return newSimpleCondition(field, SQLOperator.JSONB_TEXT_LIKE, value, Map.of(JSON_PATH, jsonPath));
+  }
+
+  public static SimpleCondition jsonbTextNotLike(String field, String value, String jsonPath) {
+    return newSimpleCondition(field, SQLOperator.JSONB_TEXT_NOT_LIKE, value, Map.of(JSON_PATH, jsonPath));
+  }
+
+  public static SimpleCondition jsonbArrayContains(String field, String value, String jsonPath) {
+    return newSimpleCondition(field, SQLOperator.JSONB_ARRAY_CONTAINS, value, Map.of(JSON_PATH, jsonPath));
+  }
+
+  public static SimpleCondition jsonbArrayLike(String field, String value, String jsonPath) {
+    return newSimpleCondition(field, SQLOperator.JSONB_ARRAY_LIKE, value, Map.of(JSON_PATH, jsonPath));
+  }
+
+  public static SimpleCondition jsonbObjectArrayEquals(String field, String value, String jsonPath, String nestedField) {
+    return newSimpleCondition(field, SQLOperator.JSONB_OBJECT_ARRAY_EQUALS, value,
+        Map.of(JSON_PATH, jsonPath, NESTED_FIELD, nestedField));
+  }
+
+  public static SimpleCondition jsonbObjectArrayLike(String field, String value, String jsonPath, String nestedField) {
+    return newSimpleCondition(field, SQLOperator.JSONB_OBJECT_ARRAY_LIKE, value,
+        Map.of(JSON_PATH, jsonPath, NESTED_FIELD, nestedField));
   }
 
   public static SimpleCondition jsonContains(String field, String value) {

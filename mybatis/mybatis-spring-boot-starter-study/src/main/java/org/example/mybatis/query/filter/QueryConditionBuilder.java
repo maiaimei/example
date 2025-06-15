@@ -63,6 +63,30 @@ public class QueryConditionBuilder {
     return addSimpleCondition(SimpleConditionFactory.jsonbTextEquals(field, value, jsonPath));
   }
 
+  public QueryConditionBuilder andJsonbTextLike(String field, String value, String jsonPath) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbTextLike(field, value, jsonPath));
+  }
+
+  public QueryConditionBuilder andJsonbArrayContains(String field, String value, String jsonPath) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbArrayContains(field, value, jsonPath));
+  }
+
+  public QueryConditionBuilder andJsonbArrayLike(String field, String value, String jsonPath) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbArrayLike(field, value, jsonPath));
+  }
+
+  public QueryConditionBuilder andJsonbObjectArrayEquals(String field, String value, String jsonPath, String nestedField) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbObjectArrayEquals(field, value, jsonPath, nestedField));
+  }
+
+  public QueryConditionBuilder andJsonbObjectArrayLike(String field, String value, String jsonPath, String nestedField) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbObjectArrayLike(field, value, jsonPath, nestedField));
+  }
+
+  public QueryConditionBuilder andJsonbTextNotLike(String field, String value, String jsonPath) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbTextNotLike(field, value, jsonPath));
+  }
+
   public QueryConditionBuilder andJsonContains(String field, String value) {
     return addSimpleCondition(SimpleConditionFactory.jsonContains(field, value));
   }

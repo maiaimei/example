@@ -55,11 +55,6 @@ public final class SQLOperatorFormat {
       """
           LOWER(%s->>'${simpleConditions[%d].parameters.jsonPath}') NOT LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))""";
 
-  // JSONB Path Operators
-  public static final String JSONB_PATH_EXISTS_FORMAT = "%s ?? #{simpleConditions[%d].value}";
-  public static final String JSONB_PATH_EXISTS_ANY_FORMAT = "%s ?| #{simpleConditions[%d].value}";
-  public static final String JSONB_PATH_EXISTS_ALL_FORMAT = "%s ?& #{simpleConditions[%d].value}";
-
   // JSONB Array Operators
   public static final String JSONB_ARRAY_CONTAINS_FORMAT = """
       EXISTS (

@@ -63,8 +63,7 @@ public class SQLOperatorStrategyFactory {
    * 注册范围操作符的策略，例如 BETWEEN、IN、NOT_IN 等。
    */
   private static void registerRangeOperatorStrategies() {
-    registerStrategy(SQLOperator.BETWEEN,
-        (condition, index) -> String.format(BETWEEN_FORMAT, condition.getColumnName(), index, index));
+    registerStrategyWithIndexes(SQLOperator.BETWEEN, BETWEEN_FORMAT);
     registerInOperatorStrategy(SQLOperator.IN, "IN");
     registerInOperatorStrategy(SQLOperator.NOT_IN, "NOT IN");
 
@@ -96,9 +95,14 @@ public class SQLOperatorStrategyFactory {
   private static void registerJsonOperatorStrategies() {
     registerStrategy(SQLOperator.JSON_CONTAINS, JSON_CONTAINS_FORMAT);
     registerStrategy(SQLOperator.JSON_CONTAINED_BY, JSON_CONTAINED_BY_FORMAT);
+    
     registerStrategyWithIndexes(SQLOperator.JSONB_TEXT_EQUALS, JSONB_TEXT_EQ_FORMAT);
-    registerStrategy(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
-    registerStrategy(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);
+    registerStrategyWithIndexes(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
+    registerStrategyWithIndexes(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);
+    registerStrategyWithIndexes(SQLOperator.JSONB_ARRAY_CONTAINS, JSONB_ARRAY_CONTAINS_FORMAT);
+    registerStrategyWithIndexes(SQLOperator.JSONB_ARRAY_LIKE, JSONB_ARRAY_LIKE_FORMAT);
+    registerStrategyWithIndexes(SQLOperator.JSONB_OBJECT_ARRAY_EQUALS, JSONB_OBJECT_ARRAY_EQ_FORMAT);
+    registerStrategyWithIndexes(SQLOperator.JSONB_OBJECT_ARRAY_LIKE, JSONB_OBJECT_ARRAY_LIKE_FORMAT);
   }
 
   private static void registerArrayOperatorStrategies() {
