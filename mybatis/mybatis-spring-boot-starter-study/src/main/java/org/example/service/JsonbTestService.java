@@ -21,13 +21,13 @@ public class JsonbTestService extends AbstractBaseService<JsonbTest, JsonbTestRe
     final JsonbTest jsonbTest = new JsonbTest();
     final List<Condition> conditions = QueryConditionBuilder.create()
 //        .andEquals("id", new BigDecimal("2025061512423775300003"))
-//        .andJsonbTextEquals("stringData", "John Doe", "name")
-//        .andJsonbTextLike("stringData", "John", "name")
-//        .andJsonbTextNotLike("stringData", "Tom", "name")
-//        .andJsonbArrayContains("stringData", "important", "tags")
-//        .andJsonbArrayLike("stringData", "view", "tags")
-//        .andJsonbObjectArrayEquals("stringData", "Product1", "items", "name")
-//        .andJsonbObjectArrayLike("stringData", "Product", "items", "name")
+        .andJsonbTextEquals("stringData", "John Doe", "name")
+        .andJsonbTextLike("stringData", "John", "name")
+        .andJsonbTextNotLike("stringData", "Tom", "name")
+        .andJsonbArrayContains("stringData", "important", "tags")
+        .andJsonbArrayLike("stringData", "view", "tags")
+        .andJsonbObjectArrayEquals("personData", "Product1", "items", "name")
+        .andJsonbObjectArrayLike("personData", "Product", "items", "name")
         .build();
     return advancedSelect(jsonbTest, conditions, null);
   }

@@ -1,0 +1,62 @@
+@host = http://localhost:8080
+
+# JSONB TEST API 文档
+
+
+### List
+GET {{host}}/array
+
+
+### Get
+GET {{host}}/array/2025061510264938800002
+
+
+### Create
+POST {{host}}/array
+Content-Type: application/json
+
+{
+  "integerArray": [
+    1,
+    2,
+    3
+  ],
+  "integerList": [
+    4,
+    5,
+    6
+  ],
+  "bigDecimalArray": [
+    1.1,
+    2.2,
+    3.3
+  ],
+  "bigDecimalList": [
+    4.4,
+    5.5,
+    6.6
+  ],
+  "stringArray": [
+    "a",
+    "b",
+    "c"
+  ],
+  "stringList": [
+    "d",
+    "e",
+    "f"
+  ]
+}
+
+
+### Update
+PUT {{host}}/array
+Content-Type: application/json
+
+{
+    
+}
+
+
+### Delete
+DELETE {{host}}/array/2025061510281855900004
