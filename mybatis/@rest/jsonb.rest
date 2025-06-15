@@ -8,7 +8,7 @@ GET {{host}}/jsonb
 
 
 ### Get
-GET {{host}}/jsonb/2025061507344746600005
+GET {{host}}/jsonb/2025061508325068500002
 
 
 ### Create
@@ -39,17 +39,50 @@ Content-Type: application/json
                 "price": 200
             }
         ]
-    }
-}
-
-
-### Update
-PUT {{host}}/jsonb
-Content-Type: application/json
-
-{
-    "id": "2025061410465014500011",
-    "stringData": "test update"
+    },
+    "personDataList": [
+        {
+            "name": "John Doe",
+            "contact": {
+                "address": "New York",
+                "phone": "1234567890"
+            },
+            "tags": ["Important", "Urgent", "Review"],
+            "level1": {
+                "level2": {
+                    "value": "test"
+                }
+            },
+            "items": [
+                {
+                    "name": "Product1",
+                    "price": 100
+                },
+                {
+                    "name": "Product2",
+                    "price": 200
+                }
+            ]
+        }
+    ],
+    "mapData":{
+        "key1": "value1",
+        "key2": "value2",
+        "nestedMap": {
+            "nestedKey1": "nestedValue1",
+            "nestedKey2": "nestedValue2"
+        }
+    },
+    "mapDataList": [
+        {
+            "key1": "value1",
+            "key2": "value2",
+            "nestedMap": {
+                "nestedKey1": "nestedValue1",
+                "nestedKey2": "nestedValue2"
+            }
+        }
+    ]
 }
 
 

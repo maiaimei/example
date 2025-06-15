@@ -1,6 +1,9 @@
 package org.example.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.example.model.domain.Person;
 import org.example.mybatis.interceptor.ConditionInterceptor;
@@ -27,6 +30,15 @@ public class MyBatisConfig {
 
       final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
       typeHandlerRegistry.register(Person.class, new JsonTypeHandler<>(objectMapper, Person.class));
+      typeHandlerRegistry.register(List.class, new JsonTypeHandler<>(objectMapper,
+          new TypeReference<List<Person>>() {
+          }));
+      typeHandlerRegistry.register(Map.class, new JsonTypeHandler<>(objectMapper,
+          new TypeReference<Map<String, Object>>() {
+          }));
+      typeHandlerRegistry.register(List.class, new JsonTypeHandler<>(objectMapper,
+          new TypeReference<List<Map<String, Object>>>() {
+          }));
     };
   }
 }
