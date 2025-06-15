@@ -38,4 +38,20 @@ public class JsonbTestController {
   public void deleteJsonbTest(@PathVariable BigDecimal id) {
     jsonbTestService.deleteJsonbTest(id);
   }
+
+  @PostMapping("/{id}/name/update")
+  public void updateName(@PathVariable BigDecimal id, @RequestParam("name") String name) {
+    jsonbTestService.updateName(id, name);
+  }
+
+  @PostMapping("/{id}/contact/address/update")
+  public void updateContactAddress(@PathVariable BigDecimal id, @RequestParam("contactAddress") String contactAddress) {
+    jsonbTestService.updateContactAddress(id, contactAddress);
+  }
+
+  @PostMapping("/{id}/tags/add")
+  public void addTag(@PathVariable BigDecimal id, @RequestParam("tag") String tag) {
+    jsonbTestService.addTag(id, tag);
+  }
+
 }

@@ -20,13 +20,13 @@ public class JsonbTestService extends AbstractBaseService<JsonbTest, JsonbTestRe
   public List<JsonbTest> getJsonbTestList() {
     final JsonbTest jsonbTest = new JsonbTest();
     final List<Condition> conditions = QueryConditionBuilder.create()
-        //.andJsonbTextEquals("data", "John Doe", "name")
-        //.andJsonbTextLike("data", "John", "name")
-        //.andJsonbTextNotLike("data", "Tom", "name")
-        //.andJsonbArrayContains("data", "important", "tags")
-        //.andJsonbArrayLike("data", "view", "tags")
-        //.andJsonbObjectArrayEquals("data", "Product1", "items", "name")
-        //.andJsonbObjectArrayLike("data", "Product", "items", "name")
+        .andJsonbTextEquals("stringData", "John Doe", "name")
+        .andJsonbTextLike("stringData", "John", "name")
+        .andJsonbTextNotLike("stringData", "Tom", "name")
+        .andJsonbArrayContains("stringData", "important", "tags")
+        .andJsonbArrayLike("stringData", "view", "tags")
+        .andJsonbObjectArrayEquals("stringData", "Product1", "items", "name")
+        .andJsonbObjectArrayLike("stringData", "Product", "items", "name")
         .build();
     return advancedSelect(jsonbTest, conditions, null);
   }
@@ -48,5 +48,17 @@ public class JsonbTestService extends AbstractBaseService<JsonbTest, JsonbTestRe
 
   public void deleteJsonbTest(BigDecimal id) {
     deleteById(id);
+  }
+
+  public void updateName(BigDecimal id, String name) {
+    getRepository().updateName(id, name);
+  }
+
+  public void updateContactAddress(BigDecimal id, String contactAddress) {
+    getRepository().updateContactAddress(id, contactAddress);
+  }
+
+  public void addTag(BigDecimal id, String tag) {
+    getRepository().addTag(id, tag);
   }
 }

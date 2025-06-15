@@ -55,3 +55,16 @@ Content-Type: application/json
 
 ### Delete
 DELETE {{host}}/jsonb/2025061507314340200004
+
+
+
+### Update top-level key
+POST {{host}}/jsonb/2025061507344746600005/name/update?name=John Smith
+
+
+### Update the key of nested objects
+POST {{host}}/jsonb/2025061507344746600005/contact/address/update?contactAddress=Old York
+
+
+### Add elements to an array
+POST {{host}}/jsonb/2025061507344746600005/tags/add?tag=new_tag
