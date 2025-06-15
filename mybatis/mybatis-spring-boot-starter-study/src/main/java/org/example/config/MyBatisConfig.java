@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.example.model.domain.Person;
+import org.example.model.domain.Role;
 import org.example.mybatis.interceptor.ConditionInterceptor;
 import org.example.type.JsonTypeHandler;
 import org.mybatis.spring.annotation.MapperScan;
@@ -32,6 +33,9 @@ public class MyBatisConfig {
       typeHandlerRegistry.register(Person.class, new JsonTypeHandler<>(objectMapper, Person.class));
       typeHandlerRegistry.register(List.class, new JsonTypeHandler<>(objectMapper,
           new TypeReference<List<Person>>() {
+          }));
+      typeHandlerRegistry.register(List.class, new JsonTypeHandler<>(objectMapper,
+          new TypeReference<List<Role>>() {
           }));
       typeHandlerRegistry.register(Map.class, new JsonTypeHandler<>(objectMapper,
           new TypeReference<Map<String, Object>>() {

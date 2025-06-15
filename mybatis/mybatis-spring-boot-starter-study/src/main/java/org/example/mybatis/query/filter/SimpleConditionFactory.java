@@ -72,14 +72,6 @@ public class SimpleConditionFactory {
     return newSimpleCondition(field, SQLOperator.NOT_IN, value);
   }
 
-  public static SimpleCondition jsonbContains(String field, Object value) {
-    return newSimpleCondition(field, SQLOperator.JSONB_CONTAINS, value);
-  }
-
-  public static SimpleCondition jsonbNestedContains(String field, String value, String jsonPath) {
-    return newSimpleCondition(field, SQLOperator.JSONB_NESTED_CONTAINS, value, Map.of(JSON_PATH, jsonPath));
-  }
-
   public static SimpleCondition jsonbTextEquals(String field, String value, String jsonPath) {
     return newSimpleCondition(field, SQLOperator.JSONB_TEXT_EQUALS, value, Map.of(JSON_PATH, jsonPath));
   }

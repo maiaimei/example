@@ -5,12 +5,18 @@ import static org.example.mybatis.query.operator.SQLOperatorFormat.*;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.springframework.util.StringUtils;
 
 /**
  * SQL 操作符策略工厂类，用于注册和获取 SQL 操作符对应的策略。 通过该工厂类，可以根据不同的 SQL 操作符生成对应的 SQL 语句片段。
  */
 public class SQLOperatorStrategyFactory {
 
+  private static final Pattern CONDITION_INDEX_PATTERN = Pattern.compile("simpleConditions\\[\\$\\{index}]");
+  private static final String CONDITION_INDEX_FORMAT = "simpleConditions[%d]";
+  private static final String MAX_SIZE = "maxSize";
   // 每个 IN 条件的最大元素数。
   private static final int MAX_IN_SIZE = 500;
 
@@ -32,12 +38,12 @@ public class SQLOperatorStrategyFactory {
    * 注册比较操作符的策略，例如 EQ（=）、NE（!=）、GT（>）等。
    */
   private static void registerComparisonOperatorStrategies() {
-    registerStrategy(SQLOperator.EQ, EQ_FORMAT);
-    registerStrategy(SQLOperator.NE, NE_FORMAT);
-    registerStrategy(SQLOperator.GT, GT_FORMAT);
-    registerStrategy(SQLOperator.GE, GE_FORMAT);
-    registerStrategy(SQLOperator.LT, LT_FORMAT);
-    registerStrategy(SQLOperator.LE, LE_FORMAT);
+    registerStrategy(SQLOperator.EQ, COMPARISON_OPERATOR_FORMAT);
+    registerStrategy(SQLOperator.NE, COMPARISON_OPERATOR_FORMAT);
+    registerStrategy(SQLOperator.GT, COMPARISON_OPERATOR_FORMAT);
+    registerStrategy(SQLOperator.GE, COMPARISON_OPERATOR_FORMAT);
+    registerStrategy(SQLOperator.LT, COMPARISON_OPERATOR_FORMAT);
+    registerStrategy(SQLOperator.LE, COMPARISON_OPERATOR_FORMAT);
   }
 
   /**
@@ -45,11 +51,11 @@ public class SQLOperatorStrategyFactory {
    */
   private static void registerStringOperatorStrategies() {
     registerStrategy(SQLOperator.LIKE, LIKE_FORMAT);
-    registerStrategy(SQLOperator.NOT_LIKE, NOT_LIKE_FORMAT);
+    registerStrategy(SQLOperator.LIKE_CASE_INSENSITIVE, LIKE_FORMAT);
+    registerStrategy(SQLOperator.NOT_LIKE, LIKE_FORMAT);
+    registerStrategy(SQLOperator.NOT_LIKE_CASE_INSENSITIVE, LIKE_FORMAT);
     registerStrategy(SQLOperator.STARTS_WITH, STARTS_WITH_FORMAT);
     registerStrategy(SQLOperator.ENDS_WITH, ENDS_WITH_FORMAT);
-    registerStrategy(SQLOperator.LIKE_CASE_INSENSITIVE, LIKE_CASE_INSENSITIVE_FORMAT);
-    registerStrategy(SQLOperator.NOT_LIKE_CASE_INSENSITIVE, NOT_LIKE_CASE_INSENSITIVE_FORMAT);
   }
 
   /**
@@ -57,30 +63,23 @@ public class SQLOperatorStrategyFactory {
    */
   private static void registerRangeOperatorStrategies() {
     registerStrategy(SQLOperator.BETWEEN, BETWEEN_FORMAT);
-    registerInOperatorStrategy(SQLOperator.IN, "IN");
-    registerInOperatorStrategy(SQLOperator.NOT_IN, "NOT IN");
+    registerInOperatorStrategy(SQLOperator.IN);
+    registerInOperatorStrategy(SQLOperator.NOT_IN);
   }
 
   /**
    * 注册 IN 操作符的策略。
    *
    * @param operator SQL 操作符
-   * @param keyword  对应的 SQL 关键字，例如 "IN" 或 "NOT IN"
    */
-  private static void registerInOperatorStrategy(SQLOperator operator, String keyword) {
-    registerStrategy(operator, (condition, index) -> String.format(IN_FORMAT,
-        index, index, MAX_IN_SIZE,
-        index,
-        MAX_IN_SIZE, condition.getColumnName(), keyword, condition.getColumnName(), keyword,
-        MAX_IN_SIZE,
-        MAX_IN_SIZE, MAX_IN_SIZE - 1, index,
-        MAX_IN_SIZE, MAX_IN_SIZE - 1, index,
-        condition.getColumnName(), keyword, index));
+  private static void registerInOperatorStrategy(SQLOperator operator) {
+    registerStrategy(operator, (condition, index) -> {
+      condition.setParameters(Map.of(MAX_SIZE, MAX_IN_SIZE));
+      return replaceIndex(IN_FORMAT, index);
+    });
   }
 
   private static void registerJsonOperatorStrategies() {
-    registerStrategy(SQLOperator.JSONB_CONTAINS, JSONB_CONTAINS_FORMAT);
-    registerStrategy(SQLOperator.JSONB_NESTED_CONTAINS, JSONB_NESTED_CONTAINS_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_EQUALS, JSONB_TEXT_EQ_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);
@@ -98,8 +97,8 @@ public class SQLOperatorStrategyFactory {
    * 注册其他操作符的策略，例如 IS_NULL、IS_NOT_NULL 等。
    */
   private static void registerOtherOperatorStrategies() {
-    registerStrategy(SQLOperator.IS_NULL, IS_NULL_FORMAT);
-    registerStrategy(SQLOperator.IS_NOT_NULL, IS_NOT_NULL_FORMAT);
+    registerStrategy(SQLOperator.IS_NULL, NULL_FORMAT);
+    registerStrategy(SQLOperator.IS_NOT_NULL, NULL_FORMAT);
   }
 
   /**
@@ -109,19 +108,7 @@ public class SQLOperatorStrategyFactory {
    * @param format   格式化字符串，用于生成 SQL 片段
    */
   public static void registerStrategy(SQLOperator operator, String format) {
-    // 获取条件数量
-    final int count = getSimpleConditionsCount(format);
-    // 注册策略
-    registerStrategy(operator, (condition, index) -> {
-      Object[] params = new Object[count + 1];
-      // 第一个参数是列名
-      params[0] = condition.getColumnName();
-      // 将索引数组复制到参数数组中
-      for (int i = 0; i < count; i++) {
-        params[i + 1] = index;
-      }
-      return String.format(format, params);
-    });
+    registerStrategy(operator, (condition, index) -> replaceIndex(format, index));
   }
 
   /**
@@ -153,14 +140,13 @@ public class SQLOperatorStrategyFactory {
     return strategy;
   }
 
-  public static int getSimpleConditionsCount(String format) {
-    int count = 0;
-    int pos = 0;
-    while ((pos = format.indexOf("[%d]", pos)) != -1) {
-      count++;
-      pos += 4;
+  private static String replaceIndex(String input, int index) {
+    if (StringUtils.hasText(input)) {
+      Matcher matcher = CONDITION_INDEX_PATTERN.matcher(input);
+      String replacement = String.format(CONDITION_INDEX_FORMAT, index);
+      return matcher.replaceAll(replacement);
     }
-    return count;
+    return input;
   }
 
 }

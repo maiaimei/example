@@ -19,6 +19,10 @@ public class SimpleCondition implements Condition {
   private Object value;
   private Map<String, Object> parameters;
 
+  private int index;
+  private String column;
+  private String operatorToUse;
+
   public SimpleCondition(String field, SQLOperator operator, Object value, Map<String, Object> parameters) {
     this.field = field;
     this.operator = operator;
@@ -28,12 +32,11 @@ public class SimpleCondition implements Condition {
 
   @Override
   public String build(AtomicInteger index) {
+    this.index = index.getAndIncrement();
+    this.column = SQLHelper.formatColumnName(field);
+    this.operatorToUse = operator.getOperator();
     final SQLOperatorStrategy strategy = SQLOperatorStrategyFactory.getStrategy(operator);
-    return strategy.buildCondition(this, index.getAndIncrement());
-  }
-
-  public String getColumnName() {
-    return SQLHelper.formatColumnName(field);
+    return strategy.buildCondition(this, this.index);
   }
 
 }

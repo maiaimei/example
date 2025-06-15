@@ -8,7 +8,7 @@ GET {{host}}/jsonb
 
 
 ### Get
-GET {{host}}/jsonb/2025061508325068500002
+GET {{host}}/jsonb/2025061510264938800002
 
 
 ### Create
@@ -82,12 +82,112 @@ Content-Type: application/json
                 "nestedKey2": "nestedValue2"
             }
         }
+    ],
+    "roleList": [
+        {
+            "id": "2025061507314340200004",
+            "name": "Admin",
+            "description": "Administrator role with full access"
+        },
+        {
+            "id": "2025061507344746600005",
+            "name": "User",
+            "description": "Regular user role with limited access"
+        }
+    ]
+}
+
+
+### Update
+PUT {{host}}/jsonb
+Content-Type: application/json
+
+{
+    "id":"2025061510285582800010",
+    "stringData": "{\"name\":\"John Doe\",\"contact\":{\"address\":\"New York\",\"phone\":\"1234567890\"},\"tags\":[\"Important\",\"Urgent\",\"Review\"],\"level1\":{\"level2\":{\"value\":\"test\"}},\"items\":[{\"name\":\"Product1\",\"price\":100},{\"name\":\"Product2\",\"price\":200}]}",
+    "personData": {
+        "name": "John Doe",
+        "contact": {
+            "address": "New York",
+            "phone": "1234567890"
+        },
+        "tags": ["Important", "Urgent", "Review"],
+        "level1": {
+            "level2": {
+                "value": "test"
+            }
+        },
+        "items": [
+            {
+                "name": "Product1",
+                "price": 100
+            },
+            {
+                "name": "Product2",
+                "price": 200
+            }
+        ]
+    },
+    "personDataList": [
+        {
+            "name": "John Doe",
+            "contact": {
+                "address": "New York",
+                "phone": "1234567890"
+            },
+            "tags": ["Important", "Urgent", "Review"],
+            "level1": {
+                "level2": {
+                    "value": "test"
+                }
+            },
+            "items": [
+                {
+                    "name": "Product1",
+                    "price": 100
+                },
+                {
+                    "name": "Product2",
+                    "price": 200
+                }
+            ]
+        }
+    ],
+    "mapData":{
+        "key1": "value1",
+        "key2": "value2",
+        "nestedMap": {
+            "nestedKey1": "nestedValue1",
+            "nestedKey2": "nestedValue2"
+        }
+    },
+    "mapDataList": [
+        {
+            "key1": "value1",
+            "key2": "value2",
+            "nestedMap": {
+                "nestedKey1": "nestedValue1",
+                "nestedKey2": "nestedValue2"
+            }
+        }
+    ],
+    "roleList": [
+        {
+            "id": "2025061507314340200004",
+            "name": "Admin",
+            "description": "Administrator role with full access"
+        },
+        {
+            "id": "2025061507344746600005",
+            "name": "User",
+            "description": "Regular user role with limited access"
+        }
     ]
 }
 
 
 ### Delete
-DELETE {{host}}/jsonb/2025061507314340200004
+DELETE {{host}}/jsonb/2025061510281855900004
 
 
 

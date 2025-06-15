@@ -27,4 +27,7 @@ public class JsonbTest {
 
   @TableColumn(type = "JSONB")
   private List<Map<String, Object>> mapDataList;
+
+  @TableColumn(type = "JSONB")
+  private List<Role> roleList;
 }

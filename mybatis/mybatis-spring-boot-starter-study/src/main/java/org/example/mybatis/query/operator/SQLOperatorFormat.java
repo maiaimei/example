@@ -2,113 +2,76 @@ package org.example.mybatis.query.operator;
 
 public final class SQLOperatorFormat {
 
-  // ============================== Standard SQL Operator Formats ==============================
-  public static final String EQ_FORMAT = "%s = #{simpleConditions[%d].value}";
-  public static final String NE_FORMAT = "%s != #{simpleConditions[%d].value}";
-  public static final String GT_FORMAT = "%s > #{simpleConditions[%d].value}";
-  public static final String GE_FORMAT = "%s >= #{simpleConditions[%d].value}";
-  public static final String LT_FORMAT = "%s < #{simpleConditions[%d].value}";
-  public static final String LE_FORMAT = "%s <= #{simpleConditions[%d].value}";
-  public static final String LIKE_FORMAT = "%s LIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')";
-  public static final String STARTS_WITH_FORMAT = "%s LIKE CONCAT(#{simpleConditions[%d].value}, '%%')";
-  public static final String ENDS_WITH_FORMAT = "%s LIKE CONCAT('%%', #{simpleConditions[%d].value})";
-  public static final String NOT_LIKE_FORMAT = "%s NOT LIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')";
+  public static final String COMPARISON_OPERATOR_FORMAT = """
+      ${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} #{simpleConditions[${index}].value}""";
+  public static final String LIKE_FORMAT = """
+      ${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} CONCAT('%%', #{simpleConditions[${index}].value}, '%%')""";
+  public static final String STARTS_WITH_FORMAT = """
+      ${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} CONCAT(#{simpleConditions[${index}].value}, '%%')""";
+  public static final String ENDS_WITH_FORMAT = """
+      ${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} CONCAT('%%', #{simpleConditions[${index}].value})""";
   public static final String BETWEEN_FORMAT = """
-      %s BETWEEN #{simpleConditions[%d].value.startValue} AND #{simpleConditions[%d].value.endValue}""";
+      ${simpleConditions[${index}].column} BETWEEN #{simpleConditions[${index}].value.startValue} AND #{simpleConditions[${index}].value.endValue}""";
   public static final String IN_FORMAT = """
       <choose>
-          <when test='simpleConditions[%d].value != null and simpleConditions[%d].value.size() > %d'>
+          <when test='simpleConditions[${index}].value != null and simpleConditions[${index}].value.size() > ${simpleConditions[${index}].parameters.maxSize}'>
               <trim prefix='(' prefixOverrides='OR' suffix=')'>
-                  <foreach collection='simpleConditions[%d].value' item='item' open='' close='' separator='' index='i'>
-                      <if test='i %% %d == 0'>
+                  <foreach collection='simpleConditions[${index}].value' item='item' open='' close='' separator='' index='i'>
+                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} == 0'>
                           <choose>
-                              <when test='i == 0'>%s %s </when>
-                              <otherwise> OR %s %s </otherwise>
+                              <when test='i == 0'>${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} </when>
+                              <otherwise> OR ${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} </otherwise>
                           </choose>
                       </if>
-                      <if test='i %% %d == 0'>(</if>
+                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} == 0'>(</if>
                       #{item}
-                      <if test='i %% %d == %d or i == simpleConditions[%d].value.size() - 1'>)</if>
-                      <if test='i %% %d != %d and i != simpleConditions[%d].value.size() - 1'>,</if>
+                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} == ${simpleConditions[${index}].parameters.maxSize} - 1 or i == simpleConditions[${index}].value.size() - 1'>)</if>
+                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} != ${simpleConditions[${index}].parameters.maxSize} - 1 and i != simpleConditions[${index}].value.size() - 1'>,</if>
                   </foreach>
               </trim>
           </when>
           <otherwise>
-              %s %s <foreach collection='simpleConditions[%d].value' item='item' open='(' separator=',' close=')'>#{item}</foreach>
+              ${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} <foreach collection='simpleConditions[${index}].value' item='item' open='(' separator=',' close=')'>#{item}</foreach>
           </otherwise>
       </choose>""";
-  public static final String IS_NULL_FORMAT = "%s IS NULL";
-  public static final String IS_NOT_NULL_FORMAT = "%s IS NOT NULL";
-
-  // ============================== PostgreSQL Specific Operator Formats ==============================
-  public static final String LIKE_CASE_INSENSITIVE_FORMAT = "%s ILIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')";
-  public static final String NOT_LIKE_CASE_INSENSITIVE_FORMAT = "%s NOT ILIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')";
-
-  // JSONB 包含操作符 @> (contains)
-  public static final String JSONB_CONTAINS_FORMAT =
-      """
-              <choose>
-                  <!-- 处理单个对象的情况 -->
-                  <when test="simpleConditions[%d].value instanceof String">
-                      %s @> #{simpleConditions[%d].value}::jsonb
-                  </when>
-                  <!-- 处理Map或复杂对象的情况 -->
-                  <when test="simpleConditions[%d].value instanceof Map">
-                      %s @> to_jsonb(#{simpleConditions[%d].value})
-                  </when>
-                  <!-- 处理数组/集合的情况 -->
-                  <when test="simpleConditions[%d].value instanceof Collection">
-                      <foreach collection="simpleConditions[%d].value" item="item" separator=" AND ">
-                          %s @> to_jsonb(#{item})
-                      </foreach>
-                  </when>
-                  <otherwise>
-                      %s @> to_jsonb(#{simpleConditions[%d].value})
-                  </otherwise>
-              </choose>
-          """;
-
-  // 支持嵌套路径查询的版本
-  public static final String JSONB_NESTED_CONTAINS_FORMAT = """
-          %s #> '{${simpleConditions[%d].parameters.jsonPath}}' @> #{simpleConditions[%d].value}::jsonb
-      """;
+  public static final String NULL_FORMAT = "${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse}";
 
   // JSONB Text Operators (忽略大小写)
   public static final String JSONB_TEXT_EQ_FORMAT =
       """
-          LOWER(%s->>'${simpleConditions[%d].parameters.jsonPath}') = LOWER(#{simpleConditions[%d].value})""";
+          LOWER(${simpleConditions[${index}].column}->>'${simpleConditions[${index}].parameters.jsonPath}') = LOWER(#{simpleConditions[${index}].value})""";
   public static final String JSONB_TEXT_LIKE_FORMAT =
       """
-          LOWER(%s->>'${simpleConditions[%d].parameters.jsonPath}') LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))""";
+          LOWER(${simpleConditions[${index}].column}->>'${simpleConditions[${index}].parameters.jsonPath}') LIKE LOWER(CONCAT('%%', #{simpleConditions[${index}].value}, '%%'))""";
   public static final String JSONB_TEXT_NOT_LIKE_FORMAT =
       """
-          LOWER(%s->>'${simpleConditions[%d].parameters.jsonPath}') NOT LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))""";
+          LOWER(${simpleConditions[${index}].column}->>'${simpleConditions[${index}].parameters.jsonPath}') NOT LIKE LOWER(CONCAT('%%', #{simpleConditions[${index}].value}, '%%'))""";
 
   // JSONB Array Operators
   public static final String JSONB_ARRAY_CONTAINS_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements_text(%s->'${simpleConditions[%d].parameters.jsonPath}') elem\s
-          WHERE LOWER(elem) = LOWER(#{simpleConditions[%d].value})
+          SELECT 1 FROM jsonb_array_elements_text(${simpleConditions[${index}].column}->'${simpleConditions[${index}].parameters.jsonPath}') elem\s
+          WHERE LOWER(elem) = LOWER(#{simpleConditions[${index}].value})
       )""";
   public static final String JSONB_ARRAY_LIKE_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements_text(%s->'${simpleConditions[%d].parameters.jsonPath}') elem\s
-          WHERE LOWER(elem) LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))
+          SELECT 1 FROM jsonb_array_elements_text(${simpleConditions[${index}].column}->'${simpleConditions[${index}].parameters.jsonPath}') elem\s
+          WHERE LOWER(elem) LIKE LOWER(CONCAT('%%', #{simpleConditions[${index}].value}, '%%'))
       )""";
 
   // JSONB Object Array Operators
   public static final String JSONB_OBJECT_ARRAY_EQ_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements(%s->'${simpleConditions[%d].parameters.jsonPath}') obj\s
-          WHERE LOWER(obj->>'${simpleConditions[%d].parameters.nestedField}') = LOWER(#{simpleConditions[%d].value})
+          SELECT 1 FROM jsonb_array_elements(${simpleConditions[${index}].column}->'${simpleConditions[${index}].parameters.jsonPath}') obj\s
+          WHERE LOWER(obj->>'${simpleConditions[${index}].parameters.nestedField}') = LOWER(#{simpleConditions[${index}].value})
       )""";
 
   public static final String JSONB_OBJECT_ARRAY_LIKE_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements(%s->'${simpleConditions[%d].parameters.jsonPath}') obj\s
-          WHERE LOWER(obj->>'${simpleConditions[%d].parameters.nestedField}') LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))
+          SELECT 1 FROM jsonb_array_elements(${simpleConditions[${index}].column}->'${simpleConditions[${index}].parameters.jsonPath}') obj\s
+          WHERE LOWER(obj->>'${simpleConditions[${index}].parameters.nestedField}') LIKE LOWER(CONCAT('%%', #{simpleConditions[${index}].value}, '%%'))
       )""";
 
   public static final String ARRAY_CONTAINS_FORMAT = """
-      %s @> <foreach collection='simpleConditions[%d].value' item='item' open='ARRAY[' separator=',' close=']'>#{item}</foreach>""";
+      ${simpleConditions[${index}].column} @> <foreach collection='simpleConditions[${index}].value' item='item' open='ARRAY[' separator=',' close=']'>#{item}</foreach>""";
 }

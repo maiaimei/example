@@ -8,52 +8,52 @@ public enum SQLOperator {
   /**
    * {@code =} Equal to
    */
-  EQ,          // 等于
+  EQ("="),          // 等于
 
   /**
    * {@code !=} or {@code <>} Not equal to
    */
-  NE,          // 不等于
+  NE("!="),          // 不等于
 
   /**
    * {@code >} Greater than
    */
-  GT,          // 大于
+  GT(">"),          // 大于
 
   /**
    * {@code >=} Greater than or equal to
    */
-  GE,          // 大于等于
+  GE(">="),          // 大于等于
 
   /**
    * {@code <} Less than
    */
-  LT,          // 小于
+  LT("<"),          // 小于
 
   /**
    * {@code <=} Less than or equal to
    */
-  LE,          // 小于等于
+  LE("<="),          // 小于等于
 
   /**
    * {@code LIKE} Pattern matching
    */
-  LIKE,        // 模糊查询
+  LIKE("LIKE"),        // 模糊查询
 
   /**
    * {@code NOT LIKE} Pattern not matching
    */
-  NOT_LIKE,    // NOT LIKE查询
+  NOT_LIKE("NOT LIKE"),    // NOT LIKE查询
 
   /**
    * {@code LIKE} Left-side wildcard matching
    */
-  STARTS_WITH, // 左模糊
+  STARTS_WITH("LIKE"), // 左模糊
 
   /**
    * {@code LIKE} Right-side wildcard matching
    */
-  ENDS_WITH,   // 右模糊
+  ENDS_WITH("LIKE"),   // 右模糊
 
   /**
    * {@code BETWEEN} Range query
@@ -63,40 +63,36 @@ public enum SQLOperator {
   /**
    * {@code IN} Value in a list
    */
-  IN,          // IN查询
+  IN("IN"),          // IN查询
 
   /**
    * {@code NOT IN} Value not in a list
    */
-  NOT_IN,      // NOT IN查询
+  NOT_IN("NOT IN"),      // NOT IN查询
 
   /**
    * {@code IS NULL} Check if value is null
    */
-  IS_NULL,     // 为空
+  IS_NULL("IS NULL"),     // 为空
 
   /**
    * {@code IS NOT NULL} Check if value is not null
    */
-  IS_NOT_NULL, // 不为空
+  IS_NOT_NULL("IS NOT NULL"), // 不为空
 
   // ============================== PostgreSQL Specific Operators ==============================
   // String Operators
   /**
    * {@code ILIKE} Case-insensitive LIKE
    */
-  LIKE_CASE_INSENSITIVE,       // 大小写不敏感的 LIKE
+  LIKE_CASE_INSENSITIVE("ILIKE"),       // 大小写不敏感的 LIKE
 
   /**
    * {@code NOT ILIKE} Case-insensitive NOT LIKE
    */
-  NOT_LIKE_CASE_INSENSITIVE,   // 大小写不敏感的 NOT LIKE
+  NOT_LIKE_CASE_INSENSITIVE("NOT ILIKE"),   // 大小写不敏感的 NOT LIKE
 
   // JSON Operators
-  JSONB_CONTAINS,
-
-  JSONB_NESTED_CONTAINS,
-
   JSONB_TEXT_EQUALS,
 
   JSONB_TEXT_LIKE,
@@ -115,5 +111,19 @@ public enum SQLOperator {
   /**
    * {@code @>} Array contains
    */
-  ARRAY_CONTAINS // 数组包含
+  ARRAY_CONTAINS; // 数组包含
+
+  private final String operator;
+
+  SQLOperator() {
+    this.operator = "N/A";
+  }
+
+  SQLOperator(String operator) {
+    this.operator = operator;
+  }
+
+  public String getOperator() {
+    return "N/A".equals(operator) ? "" : operator;
+  }
 }
