@@ -20,7 +20,7 @@ public class JsonbTestService extends AbstractBaseService<JsonbTest, JsonbTestRe
   public List<JsonbTest> getJsonbTestList() {
     final JsonbTest jsonbTest = new JsonbTest();
     final List<Condition> conditions = QueryConditionBuilder.create()
-        .andJsonTextEquals("data", "John", "name")
+        .andJsonbTextEquals("data", "John", "name")
         .build();
     return advancedSelect(jsonbTest, conditions, null);
   }

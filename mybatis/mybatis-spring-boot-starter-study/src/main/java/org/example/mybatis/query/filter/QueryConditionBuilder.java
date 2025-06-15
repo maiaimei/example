@@ -1,6 +1,8 @@
 package org.example.mybatis.query.filter;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.Data;
 import org.example.mybatis.query.operator.LogicalOperator;
@@ -30,47 +32,43 @@ public class QueryConditionBuilder {
   }
 
   public QueryConditionBuilder andEquals(String field, Object value) {
-    return addConditionInternal(field, SQLOperator.EQ, value, null);
-  }
-
-  public QueryConditionBuilder andBetween(String field, Object value, Object secondValue) {
-    return addConditionInternal(field, SQLOperator.BETWEEN, value, secondValue);
+    return addSimpleCondition(SimpleConditionFactory.eq(field, value));
   }
 
   public QueryConditionBuilder andLike(String field, String value) {
-    return addConditionInternal(field, SQLOperator.LIKE, value, null);
+    return addSimpleCondition(SimpleConditionFactory.like(field, value));
   }
 
   public QueryConditionBuilder andIlike(String field, String value) {
-    return addConditionInternal(field, SQLOperator.LIKE_CASE_INSENSITIVE, value, null);
+    return addSimpleCondition(SimpleConditionFactory.ilike(field, value));
   }
 
   public QueryConditionBuilder andStartsWith(String field, String value) {
-    return addConditionInternal(field, SQLOperator.STARTS_WITH, value, null);
+    return addSimpleCondition(SimpleConditionFactory.startsWith(field, value));
   }
 
   public QueryConditionBuilder andEndsWith(String field, String value) {
-    return addConditionInternal(field, SQLOperator.ENDS_WITH, value, null);
+    return addSimpleCondition(SimpleConditionFactory.endsWith(field, value));
+  }
+
+  public QueryConditionBuilder andBetween(String field, Object startValue, Object endValue) {
+    return addSimpleCondition(SimpleConditionFactory.between(field, startValue, endValue));
   }
 
   public QueryConditionBuilder andIn(String field, Object value) {
-    return addConditionInternal(field, SQLOperator.IN, value, null);
+    return addSimpleCondition(SimpleConditionFactory.in(field, value));
   }
 
-  public QueryConditionBuilder andJsonTextEquals(String field, String value, String jsonPath) {
-    return addConditionInternal(field, SQLOperator.JSONB_TEXT_EQUALS, value, Map.of("jsonPath", jsonPath));
+  public QueryConditionBuilder andJsonbTextEquals(String field, String value, String jsonPath) {
+    return addSimpleCondition(SimpleConditionFactory.jsonbTextEquals(field, value, jsonPath));
   }
 
   public QueryConditionBuilder andJsonContains(String field, String value) {
-    return addConditionInternal(field, SQLOperator.JSON_CONTAINS, value, null);
+    return addSimpleCondition(SimpleConditionFactory.jsonContains(field, value));
   }
 
   public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value) {
-    return addConditionInternal(field, operator, value, null);
-  }
-
-  public QueryConditionBuilder andWhere(String field, SQLOperator operator, Object value, Object secondValue) {
-    return addConditionInternal(field, operator, value, secondValue);
+    return addSimpleCondition(SimpleConditionFactory.where(field, operator, value));
   }
 
   public List<Condition> build() {
@@ -93,13 +91,10 @@ public class QueryConditionBuilder {
     return this;
   }
 
-  private QueryConditionBuilder addConditionInternal(String field, SQLOperator operator, Object firstValue, Object secondValue) {
-    if (Objects.isNull(firstValue) || (operator == SQLOperator.BETWEEN && Objects.isNull(secondValue))) {
-      return this;
+  private QueryConditionBuilder addSimpleCondition(SimpleCondition condition) {
+    if (Objects.nonNull(condition)) {
+      rootGroup.add(condition);
     }
-
-    SimpleCondition condition = new SimpleCondition(field, operator, firstValue, secondValue);
-    rootGroup.add(condition);
     return this;
   }
 }

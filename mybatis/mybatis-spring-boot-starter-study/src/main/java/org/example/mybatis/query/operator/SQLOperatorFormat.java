@@ -13,7 +13,8 @@ public final class SQLOperatorFormat {
   public static final String STARTS_WITH_FORMAT = "%s LIKE CONCAT(#{simpleConditions[%d].value}, '%%')";
   public static final String ENDS_WITH_FORMAT = "%s LIKE CONCAT('%%', #{simpleConditions[%d].value})";
   public static final String NOT_LIKE_FORMAT = "%s NOT LIKE CONCAT('%%', #{simpleConditions[%d].value}, '%%')";
-  public static final String BETWEEN_FORMAT = "%s BETWEEN #{simpleConditions[%d].value} AND #{simpleConditions[%d].secondValue}";
+  public static final String BETWEEN_FORMAT = """
+      %s BETWEEN #{simpleConditions[%d].value.startValue} AND #{simpleConditions[%d].value.endValue}""";
   public static final String IN_FORMAT = """
       <choose>
           <when test='simpleConditions[%d].value != null and simpleConditions[%d].value.size() > %d'>
@@ -46,13 +47,13 @@ public final class SQLOperatorFormat {
   // JSONB Text Operators (忽略大小写)
   public static final String JSONB_TEXT_EQ_FORMAT =
       """
-          LOWER(%s->>'#{jsonPath}') = LOWER(#{simpleConditions[%d].value})""";
+          LOWER(%s->>'${simpleConditions[%d].parameters.jsonPath}') = LOWER(#{simpleConditions[%d].value})""";
   public static final String JSONB_TEXT_LIKE_FORMAT =
-      "LOWER(%s->>'#{simpleConditions[%d].map.jsonPath}') LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, "
-          + "'%%'))";
+      """
+          LOWER(%s->>'${simpleConditions[%d].parameters.jsonPath}') LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))""";
   public static final String JSONB_TEXT_NOT_LIKE_FORMAT =
-      "LOWER(%s->>'#{simpleConditions[%d].map.jsonPath}') NOT LIKE LOWER(CONCAT('%%', #{simpleConditions[%d]"
-          + ".value}, '%%'))";
+      """
+          LOWER(%s->>'${simpleConditions[%d].parameters.jsonPath}') NOT LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))""";
 
   // JSONB Path Operators
   public static final String JSONB_PATH_EXISTS_FORMAT = "%s ?? #{simpleConditions[%d].value}";
@@ -62,27 +63,27 @@ public final class SQLOperatorFormat {
   // JSONB Array Operators
   public static final String JSONB_ARRAY_CONTAINS_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements_text(%s->'#{simpleConditions[%d].map.jsonPath}') elem\s
+          SELECT 1 FROM jsonb_array_elements_text(%s->'${simpleConditions[%d].parameters.jsonPath}') elem\s
           WHERE LOWER(elem) = LOWER(#{simpleConditions[%d].value})
       )""";
 
   public static final String JSONB_ARRAY_LIKE_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements_text(%s->'#{simpleConditions[%d].map.jsonPath}') elem\s
+          SELECT 1 FROM jsonb_array_elements_text(%s->'${simpleConditions[%d].parameters.jsonPath}') elem\s
           WHERE LOWER(elem) LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))
       )""";
 
   // JSONB Object Array Operators
   public static final String JSONB_OBJECT_ARRAY_EQ_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements(%s->'#{simpleConditions[%d].map.jsonPath}') obj\s
-          WHERE LOWER(obj->>'#{simpleConditions[%d].map.nestedField}') = LOWER(#{simpleConditions[%d].value})
+          SELECT 1 FROM jsonb_array_elements(%s->'${simpleConditions[%d].parameters.jsonPath}') obj\s
+          WHERE LOWER(obj->>'${simpleConditions[%d].parameters.nestedField}') = LOWER(#{simpleConditions[%d].value})
       )""";
 
   public static final String JSONB_OBJECT_ARRAY_LIKE_FORMAT = """
       EXISTS (
-          SELECT 1 FROM jsonb_array_elements(%s->'#{simpleConditions[%d].map.jsonPath}') obj\s
-          WHERE LOWER(obj->>'#{simpleConditions[%d].map.nestedField}') LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))
+          SELECT 1 FROM jsonb_array_elements(%s->'${simpleConditions[%d].parameters.jsonPath}') obj\s
+          WHERE LOWER(obj->>'${simpleConditions[%d].parameters.nestedField}') LIKE LOWER(CONCAT('%%', #{simpleConditions[%d].value}, '%%'))
       )""";
 
   public static final String SIMILAR_TO_FORMAT = "%s SIMILAR TO #{simpleConditions[%d].value}";

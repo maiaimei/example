@@ -17,23 +17,13 @@ public class SimpleCondition implements Condition {
   private String field;
   private SQLOperator operator;
   private Object value;
-  private Object secondValue; // 用于 BETWEEN 等操作符
-  private Map<String, Object> map;
+  private Map<String, Object> parameters;
 
-  public SimpleCondition(String field, SQLOperator operator, Object value) {
+  public SimpleCondition(String field, SQLOperator operator, Object value, Map<String, Object> parameters) {
     this.field = field;
     this.operator = operator;
     this.value = value;
-  }
-
-  public SimpleCondition(String field, SQLOperator operator, Object value, Object secondValue) {
-    this(field, operator, value);
-    this.secondValue = secondValue;
-  }
-
-  public SimpleCondition(String field, SQLOperator operator, Object value, Map<String, Object> map) {
-    this(field, operator, value);
-    this.map = map;
+    this.parameters = parameters;
   }
 
   @Override

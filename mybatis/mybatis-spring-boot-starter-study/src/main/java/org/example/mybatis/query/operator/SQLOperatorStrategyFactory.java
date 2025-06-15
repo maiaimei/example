@@ -96,10 +96,7 @@ public class SQLOperatorStrategyFactory {
   private static void registerJsonOperatorStrategies() {
     registerStrategy(SQLOperator.JSON_CONTAINS, JSON_CONTAINS_FORMAT);
     registerStrategy(SQLOperator.JSON_CONTAINED_BY, JSON_CONTAINED_BY_FORMAT);
-    registerStrategy(SQLOperator.JSONB_TEXT_EQUALS,
-        ((condition, index) -> String.format(
-            JSONB_TEXT_EQ_FORMAT.replace("#{jsonPath}", condition.getMap().get("jsonPath").toString()),
-            condition.getColumnName(), index)));
+    registerStrategyWithIndexes(SQLOperator.JSONB_TEXT_EQUALS, JSONB_TEXT_EQ_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_LIKE, JSONB_TEXT_LIKE_FORMAT);
     registerStrategy(SQLOperator.JSONB_TEXT_NOT_LIKE, JSONB_TEXT_NOT_LIKE_FORMAT);
   }
@@ -132,6 +129,32 @@ public class SQLOperatorStrategyFactory {
     registerStrategy(operator, (condition, index) -> String.format(format, condition.getColumnName(), index));
   }
 
+  public static void registerStrategyWithIndexes(SQLOperator operator, String format) {
+    // 获取条件数量
+    final int count = getSimpleConditionsCount(format);
+    // 注册策略
+    registerStrategy(operator, (condition, index) -> {
+      Object[] params = new Object[count + 1];
+      // 第一个参数是列名
+      params[0] = condition.getColumnName();
+      // 将索引数组复制到参数数组中
+      for (int i = 0; i < count; i++) {
+        params[i + 1] = index;
+      }
+      return String.format(format, params);
+    });
+  }
+
+  private static int getSimpleConditionsCount(String format) {
+    int count = 0;
+    int pos = 0;
+    while ((pos = format.indexOf("[%d]", pos)) != -1) {
+      count++;
+      pos += 4;
+    }
+    return count;
+  }
+
   /**
    * 注册自定义 SQL 操作符策略。
    *
@@ -160,4 +183,5 @@ public class SQLOperatorStrategyFactory {
     }
     return strategy;
   }
+
 }
