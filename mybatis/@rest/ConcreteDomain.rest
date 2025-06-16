@@ -1,0 +1,43 @@
+@host = http://localhost:8080
+
+# Concrete Domains API 文档
+
+
+### List
+POST {{host}}/concrete-domains/list
+Content-Type: application/json
+
+{
+}
+
+
+### Get
+GET {{host}}/concrete-domains/2025061615053846100009
+
+
+### Create
+POST {{host}}/concrete-domains
+Content-Type: application/json
+
+{
+  "data":{
+    "bigDecimals": [
+      "2025061615043403900001",
+      "2025061615043403900002",
+      "2025061615043403900003"
+    ]
+  }
+}
+
+
+### Update
+PUT {{host}}/concrete-domains
+Content-Type: application/json
+
+{
+
+}
+
+
+### Delete
+DELETE {{host}}/concrete-domains/2025061513304855800002

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.example.mybatis.interceptor.ConditionInterceptor;
+import org.example.mybatis.type.BigDecimalArrayTypeHandler;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ public class MyBatisConfig {
   private void registerArrayTypeHandlers(TypeHandlerRegistry registry) {
     log.debug("Registering array type handlers");
 
+    registry.register(new BigDecimalArrayTypeHandler());
   }
 
 
