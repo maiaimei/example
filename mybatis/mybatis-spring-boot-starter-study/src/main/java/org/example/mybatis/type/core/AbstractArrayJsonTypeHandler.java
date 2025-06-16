@@ -1,7 +1,7 @@
-package org.example.mybatis.type;
+package org.example.mybatis.type.core;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -13,16 +13,17 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * Java list-form object type and database array-form JSON type conversion handler
  * 数组形式的 JSON 类型处理器
  *
  * @param <T> 数组元素类型
  */
 @Slf4j
-public class ArrayJsonTypeHandler<T> extends BaseTypeHandler<ArrayJson<T>> {
+public class AbstractArrayJsonTypeHandler<A extends ArrayJson<T>, T> extends BaseTypeHandler<A> {
 
-  private final Class<T> type;
+  private final Class<A> type;
 
-  public ArrayJsonTypeHandler(Class<T> type) {
+  public AbstractArrayJsonTypeHandler(Class<A> type) {
     if (Objects.isNull(type)) {
       throw new IllegalArgumentException("Type argument cannot be null");
     }
@@ -30,7 +31,7 @@ public class ArrayJsonTypeHandler<T> extends BaseTypeHandler<ArrayJson<T>> {
   }
 
   @Override
-  public void setNonNullParameter(PreparedStatement ps, int i, ArrayJson<T> parameter, JdbcType jdbcType)
+  public void setNonNullParameter(PreparedStatement ps, int i, A parameter, JdbcType jdbcType)
       throws SQLException {
     if (Objects.isNull(parameter) || CollectionUtils.isEmpty(parameter.getData())) {
       ps.setNull(i, jdbcType == null ? Types.VARCHAR : jdbcType.TYPE_CODE);
@@ -41,40 +42,39 @@ public class ArrayJsonTypeHandler<T> extends BaseTypeHandler<ArrayJson<T>> {
   }
 
   @Override
-  public ArrayJson<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
+  public A getNullableResult(ResultSet rs, String columnName) throws SQLException {
     return toObject(rs.getString(columnName));
   }
 
   @Override
-  public ArrayJson<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+  public A getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
     return toObject(rs.getString(columnIndex));
   }
 
   @Override
-  public ArrayJson<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+  public A getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
     return toObject(cs.getString(columnIndex));
   }
 
-  private ArrayJson<T> toObject(String json) {
+  private A toObject(String json) {
     if (!StringUtils.hasText(json)) {
       return null;
     }
 
     try {
-      // 创建一个具体的实现类实例
-      ArrayJson<T> arrayJson = new ArrayJson<>();
+      // 使用反射创建具体的实现类实例
+      A arrayJson = type.getDeclaredConstructor().newInstance();
 
       // 将 JSON 字符串转换为 List<T>
-      List<T> dataList = JsonUtils.toObject(json,
-          JsonUtils.getCollectionType(ArrayList.class, type));
+      List<T> dataList = JsonUtils.toObject(json, new TypeReference<>() {
+      });
 
       // 设置数据
       arrayJson.setData(dataList);
 
       return arrayJson;
     } catch (Exception e) {
-      // 记录日志但不抛出异常，返回 null 表示转换失败
-      log.error("Failed to convert JSON to ArrayJson: %s".formatted(json), e);
+      log.error("Failed to convert JSON to ArrayJson. Type: {}, JSON: {}", type.getName(), json, e);
       return null;
     }
   }

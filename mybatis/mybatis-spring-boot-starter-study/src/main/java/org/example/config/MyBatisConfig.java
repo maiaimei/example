@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.example.model.domain.ConcreteElementA;
+import org.example.model.domain.ConcreteElementB;
 import org.example.mybatis.interceptor.ConditionInterceptor;
-import org.example.mybatis.type.*;
+import org.example.mybatis.type.ConcreteElementAListTypeHandler;
+import org.example.mybatis.type.ConcreteElementBListTypeHandler;
+import org.example.mybatis.type.core.*;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +33,6 @@ public class MyBatisConfig {
 
       // 添加拦截器
       configuration.addInterceptor(new ConditionInterceptor());
-      //configuration.addInterceptor(typeHandlerInterceptor);
 
       // 按顺序注册 TypeHandler
       registerTypeHandlers(typeHandlerRegistry);
@@ -56,6 +58,9 @@ public class MyBatisConfig {
     log.debug("Registering json type handlers");
 
     registry.register(ConcreteElementA.class, JdbcType.VARCHAR, new ObjectJsonTypeHandler<>(ConcreteElementA.class));
+    registry.register(ConcreteElementB.class, JdbcType.VARCHAR, new ObjectJsonTypeHandler<>(ConcreteElementB.class));
+    registry.register(new ConcreteElementAListTypeHandler());
+    registry.register(new ConcreteElementBListTypeHandler());
 
     log.info("Successfully registered json type handlers");
   }

@@ -5,6 +5,7 @@ import org.example.model.ApiRequest;
 import org.example.model.PageableSearchRequest;
 import org.example.model.PageableSearchResult;
 import org.example.model.domain.ConcreteDomain;
+import org.example.model.request.ConcreteDomainCreateOrUpdateRequest;
 import org.example.service.ConcreteDomainBusinessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +28,12 @@ public class ConcreteDomainController {
   }
 
   @PostMapping
-  public ConcreteDomain create(@RequestBody ApiRequest<ConcreteDomain> request) {
+  public ConcreteDomain create(@RequestBody ApiRequest<ConcreteDomainCreateOrUpdateRequest> request) {
     return domainBusinessService.create(request.getData());
   }
 
   @PutMapping
-  public ConcreteDomain update(@RequestBody ApiRequest<ConcreteDomain> request) {
+  public ConcreteDomain update(@RequestBody ApiRequest<ConcreteDomainCreateOrUpdateRequest> request) {
     return domainBusinessService.update(request.getData());
   }
 

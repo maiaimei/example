@@ -12,7 +12,7 @@ Content-Type: application/json
 
 
 ### Get
-GET {{host}}/concrete-domains/2025061615053846100009
+GET {{host}}/concrete-domains/2025061621573938200002
 
 
 ### Create
@@ -40,6 +40,40 @@ Content-Type: application/json
       "string1",
       "string2",
       "string3"
+    ],
+    "concreteElementA":{
+      "id": "2025061615053846100009",
+      "name": "Element A",
+      "description": "This is a concrete element A"
+    },
+    "concreteElementAList": [
+      {
+        "id": "2025061615053846100009",
+        "name": "Element A1",
+        "description": "This is a concrete element A1"
+      },
+      {
+        "id": "2025061615053846100010",
+        "name": "Element A2",
+        "description": "This is a concrete element A2"
+      }
+    ],
+    "concreteElementB":{
+      "id": "2025061615053846100011",
+      "name": "Element B",
+      "description": "This is a concrete element B"
+    },
+    "concreteElementBList": [
+      {
+        "id": "2025061615053846100011",
+        "name": "Element B1",
+        "description": "This is a concrete element B1"
+      },
+      {
+        "id": "2025061615053846100012",
+        "name": "Element B2",
+        "description": "This is a concrete element B2"
+      }
     ]
   }
 }

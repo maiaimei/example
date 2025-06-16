@@ -24,10 +24,17 @@ public class ConcreteDomain {
   @TableColumn(type = "TEXT[]")
   private String[] strings;
 
-  @TableColumn(type = "JSONB")
-  private ConcreteElementA concreteItem;
+  @TableColumn(value = "CONCRETE_ELEMENT_A", type = "JSONB")
+  private ConcreteElementA concreteElementA;
 
-  private ConcreteElementAList concreteItemList;
+  @TableColumn(value = "CONCRETE_ELEMENT_A_LIST", type = "JSONB")
+  private ConcreteElementAList concreteElementAList;
+
+  @TableColumn(value = "CONCRETE_ELEMENT_B", type = "JSONB")
+  private ConcreteElementB concreteElementB;
+
+  @TableColumn(value = "CONCRETE_ELEMENT_B_LIST", type = "JSONB")
+  private ConcreteElementBList concreteElementBList;
 
   private LocalDateTime createdAt;
 

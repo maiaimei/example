@@ -1,19 +1,19 @@
-package org.example.mybatis.type;
+package org.example.mybatis.type.core;
 
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
-@MappedTypes(Long[].class)
+@MappedTypes(String[].class)
 @MappedJdbcTypes(value = JdbcType.ARRAY, includeNullJdbcType = true)
-public class LongArrayTypeHandler extends AbstractGenericArrayTypeHandler<Long> {
+public class StringArrayTypeHandler extends AbstractArrayTypeHandler<String> {
 
-  public LongArrayTypeHandler() {
-    super(Long.class);
+  public StringArrayTypeHandler() {
+    super(String.class);
   }
 
   @Override
   protected String getTypeName() {
-    return JdbcType.BIGINT.name();
+    return JdbcType.VARCHAR.name();
   }
 }

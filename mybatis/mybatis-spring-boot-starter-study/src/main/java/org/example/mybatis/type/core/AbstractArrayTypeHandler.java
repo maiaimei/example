@@ -1,4 +1,4 @@
-package org.example.mybatis.type;
+package org.example.mybatis.type.core;
 
 import java.sql.*;
 import java.util.Objects;
