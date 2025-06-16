@@ -14,19 +14,19 @@ public final class SQLOperatorFormat {
       ${simpleConditions[${index}].column} BETWEEN #{simpleConditions[${index}].value.startValue} AND #{simpleConditions[${index}].value.endValue}""";
   public static final String IN_FORMAT = """
       <choose>
-          <when test='simpleConditions[${index}].value != null and simpleConditions[${index}].value.size() > ${simpleConditions[${index}].parameters.maxSize}'>
+          <when test='simpleConditions[${index}].value != null and simpleConditions[${index}].value.size() > simpleConditions[${index}].parameters.maxSize'>
               <trim prefix='(' prefixOverrides='OR' suffix=')'>
                   <foreach collection='simpleConditions[${index}].value' item='item' open='' close='' separator='' index='i'>
-                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} == 0'>
+                      <if test='i %% simpleConditions[${index}].parameters.maxSize == 0'>
                           <choose>
                               <when test='i == 0'>${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} </when>
                               <otherwise> OR ${simpleConditions[${index}].column} ${simpleConditions[${index}].operatorToUse} </otherwise>
                           </choose>
                       </if>
-                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} == 0'>(</if>
+                      <if test='i %% simpleConditions[${index}].parameters.maxSize == 0'>(</if>
                       #{item}
-                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} == ${simpleConditions[${index}].parameters.maxSize} - 1 or i == simpleConditions[${index}].value.size() - 1'>)</if>
-                      <if test='i %% ${simpleConditions[${index}].parameters.maxSize} != ${simpleConditions[${index}].parameters.maxSize} - 1 and i != simpleConditions[${index}].value.size() - 1'>,</if>
+                      <if test='i %% simpleConditions[${index}].parameters.maxSize == simpleConditions[${index}].parameters.maxSize - 1 or i == simpleConditions[${index}].value.size() - 1'>)</if>
+                      <if test='i %% simpleConditions[${index}].parameters.maxSize != simpleConditions[${index}].parameters.maxSize - 1 and i != simpleConditions[${index}].value.size() - 1'>,</if>
                   </foreach>
               </trim>
           </when>
