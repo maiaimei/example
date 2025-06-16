@@ -7,8 +7,7 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.example.mybatis.model.ArrayJsonAccessor;
-import org.example.mybatis.model.ArrayJsonData;
+import org.example.mybatis.model.ArrayJson;
 import org.example.utils.JsonUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -19,7 +18,7 @@ import org.springframework.util.StringUtils;
  * @param <T> 数组元素类型
  */
 @Slf4j
-public class ArrayJsonTypeHandler<T> extends BaseTypeHandler<ArrayJsonAccessor<T>> {
+public class ArrayJsonTypeHandler<T> extends BaseTypeHandler<ArrayJson<T>> {
 
   private final Class<T> type;
 
@@ -31,7 +30,7 @@ public class ArrayJsonTypeHandler<T> extends BaseTypeHandler<ArrayJsonAccessor<T
   }
 
   @Override
-  public void setNonNullParameter(PreparedStatement ps, int i, ArrayJsonAccessor<T> parameter, JdbcType jdbcType)
+  public void setNonNullParameter(PreparedStatement ps, int i, ArrayJson<T> parameter, JdbcType jdbcType)
       throws SQLException {
     if (Objects.isNull(parameter) || CollectionUtils.isEmpty(parameter.getData())) {
       ps.setNull(i, jdbcType == null ? Types.VARCHAR : jdbcType.TYPE_CODE);
@@ -42,40 +41,40 @@ public class ArrayJsonTypeHandler<T> extends BaseTypeHandler<ArrayJsonAccessor<T
   }
 
   @Override
-  public ArrayJsonAccessor<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
+  public ArrayJson<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
     return toObject(rs.getString(columnName));
   }
 
   @Override
-  public ArrayJsonAccessor<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+  public ArrayJson<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
     return toObject(rs.getString(columnIndex));
   }
 
   @Override
-  public ArrayJsonAccessor<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+  public ArrayJson<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
     return toObject(cs.getString(columnIndex));
   }
 
-  private ArrayJsonAccessor<T> toObject(String json) {
+  private ArrayJson<T> toObject(String json) {
     if (!StringUtils.hasText(json)) {
       return null;
     }
 
     try {
       // 创建一个具体的实现类实例
-      ArrayJsonData<T> arrayJsonData = new ArrayJsonData<>();
+      ArrayJson<T> arrayJson = new ArrayJson<>();
 
       // 将 JSON 字符串转换为 List<T>
       List<T> dataList = JsonUtils.toObject(json,
           JsonUtils.getCollectionType(ArrayList.class, type));
 
       // 设置数据
-      arrayJsonData.setData(dataList);
+      arrayJson.setData(dataList);
 
-      return arrayJsonData;
+      return arrayJson;
     } catch (Exception e) {
       // 记录日志但不抛出异常，返回 null 表示转换失败
-      log.error("Failed to convert JSON to ArrayJsonAccessor: " + json, e);
+      log.error("Failed to convert JSON to ArrayJson: %s".formatted(json), e);
       return null;
     }
   }

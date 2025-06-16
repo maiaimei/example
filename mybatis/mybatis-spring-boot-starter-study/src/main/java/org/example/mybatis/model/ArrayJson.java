@@ -4,7 +4,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class ArrayJsonData<T> implements ArrayJsonAccessor<T> {
+public class ArrayJson<T> {
 
   private List<T> data;
 }

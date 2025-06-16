@@ -11,7 +11,7 @@ import org.example.mybatis.annotation.TableName;
 public class ConcreteDomain {
 
   private BigDecimal id;
-  
+
   @TableColumn(type = "INTEGER[]")
   private Integer[] integers;
 
@@ -23,6 +23,11 @@ public class ConcreteDomain {
 
   @TableColumn(type = "TEXT[]")
   private String[] strings;
+
+  @TableColumn(type = "JSONB")
+  private ConcreteElementA concreteItem;
+
+  private ConcreteElementAList concreteItemList;
 
   private LocalDateTime createdAt;
 

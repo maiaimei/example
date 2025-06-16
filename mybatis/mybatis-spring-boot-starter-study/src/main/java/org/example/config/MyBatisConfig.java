@@ -2,7 +2,9 @@ package org.example.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+import org.example.model.domain.ConcreteElementA;
 import org.example.mybatis.interceptor.ConditionInterceptor;
 import org.example.mybatis.type.*;
 import org.mybatis.spring.annotation.MapperScan;
@@ -52,6 +54,8 @@ public class MyBatisConfig {
 
   private void registerJsonTypeHandlers(TypeHandlerRegistry registry) {
     log.debug("Registering json type handlers");
+
+    registry.register(ConcreteElementA.class, JdbcType.VARCHAR, new ObjectJsonTypeHandler<>(ConcreteElementA.class));
 
     log.info("Successfully registered json type handlers");
   }
