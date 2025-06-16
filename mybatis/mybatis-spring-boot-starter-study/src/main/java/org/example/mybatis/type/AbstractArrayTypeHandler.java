@@ -7,11 +7,11 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
 @Slf4j
-public abstract class AbstractGenericArrayTypeHandler<T> extends BaseTypeHandler<T[]> {
+public abstract class AbstractArrayTypeHandler<T> extends BaseTypeHandler<T[]> {
 
   private final Class<T> type;
 
-  public AbstractGenericArrayTypeHandler(Class<T> type) {
+  public AbstractArrayTypeHandler(Class<T> type) {
     this.type = type;
   }
 
