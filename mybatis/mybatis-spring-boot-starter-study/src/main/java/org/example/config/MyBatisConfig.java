@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.example.mybatis.interceptor.ConditionInterceptor;
-import org.example.mybatis.type.BigDecimalArrayTypeHandler;
+import org.example.mybatis.type.*;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,12 +53,18 @@ public class MyBatisConfig {
   private void registerJsonTypeHandlers(TypeHandlerRegistry registry) {
     log.debug("Registering json type handlers");
 
+    log.info("Successfully registered json type handlers");
   }
 
   private void registerArrayTypeHandlers(TypeHandlerRegistry registry) {
     log.debug("Registering array type handlers");
 
+    registry.register(new IntegerArrayTypeHandler());
+    registry.register(new LongArrayTypeHandler());
     registry.register(new BigDecimalArrayTypeHandler());
+    registry.register(new StringArrayTypeHandler());
+
+    log.info("Successfully registered array type handlers");
   }
 
 

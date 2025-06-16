@@ -11,9 +11,18 @@ import org.example.mybatis.annotation.TableName;
 public class ConcreteDomain {
 
   private BigDecimal id;
+  
+  @TableColumn(type = "INTEGER[]")
+  private Integer[] integers;
+
+  @TableColumn(type = "BIGINT[]")
+  private Long[] longs;
 
   @TableColumn(type = "NUMERIC(22)[]")
   private BigDecimal[] bigDecimals;
+
+  @TableColumn(type = "TEXT[]")
+  private String[] strings;
 
   private LocalDateTime createdAt;
 
