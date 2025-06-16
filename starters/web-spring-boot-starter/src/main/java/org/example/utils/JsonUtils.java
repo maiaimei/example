@@ -2,14 +2,13 @@ package org.example.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.example.exception.JsonConvertException;
 import org.springframework.stereotype.Component;
@@ -204,6 +203,57 @@ public class JsonUtils {
 
   public static ObjectMapper getObjectMapper() {
     return JsonUtils.objectMapper;
+  }
+
+  public static <T> T toObject(String json, JavaType javaType) {
+    try {
+      return getObjectMapper().readValue(json, javaType);
+    } catch (JsonProcessingException e) {
+      throw new JsonConvertException("JSON conversion failed", e);
+    }
+  }
+
+  /**
+   * 获取集合类型
+   *
+   * @param collectionClass 集合类 (如 ArrayList.class, HashSet.class)
+   * @param elementClasses  元素类型 (如 String.class, Integer.class)
+   * @return JavaType 集合类型
+   */
+  public static JavaType getCollectionType(Class<? extends Collection> collectionClass, Class<?>... elementClasses) {
+    TypeFactory typeFactory = getObjectMapper().getTypeFactory();
+    if (elementClasses.length == 1) {
+      // 处理简单集合类型，如 List<String>
+      return typeFactory.constructCollectionType(collectionClass, elementClasses[0]);
+    } else {
+      // 处理复杂类型，如 List<Map<String, Object>>
+      JavaType[] javaTypes = new JavaType[elementClasses.length];
+      for (int i = 0; i < elementClasses.length; i++) {
+        javaTypes[i] = typeFactory.constructType(elementClasses[i]);
+      }
+      return typeFactory.constructParametricType(collectionClass, javaTypes);
+    }
+  }
+
+  /**
+   * 获取简单的List类型
+   *
+   * @param elementClass 元素类型
+   * @return JavaType List类型
+   */
+  public static JavaType getListType(Class<?> elementClass) {
+    return getObjectMapper().getTypeFactory().constructCollectionType(List.class, elementClass);
+  }
+
+  /**
+   * 获取Map类型
+   *
+   * @param keyClass   键类型
+   * @param valueClass 值类型
+   * @return JavaType Map类型
+   */
+  public static JavaType getMapType(Class<?> keyClass, Class<?> valueClass) {
+    return getObjectMapper().getTypeFactory().constructMapType(Map.class, keyClass, valueClass);
   }
 
 }
