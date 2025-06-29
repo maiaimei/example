@@ -2,7 +2,6 @@ package org.example.config;
 
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.*;
-import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
@@ -15,14 +14,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
-import org.example.utils.DateTimeUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -300,19 +297,6 @@ public class OpenAPIConfig {
         .addProperty("field", new StringSchema())
         .addProperty("message", new StringSchema())
         .addProperty("args", new ArraySchema().items(new Schema<>().type("object")));
-  }
-
-  private Example createOkExample() {
-    // 创建成功响应示例
-    return new Example()
-        .value(Map.of(
-            "code", HttpStatus.OK.value(),
-            "message", "操作成功",
-            "data", Map.of("example", "value"),
-            "path", "/api/example",
-            "method", "GET",
-            "timestamp", DateTimeUtils.formatUtcTime(LocalDateTime.now()),
-            "correlationId", "123e4567-e89b-12d3-a456-426614174000"));
   }
 
   private Schema<?> inferSchemaFromMethod(HandlerMethod handlerMethod, ModelConverters converters) {
