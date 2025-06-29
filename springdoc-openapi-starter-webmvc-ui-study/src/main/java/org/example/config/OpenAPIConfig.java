@@ -202,43 +202,47 @@ public class OpenAPIConfig {
   private void wrapResponse(Operation operation, HandlerMethod handlerMethod, Components components,
       ModelConverters converters) {
     final RequestDetails requestDetails = extractRequestDetails(handlerMethod);
-    addSuccessApiResponseSchema(operation, handlerMethod, components, converters, requestDetails);
+
+    final HttpStatus httpStatus = HttpStatus.OK;
+
+    MediaType mediaType = getOrCreateMediaType(operation, httpStatus);
+
+    Schema<?> handlerMethodSchema = Objects.nonNull(mediaType.getSchema())
+        ? mediaType.getSchema()
+        : inferSchemaFromMethod(handlerMethod, converters);
+    String handlerMethodSchemaName = handlerMethodSchema.getName();
+
+    Schema<?> successSchema = createSuccessApiResponseSchema(handlerMethodSchema, requestDetails);
+    String successSchemaName = StringUtils.hasText(handlerMethodSchemaName)
+        ? "SuccessApiResponse%s".formatted(handlerMethodSchemaName)
+        : "SuccessApiResponse";
+    components.addSchemas(successSchemaName, successSchema);
+
+    Content successContent = new Content()
+        .addMediaType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE, new MediaType()
+            .schema(new ObjectSchema().$ref("#/components/schemas/%s".formatted(successSchemaName))));
+
+    operation.getResponses().put(String.valueOf(httpStatus.value()), new ApiResponse()
+        .description(httpStatus.getReasonPhrase())
+        .content(successContent));
+
     addErrorApiResponseSchema(components, requestDetails, HttpStatus.UNAUTHORIZED);
     addErrorApiResponseSchema(components, requestDetails, HttpStatus.FORBIDDEN);
   }
 
-  private void addSuccessApiResponseSchema(Operation operation, HandlerMethod handlerMethod, Components components,
-      ModelConverters converters, RequestDetails requestDetails) {
-    ApiResponse originalResponse = operation.getResponses().computeIfAbsent("200", k -> new ApiResponse());
-
-    if (Objects.isNull(originalResponse.getContent())) {
-      originalResponse.setContent(new Content());
+  private MediaType getOrCreateMediaType(Operation operation, HttpStatus httpStatus) {
+    final ApiResponse response = operation.getResponses()
+        .computeIfAbsent(String.valueOf(httpStatus.value()), k -> new ApiResponse());
+    if (Objects.isNull(response.getContent())) {
+      response.setContent(new Content());
     }
-
-    MediaType mediaType = originalResponse.getContent().get("application/json");
+    final String mediaTypeKey = org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+    MediaType mediaType = response.getContent().get(mediaTypeKey);
     if (Objects.isNull(mediaType)) {
       mediaType = new MediaType();
-      originalResponse.getContent().addMediaType("application/json", mediaType);
+      response.getContent().addMediaType(mediaTypeKey, mediaType);
     }
-
-    Schema<?> originalSchema = Objects.nonNull(mediaType.getSchema())
-        ? mediaType.getSchema()
-        : inferSchemaFromMethod(handlerMethod, converters);
-
-    Schema<?> successSchema = createSuccessApiResponseSchema(originalSchema, requestDetails);
-    String successSchemaName = StringUtils.hasText(originalSchema.getName())
-        ? "SuccessApiResponse%s".formatted(originalSchema.getName())
-        : "SuccessApiResponse";
-
-    components.addSchemas(successSchemaName, successSchema);
-
-    Content successContent = new Content()
-        .addMediaType("application/json", new MediaType().schema(
-            new Schema<>().type("object").$ref("#/components/schemas/%s".formatted(successSchemaName))));
-
-    operation.getResponses().put("200", new ApiResponse()
-        .description("Successful operation")
-        .content(successContent));
+    return mediaType;
   }
 
   private Schema<?> createSuccessApiResponseSchema(Schema<?> dataSchema, RequestDetails requestDetails) {
