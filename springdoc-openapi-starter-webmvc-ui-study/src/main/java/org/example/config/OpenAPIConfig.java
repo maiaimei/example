@@ -210,8 +210,8 @@ public class OpenAPIConfig {
                         }
 
                         if (StringUtils.hasText(originalSchema.getName())) {
-                          final Schema<?> successResponseSchema = createSuccessApiResponseSchema(originalSchema);
-                          components.addSchemas("SuccessApiResponse" + originalSchema.getName(), successResponseSchema);
+                          final Schema<?> successApiResponseSchema = createSuccessApiResponseSchema(originalSchema);
+                          components.addSchemas("SuccessApiResponse" + originalSchema.getName(), successApiResponseSchema);
 
                           // 创建成功响应的包装 Schema
                           Schema<?> wrappedSuccessSchema = new Schema<>()
@@ -222,7 +222,7 @@ public class OpenAPIConfig {
                           Content successContent = new Content()
                               .addMediaType("application/json",
                                   new MediaType()
-                                      .schema(wrappedSuccessSchema)); //.addExamples("success", successExample)
+                                      .schema(wrappedSuccessSchema));
 
                           operation.getResponses().put("200",
                               new ApiResponse()
@@ -241,7 +241,7 @@ public class OpenAPIConfig {
                           Content successContent = new Content()
                               .addMediaType("application/json",
                                   new MediaType()
-                                      .schema(wrappedSuccessSchema)); //.addExamples("success", successExample)
+                                      .schema(wrappedSuccessSchema));
 
                           operation.getResponses().put("200",
                               new ApiResponse()
