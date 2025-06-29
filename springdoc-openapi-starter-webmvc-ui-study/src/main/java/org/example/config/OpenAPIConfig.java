@@ -15,11 +15,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
+import org.example.utils.JsonUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -33,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -252,7 +255,8 @@ public class OpenAPIConfig {
             .description("A brief message describing the result of the operation.")
             .example("success"))
         .addProperty("data", dataSchema
-            .description("The actual data returned by the operation."))
+            .description("The actual data returned by the operation.")
+            .example(generateExampleFromSchema(dataSchema)))
         .addProperty("path", new StringSchema()
             .description("The request path that was accessed.")
             .example(requestDetails.requestPath))
@@ -297,6 +301,31 @@ public class OpenAPIConfig {
         .addProperty("field", new StringSchema())
         .addProperty("message", new StringSchema())
         .addProperty("args", new ArraySchema().items(new Schema<>().type("object")));
+  }
+
+  private Object generateExampleFromSchema(Schema<?> schema) {
+    final Map<String, Schema> properties = schema.getProperties();
+    if (!CollectionUtils.isEmpty(properties)) {
+      Map<String, Object> examples = generateExampleFromProperties(properties);
+      return CollectionUtils.isEmpty(examples) ? "" : JsonUtils.toJsonString(examples);
+    }
+    if (schema instanceof ArraySchema arraySchema) {
+      final Schema<?> items = arraySchema.getItems();
+      Map<String, Object> examples = generateExampleFromProperties(items.getProperties());
+      return CollectionUtils.isEmpty(examples) ? "" : JsonUtils.toJsonString(List.of(examples));
+    }
+    return schema.getExample();
+  }
+
+  private Map<String, Object> generateExampleFromProperties(Map<String, Schema> properties) {
+    if (!CollectionUtils.isEmpty(properties)) {
+      Map<String, Object> examples = new LinkedHashMap<>();
+      for (Entry<String, Schema> entry : properties.entrySet()) {
+        examples.put(entry.getKey(), entry.getValue().getExample());
+      }
+      return examples;
+    }
+    return null;
   }
 
   private Schema<?> inferSchemaFromMethod(HandlerMethod handlerMethod, ModelConverters converters) {
