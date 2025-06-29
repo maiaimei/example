@@ -1,5 +1,6 @@
 package org.example.config;
 
+import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.info.Contact;
@@ -11,12 +12,14 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
-import org.example.openapi.OpenAPIAdvancedCustomizer;
 import org.example.utils.DateTimeUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -31,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 
 /**
@@ -45,11 +49,8 @@ public class OpenAPIConfig {
   @Autowired
   private ApplicationContext applicationContext;
 
-  @Autowired
-  private OpenAPIAdvancedCustomizer openAPIAdvancedCustomizer;
-
   @Bean
-  public OpenAPI openAPI() {
+  public OpenAPI openApi() {
     return new OpenAPI()
         .info(new Info()
             .title("API Documentation")
@@ -132,15 +133,16 @@ public class OpenAPIConfig {
   @Bean
   public OpenApiCustomizer openApiCustomizer() {
     return openAPI -> {
+      final Components components = openAPI.getComponents();
+      final ModelConverters converters = ModelConverters.getInstance();
+
       // 创建统一响应的schema
       final Schema<?> errorFieldSchema = createErrorFieldSchema();
       final Schema<?> errorInfoSchema = createErrorInfoSchema();
-      final Schema<?> successResponseSchema = createSuccessResponseSchema();
-      final Schema<?> errorResponseSchema = createErrorResponseSchema(errorFieldSchema, errorInfoSchema);
+      final Schema<?> errorResponseSchema = createErrorApiResponseSchema(errorFieldSchema, errorInfoSchema);
 
       // 创建统一响应示例
-      final Example successExample = createOkExample();
-      final Example badRequestErrorExample = createBadRequestExample();
+      //final Example successExample = createOkExample();
 
       // 遍历所有路径
       openAPI.getPaths().forEach((path, pathItem) -> {
@@ -177,35 +179,76 @@ public class OpenAPIConfig {
 
                       // 检查是否需要包装响应
                       if (shouldWrapResponse(handlerMethod)) {
-                        // 获取原始响应
+                        // 处理200响应
                         ApiResponse originalResponse = operation.getResponses().get("200");
-                        if (originalResponse != null && originalResponse.getContent() != null) {
-                          MediaType mediaType = originalResponse.getContent().get("application/json");
-                          if (mediaType != null && mediaType.getSchema() != null) {
-                            Schema<?> originalSchema = mediaType.getSchema();
+                        Schema<?> originalSchema;
 
-                            // 创建成功响应的包装 Schema
-                            Schema<?> wrappedSuccessSchema = new Schema<>()
-                                .type("object")
-                                .$ref("#/components/schemas/SuccessApiResponse");
-
-                            // 设置 data 属性为原始 Schema
-                            ((Schema<?>) openAPI.getComponents()
-                                .getSchemas()
-                                .get("SuccessApiResponse"))
-                                .getProperties()
-                                .put("data", originalSchema);
-
-                            // 更新响应
-                            Content content = new Content()
-                                .addMediaType("application/json",
-                                    new MediaType()
-                                        .schema(wrappedSuccessSchema)
-                                        .addExamples("200", successExample));
-
-                            operation.getResponses().put("200", new ApiResponse().content(content));
-                          }
+                        // 如果没有200响应，创建一个新的
+                        if (originalResponse == null) {
+                          originalResponse = new ApiResponse();
+                          operation.getResponses().put("200", originalResponse);
                         }
+
+                        // 如果没有content，创建一个新的
+                        if (originalResponse.getContent() == null) {
+                          originalResponse.setContent(new Content());
+                        }
+
+                        // 获取或创建 application/json MediaType
+                        MediaType mediaType = originalResponse.getContent().get("application/json");
+                        if (mediaType == null) {
+                          mediaType = new MediaType();
+                          originalResponse.getContent().addMediaType("application/json", mediaType);
+                        }
+
+                        // 获取原始Schema
+                        if (mediaType.getSchema() != null) {
+                          originalSchema = mediaType.getSchema();
+                        } else {
+                          // 如果没有Schema，创建一个默认的
+                          originalSchema = inferSchemaFromMethod(handlerMethod, converters);
+                        }
+
+                        if (StringUtils.hasText(originalSchema.getName())) {
+                          final Schema<?> successResponseSchema = createSuccessApiResponseSchema(originalSchema);
+                          components.addSchemas("SuccessApiResponse" + originalSchema.getName(), successResponseSchema);
+
+                          // 创建成功响应的包装 Schema
+                          Schema<?> wrappedSuccessSchema = new Schema<>()
+                              .type("object")
+                              .$ref("#/components/schemas/SuccessApiResponse" + originalSchema.getName());
+
+                          // 更新成功响应
+                          Content successContent = new Content()
+                              .addMediaType("application/json",
+                                  new MediaType()
+                                      .schema(wrappedSuccessSchema)); //.addExamples("success", successExample)
+
+                          operation.getResponses().put("200",
+                              new ApiResponse()
+                                  .description("Successful operation")
+                                  .content(successContent));
+                        } else {
+                          final Schema<?> successResponseSchema = createSuccessApiResponseSchema(null);
+                          components.addSchemas("SuccessApiResponse", successResponseSchema);
+
+                          // 创建成功响应的包装 Schema
+                          Schema<?> wrappedSuccessSchema = new Schema<>()
+                              .type("object")
+                              .$ref("#/components/schemas/SuccessApiResponse");
+
+                          // 更新成功响应
+                          Content successContent = new Content()
+                              .addMediaType("application/json",
+                                  new MediaType()
+                                      .schema(wrappedSuccessSchema)); //.addExamples("success", successExample)
+
+                          operation.getResponses().put("200",
+                              new ApiResponse()
+                                  .description("Successful operation")
+                                  .content(successContent));
+                        }
+
                       }
                     }
                   }
@@ -218,10 +261,9 @@ public class OpenAPIConfig {
       });
 
       // 添加统一响应schema到组件
-      openAPI.getComponents().addSchemas("SuccessApiResponse", successResponseSchema);
-      openAPI.getComponents().addSchemas("ErrorApiResponse", errorResponseSchema);
-      openAPI.getComponents().addSchemas("ErrorInfo", errorInfoSchema);
-      openAPI.getComponents().addSchemas("ErrorField", errorFieldSchema);
+      components.addSchemas("ErrorApiResponse", errorResponseSchema);
+      components.addSchemas("ErrorInfo", errorInfoSchema);
+      components.addSchemas("ErrorField", errorFieldSchema);
     };
   }
 
@@ -238,20 +280,20 @@ public class OpenAPIConfig {
         !Resource.class.isAssignableFrom(returnType);
   }
 
-  private Schema<?> createSuccessResponseSchema() {
+  private Schema<?> createSuccessApiResponseSchema(Schema<?> dataSchema) {
     // 创建成功响应的统一 Schema
     return new Schema<>()
         .type("object")
         .addProperty("code", new IntegerSchema())
         .addProperty("message", new StringSchema())
-        .addProperty("data", new Schema<>().type("object"))
+        .addProperty("data", dataSchema)
         .addProperty("path", new StringSchema())
         .addProperty("method", new StringSchema())
         .addProperty("timestamp", new Schema<>().type("string").format("date-time"))
         .addProperty("correlationId", new StringSchema());
   }
 
-  private Schema<?> createErrorResponseSchema(Schema<?> errorFieldSchema, Schema<?> errorInfoSchema) {
+  private Schema<?> createErrorApiResponseSchema(Schema<?> errorFieldSchema, Schema<?> errorInfoSchema) {
     // 创建错误响应的统一 Schema
     return new Schema<>()
         .type("object")
@@ -297,26 +339,73 @@ public class OpenAPIConfig {
         ));
   }
 
-  private Example createBadRequestExample() {
-    // 创建错误响应示例
-    return new Example()
-        .value(Map.of(
-            "code", HttpStatus.BAD_REQUEST.value(),
-            "message", "请求参数错误",
-            "error", Map.of(
-                "code", "INVALID_PARAMETER",
-                "message", "参数验证失败"
-            ),
-            "details", List.of(
-                Map.of(
-                    "field", "username",
-                    "message", "用户名不能为空"
-                )
-            ),
-            "path", "/api/example",
-            "method", "POST",
-            "timestamp", DateTimeUtils.formatUtcTime(LocalDateTime.now()),
-            "correlationId", "123e4567-e89b-12d3-a456-426614174000"
-        ));
+  private Schema<?> inferSchemaFromMethod(HandlerMethod handlerMethod, ModelConverters converters) {
+    // 获取方法返回类型
+    Type returnType = handlerMethod.getMethod().getGenericReturnType();
+    Class<?> rawType = handlerMethod.getMethod().getReturnType();
+
+    try {
+      if (returnType instanceof ParameterizedType parameterizedType) {
+        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+
+        // 处理集合类型
+        if (Collection.class.isAssignableFrom(rawType)) {
+          Map<String, Schema> itemSchemaMap = converters.read(actualTypeArguments[0]);
+          Schema<?> itemSchema = !itemSchemaMap.isEmpty() ?
+              itemSchemaMap.values().iterator().next() :
+              new Schema<>().type("object");
+          return new ArraySchema().name(itemSchema.getName() + rawType.getSimpleName()).items(itemSchema);
+        }
+
+        // 处理其他泛型类型
+        Map<String, Schema> schemaMap = converters.read(returnType);
+        return !schemaMap.isEmpty() ?
+            schemaMap.values().iterator().next() :
+            new Schema<>().type("object");
+      }
+
+      // 处理基本类型
+      if (rawType.isPrimitive() || Number.class.isAssignableFrom(rawType)
+          || rawType == String.class || rawType == Boolean.class) {
+        return inferSchemaForPrimitiveType(rawType);
+      }
+
+      // 处理普通类型
+      Map<String, Schema> schemaMap = converters.read(rawType);
+      return !schemaMap.isEmpty() ?
+          schemaMap.values().iterator().next() :
+          new Schema<>().type("object");
+
+    } catch (Exception e) {
+      log.warn("Failed to generate schema for type: " + returnType, e);
+      return new Schema<>().type("object");
+    }
+  }
+
+  private Schema<?> inferSchemaForPrimitiveType(Class<?> type) {
+    if (type == String.class) {
+      return new StringSchema();
+    }
+    if (type == Boolean.class || type == boolean.class) {
+      return new BooleanSchema();
+    }
+    if (Number.class.isAssignableFrom(type) || type.isPrimitive()) {
+      if (type == Integer.class || type == int.class) {
+        return new IntegerSchema();
+      }
+      if (type == Long.class || type == long.class) {
+        return new IntegerSchema().format("int64");
+      }
+      if (type == Float.class || type == float.class) {
+        return new NumberSchema().format("float");
+      }
+      if (type == Double.class || type == double.class) {
+        return new NumberSchema().format("double");
+      }
+      if (type == BigDecimal.class) {
+        return new NumberSchema();
+      }
+    }
+    return new Schema<>().type("object");
   }
 }
