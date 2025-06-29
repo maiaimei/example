@@ -140,17 +140,6 @@ public class OpenAPIConfig {
     return openAPI -> {
       final Components components = openAPI.getComponents();
       final ModelConverters converters = ModelConverters.getInstance();
-
-      // 创建统一响应的schema
-      final Schema<?> errorFieldSchema = createErrorFieldSchema();
-      final Schema<?> errorInfoSchema = createErrorInfoSchema();
-      final Schema<?> errorResponseSchema = createErrorApiResponseSchema(errorFieldSchema, errorInfoSchema);
-
-      // 添加统一响应schema到组件
-      components.addSchemas("ErrorApiResponse", errorResponseSchema);
-      components.addSchemas("ErrorInfo", errorInfoSchema);
-      components.addSchemas("ErrorField", errorFieldSchema);
-
       // 遍历所有路径并处理操作
       openAPI.getPaths().forEach((path, pathItem) -> processPathItem(pathItem, components, converters));
     };
@@ -197,9 +186,29 @@ public class OpenAPIConfig {
     }
   }
 
+  private boolean shouldWrapResponse(HandlerMethod handlerMethod) {
+    // 检查方法和类上是否有SkipResponseWrapper注解
+    if (handlerMethod.hasMethodAnnotation(SkipResponseWrapper.class) ||
+        handlerMethod.getBeanType().isAnnotationPresent(SkipResponseWrapper.class)) {
+      return false;
+    }
+
+    // 检查返回类型是否为ResponseEntity或Resource
+    Class<?> returnType = handlerMethod.getReturnType().getParameterType();
+    return !ResponseEntity.class.isAssignableFrom(returnType) &&
+        !Resource.class.isAssignableFrom(returnType);
+  }
+
   private void wrapResponse(Operation operation, HandlerMethod handlerMethod, Components components,
       ModelConverters converters) {
     final RequestDetails requestDetails = extractRequestDetails(handlerMethod);
+    addSuccessApiResponseSchema(operation, handlerMethod, components, converters, requestDetails);
+    addErrorApiResponseSchema(components, requestDetails, HttpStatus.UNAUTHORIZED);
+    addErrorApiResponseSchema(components, requestDetails, HttpStatus.FORBIDDEN);
+  }
+
+  private void addSuccessApiResponseSchema(Operation operation, HandlerMethod handlerMethod, Components components,
+      ModelConverters converters, RequestDetails requestDetails) {
     ApiResponse originalResponse = operation.getResponses().computeIfAbsent("200", k -> new ApiResponse());
 
     if (Objects.isNull(originalResponse.getContent())) {
@@ -216,7 +225,7 @@ public class OpenAPIConfig {
         ? mediaType.getSchema()
         : inferSchemaFromMethod(handlerMethod, converters);
 
-    Schema<?> successSchema = createSuccessSchema(originalSchema, requestDetails);
+    Schema<?> successSchema = createSuccessApiResponseSchema(originalSchema, requestDetails);
     String successSchemaName = StringUtils.hasText(originalSchema.getName())
         ? "SuccessApiResponse%s".formatted(originalSchema.getName())
         : "SuccessApiResponse";
@@ -232,20 +241,7 @@ public class OpenAPIConfig {
         .content(successContent));
   }
 
-  private boolean shouldWrapResponse(HandlerMethod handlerMethod) {
-    // 检查方法和类上是否有SkipResponseWrapper注解
-    if (handlerMethod.hasMethodAnnotation(SkipResponseWrapper.class) ||
-        handlerMethod.getBeanType().isAnnotationPresent(SkipResponseWrapper.class)) {
-      return false;
-    }
-
-    // 检查返回类型是否为ResponseEntity或Resource
-    Class<?> returnType = handlerMethod.getReturnType().getParameterType();
-    return !ResponseEntity.class.isAssignableFrom(returnType) &&
-        !Resource.class.isAssignableFrom(returnType);
-  }
-
-  private Schema<?> createSuccessSchema(Schema<?> dataSchema, RequestDetails requestDetails) {
+  private Schema<?> createSuccessApiResponseSchema(Schema<?> dataSchema, RequestDetails requestDetails) {
     // 创建成功响应的统一 Schema
     final Object dataExample = generateExampleFromSchema(dataSchema);
     final Object processedDataExample =
@@ -259,7 +255,7 @@ public class OpenAPIConfig {
             .example(HttpStatus.OK.value()))
         .addProperty("message", new StringSchema()
             .description("A brief message describing the result of the operation.")
-            .example("success"))
+            .example(HttpStatus.OK.getReasonPhrase()))
         .addProperty("data", dataSchema
             .description("The actual data returned by the operation.")
             .example(processedDataExample))
@@ -277,36 +273,45 @@ public class OpenAPIConfig {
             .example("123e4567-e89b-12d3-a456-426614174000"));
   }
 
-  private Schema<?> createErrorApiResponseSchema(Schema<?> errorFieldSchema, Schema<?> errorInfoSchema) {
-    // 创建错误响应的统一 Schema
-    return new Schema<>()
-        .type("object")
-        .addProperty("code", new IntegerSchema())
-        .addProperty("message", new StringSchema())
-        .addProperty("data", new Schema<>().type("object"))
-        .addProperty("error", errorInfoSchema)
-        .addProperty("details", new ArraySchema().items(errorFieldSchema))
-        .addProperty("path", new StringSchema())
-        .addProperty("method", new StringSchema())
-        .addProperty("timestamp", new Schema<>().type("string").format("date-time"))
-        .addProperty("correlationId", new StringSchema());
-  }
-
-  private Schema<?> createErrorFieldSchema() {
-    // 创建 ErrorField Schema
-    return new Schema<>()
+  private void addErrorApiResponseSchema(Components components, RequestDetails requestDetails, HttpStatus httpStatus) {
+    final Schema<?> errorFieldSchema = new Schema<>()
         .type("object")
         .addProperty("code", new StringSchema())
         .addProperty("message", new StringSchema());
-  }
+    components.addSchemas("ErrorField", errorFieldSchema);
 
-  private Schema<?> createErrorInfoSchema() {
-    // 创建 ErrorInfo Schema
-    return new Schema<>()
+    Schema<?> errorInfoSchema = new Schema<>()
         .type("object")
         .addProperty("field", new StringSchema())
         .addProperty("message", new StringSchema())
         .addProperty("args", new ArraySchema().items(new Schema<>().type("object")));
+    components.addSchemas("ErrorInfo", errorInfoSchema);
+
+    final Schema<?> errorApiResponseSchema = new Schema<>()
+        .type("object")
+        .addProperty("code", new IntegerSchema()
+            .description("HTTP status code indicating the result of the operation.")
+            .example(httpStatus.value()))
+        .addProperty("message", new StringSchema()
+            .description("A brief message describing the result of the operation.")
+            .example(httpStatus.getReasonPhrase()))
+        .addProperty("data", new ObjectSchema()
+            .description("The actual data returned by the operation."))
+        .addProperty("error", errorInfoSchema)
+        .addProperty("details", new ArraySchema().items(errorFieldSchema))
+        .addProperty("path", new StringSchema()
+            .description("The request path that was accessed.")
+            .example(requestDetails.requestPath))
+        .addProperty("method", new StringSchema()
+            .description("The HTTP method used for the request.")
+            .example(requestDetails.requestMethod))
+        .addProperty("timestamp", new DateTimeSchema()
+            .description("The timestamp when the response was generated.")
+            .example("2025-06-29T10:18:58.923Z"))
+        .addProperty("correlationId", new StringSchema()
+            .description("A unique identifier for tracing the request across systems.")
+            .example("123e4567-e89b-12d3-a456-426614174000"));
+    components.addSchemas("ErrorApiResponse", errorApiResponseSchema);
   }
 
   private Object generateExampleFromSchema(Schema<?> schema) {
