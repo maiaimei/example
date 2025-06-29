@@ -141,130 +141,89 @@ public class OpenAPIConfig {
       final Schema<?> errorInfoSchema = createErrorInfoSchema();
       final Schema<?> errorResponseSchema = createErrorApiResponseSchema(errorFieldSchema, errorInfoSchema);
 
-      // 创建统一响应示例
-      //final Example successExample = createOkExample();
-
-      // 遍历所有路径
-      openAPI.getPaths().forEach((path, pathItem) -> {
-        // 处理所有HTTP方法
-        Stream.of(pathItem.getGet(), pathItem.getPost(), pathItem.getPut(),
-                pathItem.getDelete(), pathItem.getPatch())
-            .filter(Objects::nonNull)
-            .forEach(operation -> {
-              // 使用 operationId 获取对应的 HandlerMethod
-              String operationId = operation.getOperationId();
-              if (operationId != null) {
-                try {
-                  // 解析 operationId 获取类名和方法名
-                  String[] parts = operationId.split("_");
-                  if (parts.length == 2) {
-                    String className = parts[0];
-                    String methodName = parts[1];
-
-                    // 获取对应的 Controller 类
-                    Class<?> controllerClass = Class.forName(className);
-
-                    // 查找匹配的方法
-                    Method[] methods = controllerClass.getDeclaredMethods();
-                    Optional<Method> targetMethod = Arrays.stream(methods)
-                        .filter(m -> m.getName().equals(methodName))
-                        .findFirst();
-
-                    if (targetMethod.isPresent()) {
-                      Method method = targetMethod.get();
-                      HandlerMethod handlerMethod = new HandlerMethod(
-                          applicationContext.getBean(controllerClass),
-                          method
-                      );
-
-                      // 检查是否需要包装响应
-                      if (shouldWrapResponse(handlerMethod)) {
-                        // 处理200响应
-                        ApiResponse originalResponse = operation.getResponses().get("200");
-                        Schema<?> originalSchema;
-
-                        // 如果没有200响应，创建一个新的
-                        if (originalResponse == null) {
-                          originalResponse = new ApiResponse();
-                          operation.getResponses().put("200", originalResponse);
-                        }
-
-                        // 如果没有content，创建一个新的
-                        if (originalResponse.getContent() == null) {
-                          originalResponse.setContent(new Content());
-                        }
-
-                        // 获取或创建 application/json MediaType
-                        MediaType mediaType = originalResponse.getContent().get("application/json");
-                        if (mediaType == null) {
-                          mediaType = new MediaType();
-                          originalResponse.getContent().addMediaType("application/json", mediaType);
-                        }
-
-                        // 获取原始Schema
-                        if (mediaType.getSchema() != null) {
-                          originalSchema = mediaType.getSchema();
-                        } else {
-                          // 如果没有Schema，创建一个默认的
-                          originalSchema = inferSchemaFromMethod(handlerMethod, converters);
-                        }
-
-                        if (StringUtils.hasText(originalSchema.getName())) {
-                          final Schema<?> successApiResponseSchema = createSuccessApiResponseSchema(originalSchema);
-                          components.addSchemas("SuccessApiResponse" + originalSchema.getName(), successApiResponseSchema);
-
-                          // 创建成功响应的包装 Schema
-                          Schema<?> wrappedSuccessSchema = new Schema<>()
-                              .type("object")
-                              .$ref("#/components/schemas/SuccessApiResponse" + originalSchema.getName());
-
-                          // 更新成功响应
-                          Content successContent = new Content()
-                              .addMediaType("application/json",
-                                  new MediaType()
-                                      .schema(wrappedSuccessSchema));
-
-                          operation.getResponses().put("200",
-                              new ApiResponse()
-                                  .description("Successful operation")
-                                  .content(successContent));
-                        } else {
-                          final Schema<?> successResponseSchema = createSuccessApiResponseSchema(null);
-                          components.addSchemas("SuccessApiResponse", successResponseSchema);
-
-                          // 创建成功响应的包装 Schema
-                          Schema<?> wrappedSuccessSchema = new Schema<>()
-                              .type("object")
-                              .$ref("#/components/schemas/SuccessApiResponse");
-
-                          // 更新成功响应
-                          Content successContent = new Content()
-                              .addMediaType("application/json",
-                                  new MediaType()
-                                      .schema(wrappedSuccessSchema));
-
-                          operation.getResponses().put("200",
-                              new ApiResponse()
-                                  .description("Successful operation")
-                                  .content(successContent));
-                        }
-
-                      }
-                    }
-                  }
-                } catch (Exception e) {
-                  // 处理异常
-                  log.warn("Failed to process operation: " + operationId, e);
-                }
-              }
-            });
-      });
-
       // 添加统一响应schema到组件
       components.addSchemas("ErrorApiResponse", errorResponseSchema);
       components.addSchemas("ErrorInfo", errorInfoSchema);
       components.addSchemas("ErrorField", errorFieldSchema);
+
+      // 遍历所有路径并处理操作
+      openAPI.getPaths().forEach((path, pathItem) -> processPathItem(pathItem, components, converters));
     };
+  }
+
+  private void processPathItem(PathItem pathItem, Components components, ModelConverters converters) {
+    Stream.of(pathItem.getGet(), pathItem.getPost(), pathItem.getPut(), pathItem.getDelete(), pathItem.getPatch())
+        .filter(Objects::nonNull)
+        .forEach(operation -> processOperation(operation, components, converters));
+  }
+
+  private void processOperation(Operation operation, Components components, ModelConverters converters) {
+    String operationId = operation.getOperationId();
+    if (Objects.isNull(operationId)) {
+      return;
+    }
+
+    try {
+      String[] parts = operationId.split("_");
+      if (parts.length != 2) {
+        return;
+      }
+
+      String className = parts[0];
+      String methodName = parts[1];
+
+      Class<?> controllerClass = Class.forName(className);
+      Method method = Arrays.stream(controllerClass.getDeclaredMethods())
+          .filter(m -> m.getName().equals(methodName))
+          .findFirst()
+          .orElse(null);
+
+      if (Objects.isNull(method)) {
+        return;
+      }
+
+      HandlerMethod handlerMethod = new HandlerMethod(applicationContext.getBean(controllerClass), method);
+
+      if (shouldWrapResponse(handlerMethod)) {
+        wrapResponse(operation, handlerMethod, components, converters);
+      }
+    } catch (Exception e) {
+      log.warn("Failed to process operation: {}", operationId, e);
+    }
+  }
+
+  private void wrapResponse(Operation operation, HandlerMethod handlerMethod, Components components, ModelConverters converters) {
+    ApiResponse originalResponse = operation.getResponses().computeIfAbsent("200", k -> new ApiResponse());
+
+    if (Objects.isNull(originalResponse.getContent())) {
+      originalResponse.setContent(new Content());
+    }
+
+    MediaType mediaType = originalResponse.getContent().get("application/json");
+    if (Objects.isNull(mediaType)) {
+      mediaType = new MediaType();
+      originalResponse.getContent().addMediaType("application/json", mediaType);
+    }
+
+    Schema<?> originalSchema = Objects.nonNull(mediaType.getSchema())
+        ? mediaType.getSchema()
+        : inferSchemaFromMethod(handlerMethod, converters);
+
+    Schema<?> successSchema = createSuccessSchema(originalSchema);
+    String successSchemaName = StringUtils.hasText(originalSchema.getName())
+        ? "SuccessApiResponse%s".formatted(originalSchema.getName())
+        : "SuccessApiResponse";
+
+    components.addSchemas(successSchemaName, successSchema);
+
+    Content successContent = new Content()
+        .addMediaType("application/json", new MediaType().schema(
+            new Schema<>().type("object").$ref("#/components/schemas/%s".formatted(successSchemaName))
+        ));
+
+    operation.getResponses().put("200", new ApiResponse()
+        .description("Successful operation")
+        .content(successContent));
   }
 
   private boolean shouldWrapResponse(HandlerMethod handlerMethod) {
@@ -280,7 +239,7 @@ public class OpenAPIConfig {
         !Resource.class.isAssignableFrom(returnType);
   }
 
-  private Schema<?> createSuccessApiResponseSchema(Schema<?> dataSchema) {
+  private Schema<?> createSuccessSchema(Schema<?> dataSchema) {
     // 创建成功响应的统一 Schema
     return new Schema<>()
         .type("object")
@@ -377,7 +336,7 @@ public class OpenAPIConfig {
           new Schema<>().type("object");
 
     } catch (Exception e) {
-      log.warn("Failed to generate schema for type: " + returnType, e);
+      log.warn("Failed to generate schema for type: {}", returnType, e);
       return new Schema<>().type("object");
     }
   }
