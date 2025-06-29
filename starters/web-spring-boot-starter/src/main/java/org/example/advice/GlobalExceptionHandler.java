@@ -32,7 +32,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
  * </p>
  */
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "org.example")
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
