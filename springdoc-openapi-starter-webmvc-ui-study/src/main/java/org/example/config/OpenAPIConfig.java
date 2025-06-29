@@ -28,6 +28,7 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SpringDocConfigProperties;
 import org.springdoc.core.providers.ObjectMapperProvider;
 import org.springdoc.webmvc.api.OpenApiResource;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -246,6 +247,11 @@ public class OpenAPIConfig {
 
   private Schema<?> createSuccessSchema(Schema<?> dataSchema, RequestDetails requestDetails) {
     // 创建成功响应的统一 Schema
+    final Object dataExample = generateExampleFromSchema(dataSchema);
+    final Object processedDataExample =
+        Objects.nonNull(dataExample) && !BeanUtils.isSimpleValueType(dataExample.getClass())
+            ? JsonUtils.toJsonString(dataExample)
+            : dataExample;
     return new Schema<>()
         .type("object")
         .addProperty("code", new IntegerSchema()
@@ -256,7 +262,7 @@ public class OpenAPIConfig {
             .example("success"))
         .addProperty("data", dataSchema
             .description("The actual data returned by the operation.")
-            .example(generateExampleFromSchema(dataSchema)))
+            .example(processedDataExample))
         .addProperty("path", new StringSchema()
             .description("The request path that was accessed.")
             .example(requestDetails.requestPath))
@@ -304,28 +310,33 @@ public class OpenAPIConfig {
   }
 
   private Object generateExampleFromSchema(Schema<?> schema) {
-    final Map<String, Schema> properties = schema.getProperties();
-    if (!CollectionUtils.isEmpty(properties)) {
-      Map<String, Object> examples = generateExampleFromProperties(properties);
-      return CollectionUtils.isEmpty(examples) ? "" : JsonUtils.toJsonString(examples);
-    }
     if (schema instanceof ArraySchema arraySchema) {
+      // 处理 ArraySchema 类型
       final Schema<?> items = arraySchema.getItems();
-      Map<String, Object> examples = generateExampleFromProperties(items.getProperties());
-      return CollectionUtils.isEmpty(examples) ? "" : JsonUtils.toJsonString(List.of(examples));
-    }
-    return schema.getExample();
-  }
-
-  private Map<String, Object> generateExampleFromProperties(Map<String, Schema> properties) {
-    if (!CollectionUtils.isEmpty(properties)) {
+      if (items != null) {
+        final Object itemExample = generateExampleFromSchema(items);
+        return Objects.nonNull(itemExample) ? List.of(itemExample) : null;
+      }
+    } else if (!CollectionUtils.isEmpty(schema.getProperties())) {
+      // 处理 ObjectSchema 类型
       Map<String, Object> examples = new LinkedHashMap<>();
+      final Map<String, Schema> properties = schema.getProperties();
       for (Entry<String, Schema> entry : properties.entrySet()) {
-        examples.put(entry.getKey(), entry.getValue().getExample());
+        final Schema<?> value = entry.getValue();
+        if (value instanceof ArraySchema arraySchema) {
+          // 递归处理嵌套的 ArraySchema
+          final Schema<?> nestedItems = arraySchema.getItems();
+          final Object nestedItemsExample = generateExampleFromSchema(nestedItems);
+          examples.put(entry.getKey(), Objects.nonNull(nestedItemsExample) ? List.of(nestedItemsExample) : null);
+        } else {
+          // 使用属性的 example 或递归生成
+          examples.put(entry.getKey(), value.getExample() != null ? value.getExample() : generateExampleFromSchema(value));
+        }
       }
       return examples;
     }
-    return null;
+
+    return schema.getExample();
   }
 
   private Schema<?> inferSchemaFromMethod(HandlerMethod handlerMethod, ModelConverters converters) {

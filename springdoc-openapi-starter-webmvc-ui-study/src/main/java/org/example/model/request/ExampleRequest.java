@@ -20,7 +20,7 @@ public class ExampleRequest {
   @Schema(description = "The field of String", example = "This is string field", requiredMode = RequiredMode.REQUIRED)
   private String stringField;
 
-  @Schema(description = "The field of LocalDateTime", example = "2025-05-15T21:14:26.858234600")
+  @Schema(description = "The field of LocalDateTime", example = "2025-06-29T10:18:58.923Z", type = "string", format = "date-time")
   private LocalDateTime localDateTimeField;
 
   @Schema(description = "The field of Boolean", example = "true")
