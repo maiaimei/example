@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
 import org.example.utils.DateTimeUtils;
@@ -35,6 +37,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 
 /**
@@ -192,7 +196,9 @@ public class OpenAPIConfig {
     }
   }
 
-  private void wrapResponse(Operation operation, HandlerMethod handlerMethod, Components components, ModelConverters converters) {
+  private void wrapResponse(Operation operation, HandlerMethod handlerMethod, Components components,
+      ModelConverters converters) {
+    final RequestDetails requestDetails = extractRequestDetails(handlerMethod);
     ApiResponse originalResponse = operation.getResponses().computeIfAbsent("200", k -> new ApiResponse());
 
     if (Objects.isNull(originalResponse.getContent())) {
@@ -209,7 +215,7 @@ public class OpenAPIConfig {
         ? mediaType.getSchema()
         : inferSchemaFromMethod(handlerMethod, converters);
 
-    Schema<?> successSchema = createSuccessSchema(originalSchema);
+    Schema<?> successSchema = createSuccessSchema(originalSchema, requestDetails);
     String successSchemaName = StringUtils.hasText(originalSchema.getName())
         ? "SuccessApiResponse%s".formatted(originalSchema.getName())
         : "SuccessApiResponse";
@@ -218,8 +224,7 @@ public class OpenAPIConfig {
 
     Content successContent = new Content()
         .addMediaType("application/json", new MediaType().schema(
-            new Schema<>().type("object").$ref("#/components/schemas/%s".formatted(successSchemaName))
-        ));
+            new Schema<>().type("object").$ref("#/components/schemas/%s".formatted(successSchemaName))));
 
     operation.getResponses().put("200", new ApiResponse()
         .description("Successful operation")
@@ -239,17 +244,30 @@ public class OpenAPIConfig {
         !Resource.class.isAssignableFrom(returnType);
   }
 
-  private Schema<?> createSuccessSchema(Schema<?> dataSchema) {
+  private Schema<?> createSuccessSchema(Schema<?> dataSchema, RequestDetails requestDetails) {
     // 创建成功响应的统一 Schema
     return new Schema<>()
         .type("object")
-        .addProperty("code", new IntegerSchema())
-        .addProperty("message", new StringSchema())
-        .addProperty("data", dataSchema)
-        .addProperty("path", new StringSchema())
-        .addProperty("method", new StringSchema())
-        .addProperty("timestamp", new Schema<>().type("string").format("date-time"))
-        .addProperty("correlationId", new StringSchema());
+        .addProperty("code", new IntegerSchema()
+            .description("HTTP status code indicating the result of the operation.")
+            .example(HttpStatus.OK.value()))
+        .addProperty("message", new StringSchema()
+            .description("A brief message describing the result of the operation.")
+            .example("success"))
+        .addProperty("data", dataSchema
+            .description("The actual data returned by the operation."))
+        .addProperty("path", new StringSchema()
+            .description("The request path that was accessed.")
+            .example(requestDetails.requestPath))
+        .addProperty("method", new StringSchema()
+            .description("The HTTP method used for the request.")
+            .example(requestDetails.requestMethod))
+        .addProperty("timestamp", new DateTimeSchema()
+            .description("The timestamp when the response was generated.")
+            .example("2025-06-29T10:18:58.923Z"))
+        .addProperty("correlationId", new StringSchema()
+            .description("A unique identifier for tracing the request across systems.")
+            .example("123e4567-e89b-12d3-a456-426614174000"));
   }
 
   private Schema<?> createErrorApiResponseSchema(Schema<?> errorFieldSchema, Schema<?> errorInfoSchema) {
@@ -294,8 +312,7 @@ public class OpenAPIConfig {
             "path", "/api/example",
             "method", "GET",
             "timestamp", DateTimeUtils.formatUtcTime(LocalDateTime.now()),
-            "correlationId", "123e4567-e89b-12d3-a456-426614174000"
-        ));
+            "correlationId", "123e4567-e89b-12d3-a456-426614174000"));
   }
 
   private Schema<?> inferSchemaFromMethod(HandlerMethod handlerMethod, ModelConverters converters) {
@@ -310,17 +327,14 @@ public class OpenAPIConfig {
         // 处理集合类型
         if (Collection.class.isAssignableFrom(rawType)) {
           Map<String, Schema> itemSchemaMap = converters.read(actualTypeArguments[0]);
-          Schema<?> itemSchema = !itemSchemaMap.isEmpty() ?
-              itemSchemaMap.values().iterator().next() :
-              new Schema<>().type("object");
+          Schema<?> itemSchema = !itemSchemaMap.isEmpty() ? itemSchemaMap.values().iterator().next()
+              : new Schema<>().type("object");
           return new ArraySchema().name(itemSchema.getName() + rawType.getSimpleName()).items(itemSchema);
         }
 
         // 处理其他泛型类型
         Map<String, Schema> schemaMap = converters.read(returnType);
-        return !schemaMap.isEmpty() ?
-            schemaMap.values().iterator().next() :
-            new Schema<>().type("object");
+        return !schemaMap.isEmpty() ? schemaMap.values().iterator().next() : new Schema<>().type("object");
       }
 
       // 处理基本类型
@@ -331,9 +345,7 @@ public class OpenAPIConfig {
 
       // 处理普通类型
       Map<String, Schema> schemaMap = converters.read(rawType);
-      return !schemaMap.isEmpty() ?
-          schemaMap.values().iterator().next() :
-          new Schema<>().type("object");
+      return !schemaMap.isEmpty() ? schemaMap.values().iterator().next() : new Schema<>().type("object");
 
     } catch (Exception e) {
       log.warn("Failed to generate schema for type: {}", returnType, e);
@@ -366,5 +378,35 @@ public class OpenAPIConfig {
       }
     }
     return new Schema<>().type("object");
+  }
+
+  private RequestDetails extractRequestDetails(HandlerMethod handlerMethod) {
+    // 获取类上的 @RequestMapping 注解
+    RequestMapping classRequestMapping = handlerMethod.getBeanType().getAnnotation(RequestMapping.class);
+    String[] classPaths = Objects.nonNull(classRequestMapping) ? classRequestMapping.value() : new String[]{};
+
+    // 获取方法上的 @RequestMapping 注解
+    RequestMapping methodRequestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
+    String[] methodPaths = Objects.nonNull(methodRequestMapping) ? methodRequestMapping.value() : new String[]{};
+
+    // 合并类路径和方法路径，确保数组不为空
+    String classPath = classPaths.length > 0 ? classPaths[0] : "";
+    String methodPath = methodPaths.length > 0 ? methodPaths[0] : "";
+    String requestPath = StringUtils.cleanPath("%s/%s".formatted(classPath, methodPath));
+
+    // 获取请求方法（GET, POST, etc.），确保数组不为空
+    RequestMethod[] requestMethods = Objects.nonNull(methodRequestMapping) ? methodRequestMapping.method()
+        : new RequestMethod[]{};
+    String requestMethod = requestMethods.length > 0 ? requestMethods[0].name() : "";
+
+    return new RequestDetails(requestPath, requestMethod);
+  }
+
+  @Data
+  @AllArgsConstructor
+  private static class RequestDetails {
+
+    private String requestPath;
+    private String requestMethod;
   }
 }
