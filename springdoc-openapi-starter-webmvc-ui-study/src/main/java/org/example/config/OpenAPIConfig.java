@@ -11,11 +11,13 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.example.annotation.SkipResponseWrapper;
 import org.example.openapi.OpenAPIAdvancedCustomizer;
+import org.example.utils.DateTimeUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -27,6 +29,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.method.HandlerMethod;
 
@@ -130,19 +133,14 @@ public class OpenAPIConfig {
   public OpenApiCustomizer openApiCustomizer() {
     return openAPI -> {
       // 创建统一响应的schema
-      Schema<?> unifiedResponseSchema = new Schema<>()
-          .type("object")
-          .addProperty("code", new IntegerSchema())
-          .addProperty("message", new StringSchema())
-          .addProperty("data", new Schema<>().type("object"));
+      final Schema<?> errorFieldSchema = createErrorFieldSchema();
+      final Schema<?> errorInfoSchema = createErrorInfoSchema();
+      final Schema<?> successResponseSchema = createSuccessResponseSchema();
+      final Schema<?> errorResponseSchema = createErrorResponseSchema(errorFieldSchema, errorInfoSchema);
 
-      // 创建成功响应示例
-      Example successExample = new Example()
-          .value(Map.of(
-              "code", 200,
-              "message", "操作成功",
-              "data", Map.of("example", "value")
-          ));
+      // 创建统一响应示例
+      final Example successExample = createOkExample();
+      final Example badRequestErrorExample = createBadRequestExample();
 
       // 遍历所有路径
       openAPI.getPaths().forEach((path, pathItem) -> {
@@ -186,21 +184,26 @@ public class OpenAPIConfig {
                           if (mediaType != null && mediaType.getSchema() != null) {
                             Schema<?> originalSchema = mediaType.getSchema();
 
-                            // 创建新的包装响应schema
-                            Schema<?> wrappedSchema = new Schema<>()
+                            // 创建成功响应的包装 Schema
+                            Schema<?> wrappedSuccessSchema = new Schema<>()
                                 .type("object")
-                                .addProperty("code", new IntegerSchema())
-                                .addProperty("message", new StringSchema())
-                                .addProperty("data", originalSchema);
+                                .$ref("#/components/schemas/SuccessApiResponse");
+
+                            // 设置 data 属性为原始 Schema
+                            ((Schema<?>) openAPI.getComponents()
+                                .getSchemas()
+                                .get("SuccessApiResponse"))
+                                .getProperties()
+                                .put("data", originalSchema);
 
                             // 更新响应
                             Content content = new Content()
                                 .addMediaType("application/json",
-                                    new MediaType().schema(wrappedSchema)
-                                        .addExamples("success", successExample));
+                                    new MediaType()
+                                        .schema(wrappedSuccessSchema)
+                                        .addExamples("200", successExample));
 
-                            operation.getResponses().put("200",
-                                new ApiResponse().content(content));
+                            operation.getResponses().put("200", new ApiResponse().content(content));
                           }
                         }
                       }
@@ -215,7 +218,10 @@ public class OpenAPIConfig {
       });
 
       // 添加统一响应schema到组件
-      openAPI.getComponents().addSchemas("UnifiedResponse", unifiedResponseSchema);
+      openAPI.getComponents().addSchemas("SuccessApiResponse", successResponseSchema);
+      openAPI.getComponents().addSchemas("ErrorApiResponse", errorResponseSchema);
+      openAPI.getComponents().addSchemas("ErrorInfo", errorInfoSchema);
+      openAPI.getComponents().addSchemas("ErrorField", errorFieldSchema);
     };
   }
 
@@ -230,5 +236,87 @@ public class OpenAPIConfig {
     Class<?> returnType = handlerMethod.getReturnType().getParameterType();
     return !ResponseEntity.class.isAssignableFrom(returnType) &&
         !Resource.class.isAssignableFrom(returnType);
+  }
+
+  private Schema<?> createSuccessResponseSchema() {
+    // 创建成功响应的统一 Schema
+    return new Schema<>()
+        .type("object")
+        .addProperty("code", new IntegerSchema())
+        .addProperty("message", new StringSchema())
+        .addProperty("data", new Schema<>().type("object"))
+        .addProperty("path", new StringSchema())
+        .addProperty("method", new StringSchema())
+        .addProperty("timestamp", new Schema<>().type("string").format("date-time"))
+        .addProperty("correlationId", new StringSchema());
+  }
+
+  private Schema<?> createErrorResponseSchema(Schema<?> errorFieldSchema, Schema<?> errorInfoSchema) {
+    // 创建错误响应的统一 Schema
+    return new Schema<>()
+        .type("object")
+        .addProperty("code", new IntegerSchema())
+        .addProperty("message", new StringSchema())
+        .addProperty("data", new Schema<>().type("object"))
+        .addProperty("error", errorInfoSchema)
+        .addProperty("details", new ArraySchema().items(errorFieldSchema))
+        .addProperty("path", new StringSchema())
+        .addProperty("method", new StringSchema())
+        .addProperty("timestamp", new Schema<>().type("string").format("date-time"))
+        .addProperty("correlationId", new StringSchema());
+  }
+
+  private Schema<?> createErrorFieldSchema() {
+    // 创建 ErrorField Schema
+    return new Schema<>()
+        .type("object")
+        .addProperty("code", new StringSchema())
+        .addProperty("message", new StringSchema());
+  }
+
+  private Schema<?> createErrorInfoSchema() {
+    // 创建 ErrorInfo Schema
+    return new Schema<>()
+        .type("object")
+        .addProperty("field", new StringSchema())
+        .addProperty("message", new StringSchema())
+        .addProperty("args", new ArraySchema().items(new Schema<>().type("object")));
+  }
+
+  private Example createOkExample() {
+    // 创建成功响应示例
+    return new Example()
+        .value(Map.of(
+            "code", HttpStatus.OK.value(),
+            "message", "操作成功",
+            "data", Map.of("example", "value"),
+            "path", "/api/example",
+            "method", "GET",
+            "timestamp", DateTimeUtils.formatUtcTime(LocalDateTime.now()),
+            "correlationId", "123e4567-e89b-12d3-a456-426614174000"
+        ));
+  }
+
+  private Example createBadRequestExample() {
+    // 创建错误响应示例
+    return new Example()
+        .value(Map.of(
+            "code", HttpStatus.BAD_REQUEST.value(),
+            "message", "请求参数错误",
+            "error", Map.of(
+                "code", "INVALID_PARAMETER",
+                "message", "参数验证失败"
+            ),
+            "details", List.of(
+                Map.of(
+                    "field", "username",
+                    "message", "用户名不能为空"
+                )
+            ),
+            "path", "/api/example",
+            "method", "POST",
+            "timestamp", DateTimeUtils.formatUtcTime(LocalDateTime.now()),
+            "correlationId", "123e4567-e89b-12d3-a456-426614174000"
+        ));
   }
 }
