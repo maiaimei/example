@@ -92,6 +92,12 @@ the sample request as following:
 }
 ```
 
+**table design**:
+id,user_id,name,type,party_type,product,location,visibility
+type: generic,customized
+party_type: bank, customer
+visibility: self, party
+
 **rules for the number of labels**:
 
 TBD
