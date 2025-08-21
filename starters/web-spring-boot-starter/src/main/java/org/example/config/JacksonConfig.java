@@ -1,7 +1,6 @@
 package org.example.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -10,25 +9,17 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
 import org.example.constants.DateConstants;
-import org.example.utils.JsonUtils;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JacksonConfig {
-
-  @PostConstruct
-  public void setUp() {
-    // TODO: JsonUtils.setObjectMapper(new ObjectMapper());
-    JsonUtils.setObjectMapper(new ObjectMapper());
-  }
 
   /**
    * 配置序列化特性
@@ -90,4 +81,5 @@ public class JacksonConfig {
     return builder -> builder
         .serializerByType(BigDecimal.class, new ToStringSerializer());
   }
+
 }

@@ -11,15 +11,20 @@ import java.io.IOException;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.example.exception.JsonConvertException;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * JSON 工具类
  */
 @Slf4j
-public class JsonUtils {
+public final class JsonUtils {
 
   private static ObjectMapper objectMapper;
+
+  private JsonUtils() {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * 对象转JSON字符串
@@ -200,6 +205,7 @@ public class JsonUtils {
   }
 
   public static ObjectMapper getObjectMapper() {
+    Assert.notNull(JsonUtils.objectMapper, "The objectMapper must not be null");
     return JsonUtils.objectMapper;
   }
 

@@ -2,7 +2,9 @@ package org.example.config;
 
 import static org.example.constants.WebConstants.ALL_PATHS;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.filter.CustomHiddenHttpMethodFilter;
+import org.example.filter.RequestLoggingFilter;
 import org.example.filter.TraceIdFilter;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -14,6 +16,12 @@ import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 @Configuration
 public class FilterConfig {
+
+  private final ObjectMapper objectMapper;
+
+  public FilterConfig(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   @Bean
   public FilterRegistrationBean<TraceIdFilter> traceIdFilterRegistrationBean() {
@@ -51,6 +59,15 @@ public class FilterConfig {
     registration.setFilter(new FormContentFilter());
     registration.addUrlPatterns(ALL_PATHS);
     registration.setOrder(2);
+    return registration;
+  }
+
+  @Bean
+  public FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilterRegistrationBean() {
+    FilterRegistrationBean<RequestLoggingFilter> registration = new FilterRegistrationBean<>();
+    registration.setFilter(new RequestLoggingFilter(objectMapper));
+    registration.addUrlPatterns(ALL_PATHS);
+    registration.setOrder(3);
     return registration;
   }
 

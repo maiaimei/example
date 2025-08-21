@@ -37,12 +37,13 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 
     try {
-      // 在请求处理前记录基本信息
+      // 1. 记录请求开始的基本信息
       logRequestStart(requestWrapper);
 
+      // 2. 先执行 filter chain，这样请求体才会被读取和缓存
       filterChain.doFilter(requestWrapper, response);
     } finally {
-      // 在请求处理后记录详细信息
+      // 3. 在 filter chain 执行后记录详细信息，此时才能获取到请求体
       logRequestDetails(requestWrapper);
     }
   }
