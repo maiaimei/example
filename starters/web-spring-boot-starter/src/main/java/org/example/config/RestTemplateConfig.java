@@ -2,7 +2,7 @@ package org.example.config;
 
 import java.io.IOException;
 import java.util.Collections;
-import org.example.constant.GlobalConstants;
+import org.example.constants.WebConstants;
 import org.example.utils.TraceIdUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ public class RestTemplateConfig {
 
       // 添加traceId到请求头
       request.getHeaders().add(
-          GlobalConstants.REQUEST_HEADER_TRACE_ID,
+          WebConstants.HEADER_X_TRACE_ID,
           TraceIdUtils.getTraceId());
 
       return execution.execute(request, body);

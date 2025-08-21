@@ -11,21 +11,15 @@ import java.io.IOException;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.example.exception.JsonConvertException;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
  * JSON 工具类
  */
 @Slf4j
-@Component
 public class JsonUtils {
 
   private static ObjectMapper objectMapper;
-
-  public JsonUtils(ObjectMapper objectMapper) {
-    JsonUtils.objectMapper = objectMapper;
-  }
 
   /**
    * 对象转JSON字符串
@@ -199,6 +193,10 @@ public class JsonUtils {
       }
     }
     return mainNode;
+  }
+
+  public static void setObjectMapper(ObjectMapper objectMapper) {
+    JsonUtils.objectMapper = objectMapper;
   }
 
   public static ObjectMapper getObjectMapper() {

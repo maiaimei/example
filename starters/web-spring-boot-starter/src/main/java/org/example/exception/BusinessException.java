@@ -1,7 +1,7 @@
 package org.example.exception;
 
 import lombok.Getter;
-import org.example.constant.ErrorCode;
+import org.example.enumeration.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 @Getter
