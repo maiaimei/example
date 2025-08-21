@@ -42,32 +42,34 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
     ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
+    // 记录开始时间
+    long startTime = System.currentTimeMillis();
+
     try {
       // 1. 记录请求开始的基本信息
-      logRequestStart(requestWrapper);
+      log.info("Started {} request to {}", request.getMethod(), request.getRequestURI());
 
       // 2. 先执行 filter chain，这样请求体才会被读取和缓存
       filterChain.doFilter(requestWrapper, responseWrapper);
     } finally {
       // 3. 在 filter chain 执行后记录请求和响应详细信息，此时才能获取到请求体
-      logRequestAndResponseDetails(requestWrapper, responseWrapper);
+      log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(requestWrapper)));
+      log.info("Response details: {}", JsonUtils.toJson(collectResponseDetails(responseWrapper)));
 
       // 4. 必须复制响应内容到原始响应对象
       responseWrapper.copyBodyToResponse();
-    }
-  }
 
-  private void logRequestStart(HttpServletRequest request) {
-    String queryString = Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse("");
-    log.info("Started {} request to {}{}", request.getMethod(), request.getRequestURI(), queryString);
-  }
+      long duration = System.currentTimeMillis() - startTime;
 
-  private void logRequestAndResponseDetails(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response) {
-    try {
-      log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(request)));
-      log.info("Response details: {}", JsonUtils.toJson(collectResponseDetails(response)));
-    } catch (Exception e) {
-      log.error("Error logging request or response details", e);
+      // 记录执行时间
+      log.info("Ended {} request to {} - Status: {}, Execution time: {} ms",
+          request.getMethod(), request.getRequestURI(), response.getStatus(), duration);
+
+      // 对于较长时间的请求，可以添加警告日志
+      if (duration > 5000) { // 5秒阈值可配置
+        log.warn("Slow request detected! Execution time: {} ms - {} {}",
+            duration, request.getMethod(), request.getRequestURI());
+      }
     }
   }
 
