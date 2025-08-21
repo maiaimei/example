@@ -1,6 +1,6 @@
 package org.example.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.example.utils.JsonUtils;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,12 +19,6 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 
 @Slf4j
 public class RequestLoggingFilter extends OncePerRequestFilter {
-
-  private final ObjectMapper objectMapper;
-
-  public RequestLoggingFilter(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-  }
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -85,7 +80,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         byte[] content = request.getContentAsByteArray();
         if (content.length > 0) {
           String bodyContent = new String(content, StandardCharsets.UTF_8);
-          requestInfo.put("body", bodyContent);
+          final Map<String, Object> bodyMap = JsonUtils.toObject(bodyContent, new TypeReference<>() {
+          });
+          requestInfo.put("body", bodyMap);
         }
       } else if (contentType.contains(MediaType.MULTIPART_FORM_DATA_VALUE)) {
         // Multipart 请求处理
@@ -115,8 +112,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
     // 将请求信息转换为JSON格式并记录
     try {
-      String requestLog = objectMapper.writerWithDefaultPrettyPrinter()
-          .writeValueAsString(requestInfo);
+      String requestLog = JsonUtils.toJson(requestInfo);
       log.info("Request details: {}", requestLog);
     } catch (Exception e) {
       log.error("Error logging request details", e);
