@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.example.utils.JsonUtils;
 import org.springframework.http.MediaType;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
@@ -44,10 +43,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
   }
 
   private void logRequestStart(HttpServletRequest request) {
-    log.info("Started {} request to {}",
-        request.getMethod(),
-        request.getRequestURI() + (StringUtils.hasText(request.getQueryString()) ? "?" + request.getQueryString() : "")
-    );
+    String queryString = Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse("");
+    log.info("Started {} request to {}{}", request.getMethod(), request.getRequestURI(), queryString);
   }
 
   private void logRequestDetails(ContentCachingRequestWrapper request) throws IOException, ServletException {
@@ -60,53 +57,19 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     requestInfo.put("contentType", request.getContentType());
 
     // 请求头信息
-    Map<String, String> headers = Collections.list(request.getHeaderNames())
-        .stream()
-        .collect(Collectors.toMap(
-            headerName -> headerName,
-            request::getHeader,
-            (v1, v2) -> v1
-        ));
-    requestInfo.put("headers", headers);
+    requestInfo.put("headers", getRequestHeaders(request));
 
     // 请求参数
-    Map<String, String[]> parameters = request.getParameterMap();
-    requestInfo.put("parameters", parameters);
+    requestInfo.put("parameters", request.getParameterMap());
 
     // 请求体
     String contentType = request.getContentType();
     if (contentType != null) {
       if (contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
-        byte[] content = request.getContentAsByteArray();
-        if (content.length > 0) {
-          String bodyContent = new String(content, StandardCharsets.UTF_8);
-          final Map<String, Object> bodyMap = JsonUtils.toObject(bodyContent, new TypeReference<>() {
-          });
-          requestInfo.put("body", bodyMap);
-        }
+        requestInfo.put("body", getRequestBody(request));
       } else if (contentType.contains(MediaType.MULTIPART_FORM_DATA_VALUE)) {
         // Multipart 请求处理
-        Map<String, Object> multipartInfo = new HashMap<>();
-        Collection<Part> parts = request.getParts();
-
-        for (Part part : parts) {
-          Map<String, Object> partInfo = new HashMap<>();
-          partInfo.put("name", part.getName());
-          partInfo.put("contentType", part.getContentType());
-          partInfo.put("size", part.getSize());
-
-          if (part.getSubmittedFileName() != null) {
-            // 文件类型的 part
-            partInfo.put("filename", part.getSubmittedFileName());
-          } else {
-            // 非文件类型的 part，读取内容
-            String value = new String(part.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            partInfo.put("value", value);
-          }
-
-          multipartInfo.put(part.getName(), partInfo);
-        }
-        requestInfo.put("multipart", multipartInfo);
+        requestInfo.put("multipart", getMultipartInfo(request));
       }
     }
 
@@ -115,8 +78,56 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       String requestLog = JsonUtils.toJson(requestInfo);
       log.info("Request details: {}", requestLog);
     } catch (Exception e) {
-      log.error("Error logging request details", e);
+      log.error("Error logging request details for URI: {}", request.getRequestURI(), e);
     }
+  }
+
+  private Map<String, String> getRequestHeaders(HttpServletRequest request) {
+    return Collections.list(request.getHeaderNames())
+        .stream()
+        .collect(Collectors.toMap(
+            headerName -> headerName,
+            request::getHeader,
+            (v1, v2) -> v1
+        ));
+  }
+
+  private Map<String, Object> getMultipartInfo(HttpServletRequest request) throws IOException, ServletException {
+    Map<String, Object> multipartInfo = new HashMap<>();
+    Collection<Part> parts = request.getParts();
+
+    for (Part part : parts) {
+      Map<String, Object> partInfo = new HashMap<>();
+      partInfo.put("name", part.getName());
+      partInfo.put("contentType", part.getContentType());
+      partInfo.put("size", part.getSize());
+
+      if (part.getSubmittedFileName() != null) {
+        // 文件类型的 part
+        partInfo.put("filename", part.getSubmittedFileName());
+      } else {
+        // 非文件类型的 part，读取内容
+        String value = new String(part.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        partInfo.put("value", value);
+      }
+
+      multipartInfo.put(part.getName(), partInfo);
+    }
+    return multipartInfo;
+  }
+
+  private Map<String, Object> getRequestBody(ContentCachingRequestWrapper request) {
+    try {
+      byte[] content = request.getContentAsByteArray();
+      if (content.length > 0) {
+        String bodyContent = new String(content, StandardCharsets.UTF_8);
+        return JsonUtils.toObject(bodyContent, new TypeReference<>() {
+        });
+      }
+    } catch (Exception e) {
+      log.error("Error parsing request body for URI: {}", request.getRequestURI(), e);
+    }
+    return Collections.emptyMap();
   }
 
   @Override
