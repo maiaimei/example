@@ -5,7 +5,10 @@ import static org.example.constants.WebConstants.ALL_PATHS;
 import org.example.filter.CustomHiddenHttpMethodFilter;
 import org.example.filter.RequestLoggingFilter;
 import org.example.filter.TraceIdFilter;
+import org.example.properties.CustomFilterProperties;
+import org.example.properties.RequestLoggingProperties;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,12 +17,16 @@ import org.springframework.web.filter.FormContentFilter;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 @Configuration
+@EnableConfigurationProperties(value = {
+    CustomFilterProperties.class,
+    RequestLoggingProperties.class
+})
 public class FilterConfig {
 
   @Bean
-  public FilterRegistrationBean<TraceIdFilter> traceIdFilterRegistrationBean() {
+  public FilterRegistrationBean<TraceIdFilter> traceIdFilterRegistrationBean(CustomFilterProperties customFilterProperties) {
     FilterRegistrationBean<TraceIdFilter> registration = new FilterRegistrationBean<>();
-    TraceIdFilter filter = new TraceIdFilter();
+    TraceIdFilter filter = new TraceIdFilter(customFilterProperties);
     registration.setFilter(filter);
     registration.addUrlPatterns(ALL_PATHS);
     registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
@@ -56,9 +63,11 @@ public class FilterConfig {
   }
 
   @Bean
-  public FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilterRegistrationBean() {
+  public FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilterRegistrationBean(
+      CustomFilterProperties customFilterProperties,
+      RequestLoggingProperties requestLoggingProperties) {
     FilterRegistrationBean<RequestLoggingFilter> registration = new FilterRegistrationBean<>();
-    registration.setFilter(new RequestLoggingFilter());
+    registration.setFilter(new RequestLoggingFilter(customFilterProperties, requestLoggingProperties));
     registration.addUrlPatterns(ALL_PATHS);
     registration.setOrder(3);
     return registration;

@@ -1,17 +1,4 @@
-spring:
-  application:
-    name: spring-boot-study
-    group: spring
-  profiles:
-    active: dev
-
-# https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging
 logging:
-  include-application-name: false
-  include-application-group: false
-  config: classpath:logback-spring.xml # Custom Log Configuration
-  file:
-    path: logs
   request:
     use-custom-filter-exclude-paths: N
     # 配置不需要记录日志的路径

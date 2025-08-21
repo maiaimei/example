@@ -11,8 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.example.properties.CustomFilterProperties;
+import org.example.properties.RequestLoggingProperties;
 import org.example.utils.JsonUtils;
 import org.springframework.http.MediaType;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -21,13 +24,30 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 @Slf4j
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
+  private final List<String> excludePaths;
+  private final long slowRequestThresholdMs;
+  private final AntPathMatcher antPathMatcher;
+
+  public RequestLoggingFilter(CustomFilterProperties customFilterProperties, RequestLoggingProperties requestLoggingProperties) {
+    this.excludePaths = getExcludePaths(customFilterProperties, requestLoggingProperties);
+    this.slowRequestThresholdMs = requestLoggingProperties.getSlowRequestThresholdMs();
+    this.antPathMatcher = new AntPathMatcher();
+  }
+
+  private List<String> getExcludePaths(CustomFilterProperties customFilterProperties,
+      RequestLoggingProperties requestLoggingProperties) {
+    final List<String> paths = Optional.ofNullable(requestLoggingProperties.getExcludePaths()).orElseGet(ArrayList::new);
+    if ("Y".equalsIgnoreCase(requestLoggingProperties.getUseCustomFilterExcludePaths())) {
+      paths.addAll(Optional.ofNullable(customFilterProperties.getExcludePaths()).orElseGet(ArrayList::new));
+    }
+    return paths.stream().distinct().toList();
+  }
+
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    // 可以在这里添加不需要记录日志的路径
     String path = request.getRequestURI();
-    return path.contains("/actuator/") ||
-        path.contains("/swagger-ui/") ||
-        path.contains("/v3/api-docs");
+    // 检查当前路径是否匹配任何排除路径
+    return excludePaths.stream().anyMatch(pattern -> antPathMatcher.match(pattern, path));
   }
 
   @Override
@@ -66,7 +86,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
           request.getMethod(), request.getRequestURI(), response.getStatus(), duration);
 
       // 对于较长时间的请求，可以添加警告日志
-      if (duration > 5000) { // 5秒阈值可配置
+      if (duration > slowRequestThresholdMs) { // 5秒阈值可配置
         log.warn("Slow request detected! Execution time: {} ms - {} {}",
             duration, request.getMethod(), request.getRequestURI());
       }
