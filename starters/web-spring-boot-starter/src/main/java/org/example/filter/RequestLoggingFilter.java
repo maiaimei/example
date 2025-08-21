@@ -13,11 +13,22 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.example.utils.JsonUtils;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
 
 @Slf4j
 public class RequestLoggingFilter extends OncePerRequestFilter {
+
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    // 可以在这里添加不需要记录日志的路径
+    String path = request.getRequestURI();
+    return path.contains("/actuator/") ||
+        path.contains("/swagger-ui/") ||
+        path.contains("/v3/api-docs");
+  }
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -29,16 +40,20 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     }
 
     ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
+    ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
     try {
       // 1. 记录请求开始的基本信息
       logRequestStart(requestWrapper);
 
       // 2. 先执行 filter chain，这样请求体才会被读取和缓存
-      filterChain.doFilter(requestWrapper, response);
+      filterChain.doFilter(requestWrapper, responseWrapper);
     } finally {
-      // 3. 在 filter chain 执行后记录详细信息，此时才能获取到请求体
-      logRequestDetails(requestWrapper);
+      // 3. 在 filter chain 执行后记录请求和响应详细信息，此时才能获取到请求体
+      logRequestAndResponseDetails(requestWrapper, responseWrapper);
+
+      // 4. 必须复制响应内容到原始响应对象
+      responseWrapper.copyBodyToResponse();
     }
   }
 
@@ -47,39 +62,47 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     log.info("Started {} request to {}{}", request.getMethod(), request.getRequestURI(), queryString);
   }
 
-  private void logRequestDetails(ContentCachingRequestWrapper request) throws IOException, ServletException {
-    Map<String, Object> requestInfo = new HashMap<>();
+  private void logRequestAndResponseDetails(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response) {
+    try {
+      log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(request)));
+      log.info("Response details: {}", JsonUtils.toJson(collectResponseDetails(response)));
+    } catch (Exception e) {
+      log.error("Error logging request or response details", e);
+    }
+  }
 
-    // 基本请求信息
+  private Map<String, Object> collectRequestDetails(ContentCachingRequestWrapper request) throws IOException, ServletException {
+    Map<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("method", request.getMethod());
     requestInfo.put("path", request.getRequestURI());
     requestInfo.put("queryString", request.getQueryString());
     requestInfo.put("contentType", request.getContentType());
-
-    // 请求头信息
     requestInfo.put("headers", getRequestHeaders(request));
-
-    // 请求参数
     requestInfo.put("parameters", request.getParameterMap());
 
-    // 请求体
     String contentType = request.getContentType();
-    if (contentType != null) {
+    if (Objects.nonNull(contentType)) {
       if (contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
         requestInfo.put("body", getRequestBody(request));
       } else if (contentType.contains(MediaType.MULTIPART_FORM_DATA_VALUE)) {
-        // Multipart 请求处理
         requestInfo.put("multipart", getMultipartInfo(request));
       }
     }
+    return requestInfo;
+  }
 
-    // 将请求信息转换为JSON格式并记录
-    try {
-      String requestLog = JsonUtils.toJson(requestInfo);
-      log.info("Request details: {}", requestLog);
-    } catch (Exception e) {
-      log.error("Error logging request details for URI: {}", request.getRequestURI(), e);
+  private Map<String, Object> collectResponseDetails(ContentCachingResponseWrapper response) {
+    Map<String, Object> responseInfo = new HashMap<>();
+    responseInfo.put("status", response.getStatus());
+    responseInfo.put("headers", getResponseHeaders(response));
+    responseInfo.put("contentType", response.getContentType());
+
+    if (shouldLogResponseBody(response.getContentType())) {
+      responseInfo.put("body", getResponseBody(response));
+    } else {
+      responseInfo.put("body", "[BINARY CONTENT OR FILE - NOT LOGGED]");
     }
+    return responseInfo;
   }
 
   private Map<String, String> getRequestHeaders(HttpServletRequest request) {
@@ -88,6 +111,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         .collect(Collectors.toMap(
             headerName -> headerName,
             request::getHeader,
+            (v1, v2) -> v1
+        ));
+  }
+
+  private Map<String, String> getResponseHeaders(HttpServletResponse response) {
+    return response.getHeaderNames()
+        .stream()
+        .collect(Collectors.toMap(
+            headerName -> headerName,
+            response::getHeader,
             (v1, v2) -> v1
         ));
   }
@@ -102,7 +135,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       partInfo.put("contentType", part.getContentType());
       partInfo.put("size", part.getSize());
 
-      if (part.getSubmittedFileName() != null) {
+      if (Objects.nonNull(part.getSubmittedFileName())) {
         // 文件类型的 part
         partInfo.put("filename", part.getSubmittedFileName());
       } else {
@@ -125,18 +158,41 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         });
       }
     } catch (Exception e) {
-      log.error("Error parsing request body for URI: {}", request.getRequestURI(), e);
+      log.error("Error parsing request body", e);
     }
     return Collections.emptyMap();
   }
 
-  @Override
-  protected boolean shouldNotFilter(HttpServletRequest request) {
-    // 可以在这里添加不需要记录日志的路径
-    String path = request.getRequestURI();
-    return path.contains("/actuator/") ||
-        path.contains("/swagger-ui/") ||
-        path.contains("/v3/api-docs");
+  private Object getResponseBody(ContentCachingResponseWrapper response) {
+    try {
+      byte[] content = response.getContentAsByteArray();
+      if (content.length > 0) {
+        String bodyContent = new String(content, StandardCharsets.UTF_8);
+        final String contentType = response.getContentType();
+        if (Objects.nonNull(contentType) && contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
+          return JsonUtils.toObject(bodyContent, new TypeReference<>() {
+          });
+        }
+        return bodyContent;
+      }
+    } catch (Exception e) {
+      log.error("Error reading response body", e);
+    }
+    return null;
   }
+
+  private boolean shouldLogResponseBody(String contentType) {
+    if (!StringUtils.hasText(contentType)) {
+      return false;
+    }
+
+    return contentType.contains(MediaType.APPLICATION_JSON_VALUE) ||
+        contentType.contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE) ||
+        contentType.contains(MediaType.APPLICATION_XML_VALUE) ||
+        contentType.contains(MediaType.TEXT_PLAIN_VALUE) ||
+        contentType.contains(MediaType.TEXT_XML_VALUE) ||
+        contentType.contains(MediaType.TEXT_HTML_VALUE);
+  }
+
 }
 
