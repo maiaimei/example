@@ -11,6 +11,7 @@ public class UserDTO {
   private BigDecimal id;
   @NotBlank
   private String name;
+  @NotBlank
   private String phone;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
