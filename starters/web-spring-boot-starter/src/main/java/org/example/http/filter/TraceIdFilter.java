@@ -1,4 +1,4 @@
-package org.example.filter;
+package org.example.http.filter;
 
 import static org.example.constants.WebConstants.HEADER_X_TRACE_ID;
 import static org.example.constants.WebConstants.TRACE_ID;

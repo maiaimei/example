@@ -1,4 +1,4 @@
-package org.example.filter;
+package org.example.http.filter;
 
 import static org.example.constants.WebConstants.HEADER_X_HTTP_METHOD_OVERRIDE;
 

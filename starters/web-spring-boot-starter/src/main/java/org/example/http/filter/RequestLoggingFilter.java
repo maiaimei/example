@@ -1,4 +1,4 @@
-package org.example.filter;
+package org.example.http.filter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.servlet.FilterChain;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.example.http.CustomContentCachingRequestWrapper;
 import org.example.properties.CustomFilterProperties;
 import org.example.properties.RequestLoggingProperties;
 import org.example.util.JsonUtils;
@@ -59,24 +60,29 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       return;
     }
 
-    ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
+    // ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
+    CustomContentCachingRequestWrapper requestWrapper = new CustomContentCachingRequestWrapper(request);
     ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
     // 记录开始时间
     long startTime = System.currentTimeMillis();
 
     try {
-      // 1. 记录请求开始的基本信息
+      // 记录请求开始的基本信息
       log.info("Started {} request to {}", request.getMethod(), request.getRequestURI());
 
-      // 2. 先执行 filter chain，这样请求体才会被读取和缓存
+      // 如果使用 CustomContentCachingRequestWrapper，在执行 filter chain 前可以记录请求信息
+      log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(requestWrapper)));
+
       filterChain.doFilter(requestWrapper, responseWrapper);
     } finally {
-      // 3. 在 filter chain 执行后记录请求和响应详细信息，此时才能获取到请求体
-      log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(requestWrapper)));
+      // 如果使用 ContentCachingRequestWrapper，需要先执行 filter chain，才能获取请求体，在执行 filter chain 后才能记录请求信息
+      // log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(requestWrapper)));
+
+      // 记录响应信息
       log.info("Response details: {}", JsonUtils.toJson(collectResponseDetails(responseWrapper)));
 
-      // 4. 必须复制响应内容到原始响应对象
+      // 必须复制响应内容到原始响应对象
       responseWrapper.copyBodyToResponse();
 
       long duration = System.currentTimeMillis() - startTime;
@@ -90,6 +96,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         log.warn("Slow request detected! Execution time: {} ms - {} {}",
             duration, request.getMethod(), request.getRequestURI());
       }
+
+      requestWrapper.cleanup();
     }
   }
 

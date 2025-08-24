@@ -2,9 +2,9 @@ package org.example.config;
 
 import static org.example.constants.WebConstants.SINGLE_LEVEL_PATH_PATTERN;
 
-import org.example.filter.CustomHiddenHttpMethodFilter;
-import org.example.filter.RequestLoggingFilter;
-import org.example.filter.TraceIdFilter;
+import org.example.http.filter.CustomHiddenHttpMethodFilter;
+import org.example.http.filter.RequestLoggingFilter;
+import org.example.http.filter.TraceIdFilter;
 import org.example.properties.CustomFilterProperties;
 import org.example.properties.RequestLoggingProperties;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
@@ -13,7 +13,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.filter.FormContentFilter;
 
 @Configuration
@@ -70,19 +69,6 @@ public class FilterConfig {
     registrationBean.setFilter(new RequestLoggingFilter(customFilterProperties, requestLoggingProperties));
     registrationBean.addUrlPatterns(SINGLE_LEVEL_PATH_PATTERN);
     registrationBean.setOrder(3);
-    return registrationBean;
-  }
-
-  @Bean
-  public FilterRegistrationBean<CommonsRequestLoggingFilter> commonsRequestLoggingFilter() {
-    FilterRegistrationBean<CommonsRequestLoggingFilter> registrationBean = new FilterRegistrationBean<>();
-    CommonsRequestLoggingFilter requestLoggingFilter = new CommonsRequestLoggingFilter();
-    requestLoggingFilter.setIncludeQueryString(true);
-    requestLoggingFilter.setIncludePayload(true);
-    requestLoggingFilter.setMaxPayloadLength(10000);
-    registrationBean.setFilter(requestLoggingFilter);
-    registrationBean.addUrlPatterns(SINGLE_LEVEL_PATH_PATTERN);
-    registrationBean.setOrder(4);
     return registrationBean;
   }
 
