@@ -8,6 +8,7 @@ import jakarta.servlet.http.Part;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -89,6 +90,11 @@ public class CustomContentCachingRequestWrapper extends ContentCachingRequestWra
   @Override
   public byte[] getContentAsByteArray() {
     return this.cachedBody;
+  }
+
+  @Override
+  public String getContentAsString() {
+    return new String(this.cachedBody, Charset.forName(getCharacterEncoding()));
   }
 
   @Override
