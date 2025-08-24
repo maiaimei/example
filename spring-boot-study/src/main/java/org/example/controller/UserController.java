@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.example.model.ApiRequest;
-import org.example.model.UserDTO;
+import org.example.model.User;
 import org.example.util.IdGenerator;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,50 +15,51 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
 
-  private static final List<UserDTO> users = new ArrayList<>();
+  private static final List<User> users = new ArrayList<>();
 
   @GetMapping("/{id}")
-  public UserDTO get(BigDecimal id) {
+  public User get(BigDecimal id) {
     return users.stream().filter(user -> user.getId().equals(id)).findFirst().orElse(null);
   }
 
   @PostMapping
-  public UserDTO create(@RequestBody @Valid ApiRequest<UserDTO> apiRequest) {
-    final UserDTO userDTO = apiRequest.getData();
-    userDTO.setId(IdGenerator.nextId());
-    userDTO.setCreatedAt(LocalDateTime.now());
-    users.add(userDTO);
-    return userDTO;
+  public User create(@RequestBody @Valid ApiRequest<User> apiRequest) {
+    final User user = apiRequest.getData();
+    user.setId(IdGenerator.nextId());
+    user.setCreatedAt(LocalDateTime.now());
+    user.setUpdatedAt(user.getCreatedAt());
+    users.add(user);
+    return user;
   }
 
   @PutMapping
-  public UserDTO update(@RequestBody ApiRequest<UserDTO> apiRequest) {
-    final UserDTO userDTO = apiRequest.getData();
-    final UserDTO existingUserDTO = users.stream().filter(user -> user.getId().equals(userDTO.getId())).findFirst().orElse(null);
-    if (Objects.isNull(existingUserDTO)) {
-      //throw new BusinessException(ResponseCode.BUSINESS_ERROR, "Incorrect request");
+  public User update(@RequestBody ApiRequest<User> apiRequest) {
+    final User user = apiRequest.getData();
+    final User existingUser = users.stream().filter(u -> u.getId().equals(user.getId())).findFirst().orElse(null);
+    if (Objects.isNull(existingUser)) {
+      throw new RuntimeException("User not found");
     }
-    existingUserDTO.setName(userDTO.getName());
-    existingUserDTO.setPhone(userDTO.getPhone());
-    existingUserDTO.setUpdatedAt(LocalDateTime.now());
-    return existingUserDTO;
+    existingUser.setName(user.getName());
+    existingUser.setEmail(user.getEmail());
+    existingUser.setUpdatedAt(LocalDateTime.now());
+    return existingUser;
   }
 
   @PatchMapping
-  public UserDTO partialUpdate(@RequestBody ApiRequest<UserDTO> apiRequest) {
-    final UserDTO userDTO = apiRequest.getData();
-    final UserDTO existingUserDTO = users.stream().filter(user -> user.getId().equals(userDTO.getId())).findFirst().orElse(null);
-    if (Objects.isNull(existingUserDTO)) {
-      //throw new BusinessException(ResponseCode.BUSINESS_ERROR, "Incorrect request");
+  public User partialUpdate(@RequestBody ApiRequest<User> apiRequest) {
+    final User user = apiRequest.getData();
+    final User existingUser = users.stream().filter(u -> u.getId().equals(user.getId())).findFirst().orElse(null);
+    if (Objects.isNull(existingUser)) {
+      throw new RuntimeException("User not found");
     }
-    existingUserDTO.setPhone(userDTO.getPhone());
-    existingUserDTO.setUpdatedAt(LocalDateTime.now());
-    return existingUserDTO;
+    existingUser.setEmail(user.getEmail());
+    existingUser.setUpdatedAt(LocalDateTime.now());
+    return existingUser;
   }
 
   @DeleteMapping("/{id}")
   public String delete(BigDecimal id) {
-    return "删除成功";
+    return "User delete successfully";
   }
 
 }

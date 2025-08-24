@@ -4,21 +4,20 @@ import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.Part;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.io.*;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.WebUtils;
 
 @Slf4j
-public class CustomContentCachingRequestWrapper extends ContentCachingRequestWrapper {
+public class CustomContentCachingRequestWrapper extends HttpServletRequestWrapper {
 
+  private BufferedReader reader;
   private byte[] cachedBody;
   private Map<String, String[]> parameterMap;
   private Collection<Part> cachedParts;
@@ -40,7 +39,21 @@ public class CustomContentCachingRequestWrapper extends ContentCachingRequestWra
     if (this.isMultipart) {
       return super.getInputStream();
     }
-    return new CachedServletInputStream(this.cachedBody);
+    return new ContentCachingInputStream(this.cachedBody);
+  }
+
+  @Override
+  public String getCharacterEncoding() {
+    String enc = super.getCharacterEncoding();
+    return (Objects.nonNull(enc) ? enc : WebUtils.DEFAULT_CHARACTER_ENCODING);
+  }
+
+  @Override
+  public BufferedReader getReader() throws IOException {
+    if (this.reader == null) {
+      this.reader = new BufferedReader(new InputStreamReader(getInputStream(), getCharacterEncoding()));
+    }
+    return this.reader;
   }
 
   @Override
@@ -88,16 +101,6 @@ public class CustomContentCachingRequestWrapper extends ContentCachingRequestWra
   }
 
   @Override
-  public byte[] getContentAsByteArray() {
-    return this.cachedBody;
-  }
-
-  @Override
-  public String getContentAsString() {
-    return new String(this.cachedBody, Charset.forName(getCharacterEncoding()));
-  }
-
-  @Override
   public Part getPart(String name) throws IOException, ServletException {
     if (isMultipart) {
       return cachedParts.stream()
@@ -114,6 +117,10 @@ public class CustomContentCachingRequestWrapper extends ContentCachingRequestWra
       return Collections.unmodifiableCollection(cachedParts);
     }
     return super.getParts();
+  }
+
+  public byte[] getContentAsByteArray() {
+    return this.cachedBody;
   }
 
   public void cleanup() {
@@ -174,11 +181,11 @@ public class CustomContentCachingRequestWrapper extends ContentCachingRequestWra
     }
   }
 
-  private static class CachedServletInputStream extends ServletInputStream {
+  private static class ContentCachingInputStream extends ServletInputStream {
 
     private final ByteArrayInputStream buffer;
 
-    public CachedServletInputStream(byte[] contents) {
+    public ContentCachingInputStream(byte[] contents) {
       this.buffer = new ByteArrayInputStream(contents);
     }
 

@@ -6,13 +6,13 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class UserDTO {
+public class User {
 
   private BigDecimal id;
   @NotBlank
   private String name;
   @NotBlank
-  private String phone;
+  private String email;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }

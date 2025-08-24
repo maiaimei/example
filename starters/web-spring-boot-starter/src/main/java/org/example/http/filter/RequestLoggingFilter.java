@@ -19,7 +19,6 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 @Slf4j
@@ -101,7 +100,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     }
   }
 
-  private Map<String, Object> collectRequestDetails(ContentCachingRequestWrapper request) throws IOException, ServletException {
+  private Map<String, Object> collectRequestDetails(CustomContentCachingRequestWrapper request)
+      throws IOException, ServletException {
     Map<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("method", request.getMethod());
     requestInfo.put("path", request.getRequestURI());
@@ -155,21 +155,21 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         ));
   }
 
-  private void appendQueryString(ContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
+  private void appendQueryString(CustomContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
     final String queryString = request.getQueryString();
     if (StringUtils.hasText(queryString)) {
       requestInfo.put("queryString", queryString);
     }
   }
 
-  private void appendParameterMap(ContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
+  private void appendParameterMap(CustomContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
     final Map<String, String[]> parameterMap = request.getParameterMap();
     if (!CollectionUtils.isEmpty(parameterMap)) {
       requestInfo.put("parameters", parameterMap);
     }
   }
 
-  private void appendRequestBody(ContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
+  private void appendRequestBody(CustomContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
     try {
       byte[] content = request.getContentAsByteArray();
       if (content.length > 0) {
