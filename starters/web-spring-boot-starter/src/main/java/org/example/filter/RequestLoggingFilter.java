@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,7 @@ import org.example.properties.RequestLoggingProperties;
 import org.example.utils.JsonUtils;
 import org.springframework.http.MediaType;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -97,17 +97,17 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     Map<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("method", request.getMethod());
     requestInfo.put("path", request.getRequestURI());
-    requestInfo.put("queryString", request.getQueryString());
     requestInfo.put("contentType", request.getContentType());
     requestInfo.put("headers", getRequestHeaders(request));
-    requestInfo.put("parameters", request.getParameterMap());
+    appendQueryString(request, requestInfo);
+    appendParameterMap(request, requestInfo);
 
     String contentType = request.getContentType();
     if (Objects.nonNull(contentType)) {
       if (contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
-        requestInfo.put("body", getRequestBody(request));
+        appendRequestBody(request, requestInfo);
       } else if (contentType.contains(MediaType.MULTIPART_FORM_DATA_VALUE)) {
-        requestInfo.put("multipart", getMultipartInfo(request));
+        appendMultipartInfo(request, requestInfo);
       }
     }
     return requestInfo;
@@ -147,7 +147,36 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         ));
   }
 
-  private Map<String, Object> getMultipartInfo(HttpServletRequest request) throws IOException, ServletException {
+  private void appendQueryString(ContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
+    final String queryString = request.getQueryString();
+    if (StringUtils.hasText(queryString)) {
+      requestInfo.put("queryString", queryString);
+    }
+  }
+
+  private void appendParameterMap(ContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
+    final Map<String, String[]> parameterMap = request.getParameterMap();
+    if (!CollectionUtils.isEmpty(parameterMap)) {
+      requestInfo.put("parameters", parameterMap);
+    }
+  }
+
+  private void appendRequestBody(ContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
+    try {
+      byte[] content = request.getContentAsByteArray();
+      if (content.length > 0) {
+        String bodyContent = new String(content, request.getCharacterEncoding());
+        Map<String, Object> requestBody = JsonUtils.toObject(bodyContent, new TypeReference<>() {
+        });
+        requestInfo.put("body", requestBody);
+      }
+    } catch (Exception e) {
+      log.error("Error parsing request body", e);
+    }
+  }
+
+  private void appendMultipartInfo(HttpServletRequest request, Map<String, Object> requestInfo)
+      throws IOException, ServletException {
     Map<String, Object> multipartInfo = new HashMap<>();
     Collection<Part> parts = request.getParts();
 
@@ -162,36 +191,35 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         partInfo.put("filename", part.getSubmittedFileName());
       } else {
         // 非文件类型的 part，读取内容
-        String value = new String(part.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String value = new String(part.getInputStream().readAllBytes(), request.getCharacterEncoding());
         partInfo.put("value", value);
       }
 
       multipartInfo.put(part.getName(), partInfo);
     }
-    return multipartInfo;
+    if (!CollectionUtils.isEmpty(multipartInfo)) {
+      requestInfo.put("multipart", multipartInfo);
+    }
   }
 
-  private Map<String, Object> getRequestBody(ContentCachingRequestWrapper request) {
-    try {
-      byte[] content = request.getContentAsByteArray();
-      if (content.length > 0) {
-        String bodyContent = new String(content, StandardCharsets.UTF_8);
-        return JsonUtils.toObject(bodyContent, new TypeReference<>() {
-        });
-      }
-    } catch (Exception e) {
-      log.error("Error parsing request body", e);
-    }
-    return Collections.emptyMap();
+  private boolean shouldLogResponseBody(String contentType) {
+    return StringUtils.hasText(contentType) && (
+        contentType.contains(MediaType.APPLICATION_JSON_VALUE) ||
+            contentType.contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE) ||
+            contentType.contains(MediaType.APPLICATION_XML_VALUE) ||
+            contentType.contains(MediaType.TEXT_PLAIN_VALUE) ||
+            contentType.contains(MediaType.TEXT_XML_VALUE) ||
+            contentType.contains(MediaType.TEXT_HTML_VALUE)
+    );
   }
 
   private Object getResponseBody(ContentCachingResponseWrapper response) {
     try {
       byte[] content = response.getContentAsByteArray();
       if (content.length > 0) {
-        String bodyContent = new String(content, StandardCharsets.UTF_8);
-        final String contentType = response.getContentType();
-        if (Objects.nonNull(contentType) && contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
+        String bodyContent = new String(content, response.getCharacterEncoding());
+        String contentType = response.getContentType();
+        if (MediaType.APPLICATION_JSON_VALUE.equals(contentType)) {
           return JsonUtils.toObject(bodyContent, new TypeReference<>() {
           });
         }
@@ -201,19 +229,6 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       log.error("Error reading response body", e);
     }
     return null;
-  }
-
-  private boolean shouldLogResponseBody(String contentType) {
-    if (!StringUtils.hasText(contentType)) {
-      return false;
-    }
-
-    return contentType.contains(MediaType.APPLICATION_JSON_VALUE) ||
-        contentType.contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE) ||
-        contentType.contains(MediaType.APPLICATION_XML_VALUE) ||
-        contentType.contains(MediaType.TEXT_PLAIN_VALUE) ||
-        contentType.contains(MediaType.TEXT_XML_VALUE) ||
-        contentType.contains(MediaType.TEXT_HTML_VALUE);
   }
 
 }
