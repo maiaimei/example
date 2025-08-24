@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.example.properties.CustomFilterProperties;
 import org.example.properties.RequestLoggingProperties;
-import org.example.utils.JsonUtils;
+import org.example.util.JsonUtils;
 import org.springframework.http.MediaType;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.CollectionUtils;

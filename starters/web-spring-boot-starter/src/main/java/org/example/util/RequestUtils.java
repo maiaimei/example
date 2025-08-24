@@ -1,4 +1,4 @@
-package org.example.utils;
+package org.example.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.server.ServerHttpRequest;

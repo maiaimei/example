@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import org.example.model.ApiRequest;
 import org.example.model.UserDTO;
-import org.example.utils.IdGenerator;
+import org.example.util.IdGenerator;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

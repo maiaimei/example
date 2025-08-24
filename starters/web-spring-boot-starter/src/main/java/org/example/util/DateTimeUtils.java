@@ -1,4 +1,4 @@
-package org.example.utils;
+package org.example.util;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

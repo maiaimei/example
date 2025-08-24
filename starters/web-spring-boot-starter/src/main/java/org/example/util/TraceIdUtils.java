@@ -1,4 +1,4 @@
-package org.example.utils;
+package org.example.util;
 
 import static org.example.constants.WebConstants.TRACE_ID;
 

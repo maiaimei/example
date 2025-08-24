@@ -3,7 +3,7 @@ package org.example.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
-import org.example.utils.IdGenerator;
+import org.example.util.IdGenerator;
 
 @Getter
 public class TestDTO {

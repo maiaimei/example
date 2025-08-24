@@ -2,8 +2,8 @@ package org.example.model;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import org.example.utils.RequestUtils;
-import org.example.utils.TraceIdUtils;
+import org.example.util.RequestUtils;
+import org.example.util.TraceIdUtils;
 import org.springframework.http.HttpStatus;
 
 /**

@@ -13,7 +13,7 @@ import org.example.exception.SystemException;
 import org.example.model.ApiResponse;
 import org.example.model.ErrorApiResponse;
 import org.example.model.ErrorField;
-import org.example.utils.RequestUtils;
+import org.example.util.RequestUtils;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
