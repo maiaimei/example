@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.example.model.ApiRequest;
-import org.example.model.User;
+import cn.maiaimei.model.ApiRequest;
+import cn.maiaimei.model.User;
 import org.example.util.IdGenerator;
 import org.springframework.web.bind.annotation.*;
 
