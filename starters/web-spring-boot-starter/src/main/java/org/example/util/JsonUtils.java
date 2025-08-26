@@ -36,7 +36,6 @@ public final class JsonUtils {
     try {
       return getObjectMapper().writeValueAsString(object);
     } catch (JsonProcessingException e) {
-      log.error("Convert object to json string error", e);
       throw new JsonConvertException("Convert object to json string error", e);
     }
   }
@@ -52,7 +51,6 @@ public final class JsonUtils {
       return getObjectMapper().writerWithDefaultPrettyPrinter()
           .writeValueAsString(object);
     } catch (JsonProcessingException e) {
-      log.error("Convert object to pretty json string error", e);
       throw new JsonConvertException("Convert object to pretty json string error", e);
     }
   }
@@ -67,7 +65,6 @@ public final class JsonUtils {
     try {
       return getObjectMapper().readValue(json, clazz);
     } catch (JsonProcessingException e) {
-      log.error("Parse json to object error", e);
       throw new JsonConvertException("Parse json to object error", e);
     }
   }
@@ -82,7 +79,6 @@ public final class JsonUtils {
     try {
       return getObjectMapper().readValue(json, typeReference);
     } catch (JsonProcessingException e) {
-      log.error("Parse json to complex object error", e);
       throw new JsonConvertException("Parse json to complex object error", e);
     }
   }
@@ -98,7 +94,6 @@ public final class JsonUtils {
       return getObjectMapper().readValue(json,
           getObjectMapper().getTypeFactory().constructCollectionType(List.class, clazz));
     } catch (JsonProcessingException e) {
-      log.error("Parse json to array error", e);
       throw new JsonConvertException("Parse json to array error", e);
     }
   }
@@ -145,7 +140,6 @@ public final class JsonUtils {
       Object obj = getObjectMapper().readValue(json, Object.class);
       return getObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(obj);
     } catch (IOException e) {
-      log.error("Format json error", e);
       throw new JsonConvertException("Format json error", e);
     }
   }
@@ -174,7 +168,6 @@ public final class JsonUtils {
       JsonNode node2 = getObjectMapper().readTree(json2);
       return merge(node1, node2);
     } catch (JsonProcessingException e) {
-      log.error("Merge json error", e);
       throw new JsonConvertException("Merge json error", e);
     }
   }

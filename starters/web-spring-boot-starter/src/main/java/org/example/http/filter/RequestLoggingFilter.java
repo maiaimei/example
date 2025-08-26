@@ -59,7 +59,6 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       return;
     }
 
-    // ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
     CustomContentCachingRequestWrapper requestWrapper = new CustomContentCachingRequestWrapper(request);
     ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
@@ -68,16 +67,13 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
     try {
       // 记录请求开始的基本信息
-      log.info("Started {} request to {}", request.getMethod(), request.getRequestURI());
+      log.info("Starting {} request to {}", request.getMethod(), request.getRequestURI());
 
-      // 如果使用 CustomContentCachingRequestWrapper，在执行 filter chain 前可以记录请求信息
+      // 记录请求信息
       log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(requestWrapper)));
 
       filterChain.doFilter(requestWrapper, responseWrapper);
     } finally {
-      // 如果使用 ContentCachingRequestWrapper，需要先执行 filter chain，才能获取请求体，在执行 filter chain 后才能记录请求信息
-      // log.info("Request details: {}", JsonUtils.toJson(collectRequestDetails(requestWrapper)));
-
       // 记录响应信息
       log.info("Response details: {}", JsonUtils.toJson(collectResponseDetails(responseWrapper)));
 
@@ -87,7 +83,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       long duration = System.currentTimeMillis() - startTime;
 
       // 记录执行时间
-      log.info("Ended {} request to {} - Status: {}, Execution time: {} ms",
+      log.info("Completed {} request to {} - Status: {}, Execution time: {} ms",
           request.getMethod(), request.getRequestURI(), response.getStatus(), duration);
 
       // 对于较长时间的请求，可以添加警告日志
@@ -102,33 +98,39 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
   private Map<String, Object> collectRequestDetails(CustomContentCachingRequestWrapper request)
       throws IOException, ServletException {
-    Map<String, Object> requestInfo = new HashMap<>();
-    requestInfo.put("method", request.getMethod());
+    CustomHashMap<String, Object> requestInfo = new CustomHashMap<>();
     requestInfo.put("path", request.getRequestURI());
-    requestInfo.put("contentType", request.getContentType());
-    requestInfo.put("headers", getRequestHeaders(request));
-    appendQueryString(request, requestInfo);
-    appendParameterMap(request, requestInfo);
+    requestInfo.put("method", request.getMethod());
+    requestInfo.putIfNotEmpty("headers", getRequestHeaders(request));
+    requestInfo.putIfHasText("contentType", request.getContentType());
+
+    // 仅包含查询字符串部分（URL ? 后的部分），不包括表单参数。
+    requestInfo.putIfHasText("queryString", request.getQueryString());
+
+    // 包括查询字符串中的参数（URL ? 后的部分）和表单提交的参数（application/x-www-form-urlencoded 或 multipart/form-data）
+    requestInfo.putIfNotEmpty("parameters", request.getParameterMap());
 
     String contentType = request.getContentType();
     if (Objects.nonNull(contentType)) {
       if (contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
-        appendRequestBody(request, requestInfo);
+        requestInfo.putIfNotEmpty("body", getRequestBody(request));
       } else if (contentType.contains(MediaType.MULTIPART_FORM_DATA_VALUE)) {
-        appendMultipartInfo(request, requestInfo);
+        requestInfo.putIfNotEmpty("multipart", getMultipartInfo(request));
+      } else {
+        log.error("Unsupported content type: {}", contentType);
       }
     }
     return requestInfo;
   }
 
   private Map<String, Object> collectResponseDetails(ContentCachingResponseWrapper response) {
-    Map<String, Object> responseInfo = new HashMap<>();
+    CustomHashMap<String, Object> responseInfo = new CustomHashMap<>();
     responseInfo.put("status", response.getStatus());
-    responseInfo.put("headers", getResponseHeaders(response));
-    responseInfo.put("contentType", response.getContentType());
+    responseInfo.putIfNotEmpty("headers", getResponseHeaders(response));
+    responseInfo.putIfHasText("contentType", response.getContentType());
 
     if (shouldLogResponseBody(response.getContentType())) {
-      responseInfo.put("body", getResponseBody(response));
+      responseInfo.putIfNotNull("body", getResponseBody(response));
     } else {
       responseInfo.put("body", "[BINARY CONTENT OR FILE - NOT LOGGED]");
     }
@@ -155,48 +157,33 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         ));
   }
 
-  private void appendQueryString(CustomContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
-    final String queryString = request.getQueryString();
-    if (StringUtils.hasText(queryString)) {
-      requestInfo.put("queryString", queryString);
-    }
-  }
-
-  private void appendParameterMap(CustomContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
-    final Map<String, String[]> parameterMap = request.getParameterMap();
-    if (!CollectionUtils.isEmpty(parameterMap)) {
-      requestInfo.put("parameters", parameterMap);
-    }
-  }
-
-  private void appendRequestBody(CustomContentCachingRequestWrapper request, Map<String, Object> requestInfo) {
+  private Map<String, Object> getRequestBody(CustomContentCachingRequestWrapper request) {
     try {
       byte[] content = request.getContentAsByteArray();
-      if (content.length > 0) {
-        String bodyContent = new String(content, request.getCharacterEncoding());
-        Map<String, Object> requestBody = JsonUtils.toObject(bodyContent, new TypeReference<>() {
+      if (Objects.nonNull(content) && content.length > 0) {
+        String contentValue = new String(content, request.getCharacterEncoding());
+        return JsonUtils.toObject(contentValue, new TypeReference<>() {
         });
-        requestInfo.put("body", requestBody);
       }
     } catch (Exception e) {
       log.error("Error parsing request body", e);
     }
+    return null;
   }
 
-  private void appendMultipartInfo(HttpServletRequest request, Map<String, Object> requestInfo)
-      throws IOException, ServletException {
+  private Map<String, Object> getMultipartInfo(HttpServletRequest request) throws IOException, ServletException {
     Map<String, Object> multipartInfo = new HashMap<>();
     Collection<Part> parts = request.getParts();
 
     for (Part part : parts) {
-      Map<String, Object> partInfo = new HashMap<>();
+      CustomHashMap<String, Object> partInfo = new CustomHashMap<>();
       partInfo.put("name", part.getName());
-      partInfo.put("contentType", part.getContentType());
-      partInfo.put("size", part.getSize());
 
       if (Objects.nonNull(part.getSubmittedFileName())) {
         // 文件类型的 part
         partInfo.put("filename", part.getSubmittedFileName());
+        partInfo.putIfHasText("contentType", part.getContentType());
+        partInfo.put("size", part.getSize());
       } else {
         // 非文件类型的 part，读取内容
         String value = new String(part.getInputStream().readAllBytes(), request.getCharacterEncoding());
@@ -205,9 +192,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
       multipartInfo.put(part.getName(), partInfo);
     }
-    if (!CollectionUtils.isEmpty(multipartInfo)) {
-      requestInfo.put("multipart", multipartInfo);
-    }
+    return multipartInfo;
   }
 
   private boolean shouldLogResponseBody(String contentType) {
@@ -225,18 +210,43 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     try {
       byte[] content = response.getContentAsByteArray();
       if (content.length > 0) {
-        String bodyContent = new String(content, response.getCharacterEncoding());
         String contentType = response.getContentType();
+        String contentValue = new String(content, response.getCharacterEncoding());
         if (MediaType.APPLICATION_JSON_VALUE.equals(contentType)) {
-          return JsonUtils.toObject(bodyContent, new TypeReference<>() {
+          return JsonUtils.toObject(contentValue, new TypeReference<>() {
           });
         }
-        return bodyContent;
+        return contentValue;
       }
     } catch (Exception e) {
       log.error("Error reading response body", e);
     }
     return null;
+  }
+
+  private static class CustomHashMap<K, V> extends HashMap<K, V> {
+
+    public void putIfHasText(K key, V value) {
+      if (value instanceof String str && StringUtils.hasText(str)) {
+        super.put(key, value);
+      }
+    }
+
+    public void putIfNotEmpty(K key, V value) {
+      if (value instanceof Map map && !CollectionUtils.isEmpty(map)) {
+        super.put(key, value);
+      }
+      if (value instanceof Collection collection && !CollectionUtils.isEmpty(collection)) {
+        super.put(key, value);
+      }
+    }
+
+    public void putIfNotNull(K key, V value) {
+      if (Objects.nonNull(value)) {
+        super.put(key, value);
+      }
+    }
+
   }
 
 }
