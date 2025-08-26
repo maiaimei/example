@@ -1,6 +1,4 @@
-cn.maiaimei.config.AopAutoConfiguration
 cn.maiaimei.config.FilterAutoConfiguration
 cn.maiaimei.config.JacksonAutoConfiguration
 cn.maiaimei.config.JsonAutoConfiguration
-cn.maiaimei.config.LogAutoConfiguration
 cn.maiaimei.config.RestTemplateAutoConfiguration

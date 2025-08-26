@@ -1,9 +1,9 @@
 package cn.maiaimei.model;
 
+import cn.maiaimei.util.IdGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
-import org.example.util.IdGenerator;
 
 @Getter
 public class TestDTO {

@@ -1,6 +1,6 @@
 package org.example.controller;
 
-import org.example.annotation.SkipResponseWrapper;
+import cn.maiaimei.annotation.SkipResponseWrapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

@@ -1,4 +1,4 @@
-package cn.maiaimei.config;
+package org.example.config;
 
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
@@ -6,6 +6,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * 启用 AOP 支持
  */
 @EnableAspectJAutoProxy(proxyTargetClass = true)  // 强制使用CGLIB
-public class AopAutoConfiguration {
+public class AopConfig {
 
 }

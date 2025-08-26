@@ -2,7 +2,7 @@ package org.example.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
-import cn.maiaimei.model.User;
+import org.example.model.User;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 

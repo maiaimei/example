@@ -1,41 +1,34 @@
-spring:
-  application:
-    name: spring-boot-study
-    group: spring
-  profiles:
-    active: dev
-
-# https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging
-logging:
-  include-application-name: false
-  include-application-group: false
-  config: classpath:logback-spring.xml # Custom Log Configuration
-  file:
-    path: logs
-  request:
-    use-custom-filter-exclude-paths: N
-    # 配置不需要记录日志的路径
-    exclude-paths:
-      - "/actuator/**"
-      - "/swagger-ui/**"
-      - "/v3/api-docs/**"
-      - "/favicon.ico"
-      - "/static/**"
-      - "/resources/**"
-      - "/webjars/**"
-      - "/error"
-      - "/health-check"
-    # 配置慢请求阈值(毫秒)
-    slow-request-threshold-ms: 5000
-
-custom-filter:
-  exclude-paths:
-    - "/actuator/**"
-    - "/swagger-ui/**"
-    - "/v3/api-docs/**"
-    - "/favicon.ico"
-    - "/static/**"
-    - "/resources/**"
-    - "/webjars/**"
-    - "/error"
-    - "/health-check"
+## https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging
+#logging:
+#  include-application-name: true
+#  include-application-group: true
+#  config: classpath:logback-spring.xml # Custom Log Configuration
+#  file:
+#    path: logs
+#  request:
+#    use-custom-filter-exclude-paths: N
+#    # 配置不需要记录日志的路径
+#    exclude-paths:
+#      - "/actuator/**"
+#      - "/swagger-ui/**"
+#      - "/v3/api-docs/**"
+#      - "/favicon.ico"
+#      - "/static/**"
+#      - "/resources/**"
+#      - "/webjars/**"
+#      - "/error"
+#      - "/health-check"
+#    # 配置慢请求阈值(毫秒)
+#    slow-request-threshold-ms: 5000
+#
+#custom-filter:
+#  exclude-paths:
+#    - "/actuator/**"
+#    - "/swagger-ui/**"
+#    - "/v3/api-docs/**"
+#    - "/favicon.ico"
+#    - "/static/**"
+#    - "/resources/**"
+#    - "/webjars/**"
+#    - "/error"
+#    - "/health-check"
