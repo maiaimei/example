@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.common.controller;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,6 @@
-package org.example.processor;
+package org.example.common.processor;
 
-import org.example.component.ExampleBean;
+import org.example.common.component.ExampleBean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;

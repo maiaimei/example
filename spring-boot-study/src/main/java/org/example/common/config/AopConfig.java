@@ -1,4 +1,4 @@
-package org.example.config;
+package org.example.common.config;
 
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 

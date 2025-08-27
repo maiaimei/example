@@ -1,4 +1,4 @@
-package org.example.config;
+package org.example.common.config;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;

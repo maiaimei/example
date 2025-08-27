@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.common.controller;
 
 import cn.maiaimei.model.ApiRequest;
 import cn.maiaimei.util.IdGenerator;
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.example.model.User;
+import org.example.common.model.User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

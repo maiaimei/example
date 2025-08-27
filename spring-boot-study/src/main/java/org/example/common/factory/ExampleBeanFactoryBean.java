@@ -1,6 +1,6 @@
-package org.example.factory;
+package org.example.common.factory;
 
-import org.example.component.ExampleBean;
+import org.example.common.component.ExampleBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.stereotype.Component;
 

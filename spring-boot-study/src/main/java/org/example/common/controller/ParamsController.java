@@ -1,8 +1,8 @@
-package org.example.controller;
+package org.example.common.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
-import org.example.model.User;
+import org.example.common.model.User;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 

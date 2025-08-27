@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 // java -jar app.jar --spring.profiles.active=client
 @SpringBootApplication(scanBasePackages = {
     "org.example.app.client",
-    "org.example"
+    "org.example.common"
 })
 public class ClientApplication {
 

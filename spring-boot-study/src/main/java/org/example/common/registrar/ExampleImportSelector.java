@@ -1,6 +1,6 @@
-package org.example.registrar;
+package org.example.common.registrar;
 
-import org.example.component.ExampleBean;
+import org.example.common.component.ExampleBean;
 import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
 

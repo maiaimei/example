@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.common.controller;
 
 import cn.maiaimei.annotation.SkipResponseWrapper;
 import org.springframework.web.bind.annotation.GetMapping;

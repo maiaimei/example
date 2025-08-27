@@ -1,8 +1,8 @@
-package org.example.config;
+package org.example.common.config;
 
-import org.example.component.ExampleBean;
-import org.example.registrar.ExampleImportBeanDefinitionRegistrar;
-import org.example.registrar.ExampleImportSelector;
+import org.example.common.component.ExampleBean;
+import org.example.common.registrar.ExampleImportBeanDefinitionRegistrar;
+import org.example.common.registrar.ExampleImportSelector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

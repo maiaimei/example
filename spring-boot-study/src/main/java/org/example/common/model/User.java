@@ -1,4 +1,4 @@
-package org.example.model;
+package org.example.common.model;
 
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
