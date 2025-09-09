@@ -4,18 +4,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
-// EmailController
-// EmailNotificationService
-// EmailNotificationTemplateService
 @Getter
 public enum EmailNotificationType {
 
-  INVITE_PARTICIPANT(
-      Config.builder()
-          .sendToActionInitiator(true)
-          .sendToSpecificUser(true)
-          .build()
-  );
+  ;
 
   private final Config config;
 
@@ -28,14 +20,18 @@ public enum EmailNotificationType {
   public static class Config {
 
     private boolean systemTriggered;
-    private boolean controlByDocumentLevel;
-    private String controlByDocumentLevelKey;
-    private boolean controlByProfileLevel;
-    private String controlByProfileLevelKey;
+    private boolean accountLevelControlled;
+    private boolean documentLevelControlled;
     private boolean sendToActionInitiator;
     private boolean sendToSpecificUser;
-    private boolean sendToAllParticipant;
-    private boolean sendToCounterParticipant;
-    private boolean sendToMyParticipant;
+    private boolean sendToAllParticipants;
+    private boolean sendToActionInitiatorParticipants;
+    private boolean sendToCounterParticipants;
+    private String accountSwitch;
+    private String documentSwitch;
+
+    public boolean hasNoLevelControl() {
+      return !accountLevelControlled && !documentLevelControlled;
+    }
   }
 }
