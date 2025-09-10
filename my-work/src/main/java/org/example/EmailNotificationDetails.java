@@ -6,7 +6,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class EmailNotificationParams {
+public class EmailNotificationDetails {
 
   private EmailNotificationType notificationType;
   private List<String> actionInitiatorEmailAddressList;

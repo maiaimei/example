@@ -26,7 +26,7 @@ public class EmailNotificationConfig {
   private Predicate<ParticipantInfo> counterParticipantPredicate;
 
   private String urlFormat;
-  private List<String> emailBodyImageLocations;
+  private List<String> imageResourceLocations;
 
   private boolean enableThrowingException;
   private String errorType;
