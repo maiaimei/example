@@ -15,7 +15,7 @@ public class EmailNotificationDetails {
   private List<String> actionInitiatorParticipantEmailAddressList;
   private List<String> counterParticipantEmailAddressList;
   private List<File> attachments;
-  private EmailNotificationEmailTemplate actionInitiatorEmailTemplate;
-  private EmailNotificationEmailTemplate emailTemplate;
+  private EmailNotificationTemplate actionInitiatorEmailTemplate;
+  private EmailNotificationTemplate emailTemplate;
   private Map<String, String> templateBindings;
 }
