@@ -9,7 +9,7 @@ public enum EmailNotificationType {
   INVITE_PARTICIPANT(EmailNotificationConfig.builder()
       .counterParticipantPredicate(
           participantInfo -> List.of("regularAdministrator", "superAdministrator").contains(participantInfo.getRole()))
-      .imageResourceLocations(List.of("classpath:static/image.png"))
+      .imageClassPaths(List.of("static/image.png"))
       .build());
 
   private final EmailNotificationConfig config;

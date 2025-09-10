@@ -1,10 +1,16 @@
 package org.example;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.util.ResourceUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 public class MainApplication {
 
@@ -17,10 +23,10 @@ public class MainApplication {
     participantInfoList.add(new ParticipantInfo("viewer"));
     participantInfoList.stream().filter(notificationConfig.getCounterParticipantPredicate()).toList().forEach(System.out::println);
 
-    final List<String> emailBodyImageLocations = notificationConfig.getImageResourceLocations();
-    for (String location : emailBodyImageLocations) {
-      final File file = ResourceUtils.getFile(location);
-      System.out.println(file.getAbsolutePath());
+    final List<String> imageClassPaths = notificationConfig.getImageClassPaths();
+    for (String ImageClassPath : imageClassPaths) {
+      final ClassPathResource classPathResource = new ClassPathResource(ImageClassPath);
+      sendFileToApi(classPathResource);
     }
   }
 
@@ -38,4 +44,32 @@ public class MainApplication {
     // 设置其他技术实现所需的字段
     return details;
   }
+
+  public static void sendFileToApi(Resource fileResource) {
+    // 创建 RestTemplate
+    RestTemplate restTemplate = new RestTemplate();
+
+    // 创建请求头
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+    // 创建请求体
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+    // 添加文件资源
+    body.add("file", fileResource);
+    // 添加其他表单字段
+    body.add("field1", "value1");
+
+    // 创建 HttpEntity
+    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+    // 发送请求
+    String response = restTemplate.postForObject(
+        "https://api.example.com/upload",
+        requestEntity,
+        String.class
+    );
+  }
+
 }
