@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ParticipantInfo {
+public class EntitlementDetails {
 
   private String role;
 }

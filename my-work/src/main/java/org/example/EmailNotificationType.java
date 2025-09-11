@@ -1,15 +1,13 @@
 package org.example;
 
-import java.util.List;
 import lombok.Getter;
 
 @Getter
 public enum EmailNotificationType {
 
   INVITE_PARTICIPANT(EmailNotificationConfig.builder()
-      .counterParticipantPredicate(
-          participantInfo -> List.of("regularAdministrator", "superAdministrator").contains(participantInfo.getRole()))
-      .imageClassPaths(List.of("static/image.png"))
+      .operatorUseSpecificTemplates(true)
+      .operatorTemplateFunction(EmailNotificationUtils::getOperatorTemplate)
       .build());
 
   private final EmailNotificationConfig config;

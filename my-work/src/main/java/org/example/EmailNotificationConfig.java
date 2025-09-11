@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Builder;
 import lombok.Data;
@@ -17,13 +18,22 @@ public class EmailNotificationConfig {
   private boolean documentLevelControlled;
   private String documentSwitch;
 
-  private boolean sendToActionInitiator;
-  private boolean sendToActionInitiatorParticipants;
-  private boolean sendToCounterParticipants;
-  private boolean sendToAllParticipants;
+  private boolean sendToOperator;
+  private boolean sendToOwnParty;
+  private boolean sendToCounterParty;
+  private boolean sendToAllParty;
   private boolean sendToSpecificUser;
 
-  private Predicate<ParticipantInfo> counterParticipantPredicate;
+  private boolean useSpecificTemplates;
+  private boolean operatorUseSpecificTemplates;
+  private boolean ownPartyUseSpecificTemplates;
+  private boolean counterPartyUseSpecificTemplates;
+  private boolean allPartyUseSpecificTemplates;
+  private boolean specificUserUseSpecificTemplates;
+
+  private Function<Boolean, String> operatorTemplateFunction;
+
+  private Predicate<EntitlementDetails> counterPartyPredicate;
 
   private String urlFormat;
   private List<String> imageClassPaths;

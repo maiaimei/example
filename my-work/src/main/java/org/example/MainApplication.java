@@ -1,9 +1,6 @@
 package org.example;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,17 +14,8 @@ public class MainApplication {
   public static void main(String[] args) throws FileNotFoundException {
 
     final EmailNotificationConfig notificationConfig = EmailNotificationType.INVITE_PARTICIPANT.getConfig();
-    List<ParticipantInfo> participantInfoList = new ArrayList<>();
-    participantInfoList.add(new ParticipantInfo("superAdministrator"));
-    participantInfoList.add(new ParticipantInfo("regularAdministrator"));
-    participantInfoList.add(new ParticipantInfo("viewer"));
-    participantInfoList.stream().filter(notificationConfig.getCounterParticipantPredicate()).toList().forEach(System.out::println);
 
-    final List<String> imageClassPaths = notificationConfig.getImageClassPaths();
-    for (String ImageClassPath : imageClassPaths) {
-      final ClassPathResource classPathResource = new ClassPathResource(ImageClassPath);
-      sendFileToApi(classPathResource);
-    }
+
   }
 
   public void processEmailNotification(EmailNotificationDTO dto) {
@@ -71,5 +59,5 @@ public class MainApplication {
         String.class
     );
   }
-  
+
 }

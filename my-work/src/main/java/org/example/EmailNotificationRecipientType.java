@@ -7,6 +7,8 @@ public enum EmailNotificationRecipientType {
 
   OPERATOR("action initiator"),
 
+  SPECIFIC_USER("specific user"),
+
   OWN_PARTY("action initiator's own party"),
 
   COUNTER_PARTY("action initiator's counter party"),
