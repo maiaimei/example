@@ -25,21 +25,24 @@ public class EmailNotificationConfig {
   private boolean sendToCounterParty;
   private boolean sendToAllParty;
 
+  private Predicate<EntitlementDetails> counterPartyPredicate;
+
   private boolean useDefaultTpl;
-  private boolean useSameTplExceptOperator;
+  private boolean useOthersTplExceptOperator;
+
   private boolean tplIncludeProduct;
   private boolean tplIncludeLocationInstitution;
   private boolean tplIncludePartyType;
   private boolean tplIncludeUserCategory;
+
   private boolean operatorTplIgnoreLinksFlag;
   private boolean specificUserTplIgnoreLinksFlag;
   private boolean ownPartyTplIgnoreLinksFlag;
   private boolean counterPartyTplIgnoreLinksFlag;
   private boolean allPartyTplIgnoreLinksFlag;
 
-  private Predicate<EntitlementDetails> counterPartyPredicate;
-
-  private List<String> imageClassPaths;
+  private List<String> emailBodyImageClassPaths;
+  private List<String> withoutLinksEmailBodyImageClassPaths;
 
   private boolean enableThrowingException;
   private String errorType;

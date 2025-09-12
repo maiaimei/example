@@ -12,7 +12,7 @@ public enum EmailNotificationType {
       .build()),
 
   INVITE_PARTICIPANT(EmailNotificationConfig.builder()
-      .useSameTplExceptOperator(true)
+      .useOthersTplExceptOperator(true)
       .tplIncludeProduct(false)
       .tplIncludeLocationInstitution(false)
       .tplIncludePartyType(false)

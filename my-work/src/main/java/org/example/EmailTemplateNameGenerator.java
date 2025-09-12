@@ -9,16 +9,16 @@ public class EmailTemplateNameGenerator {
       String product, String locationInstitution, String partyType, String userCategory, boolean withoutLinks) {
     if (config.isNonWordingRelated()) {
       if (config.isUseDefaultTpl()) {
-        return EmailTemplateNameGenerator.getDefaultTemplateName();
+        return getDefaultTemplateName();
       } else {
-        return EmailTemplateNameGenerator.generateTemplateName(config, recipientType, partyType, userCategory);
+        return generateTemplateName(config, recipientType, partyType, userCategory);
       }
     } else {
-      return EmailTemplateNameGenerator.generateTemplateName(config, recipientType, product, locationInstitution, partyType,
-          userCategory, withoutLinks);
+      return generateTemplateName(config, recipientType, product, locationInstitution, partyType, userCategory, withoutLinks);
     }
   }
 
+  // non-wording related template name
   public static String getDefaultTemplateName() {
     return "default.btl";
   }
@@ -87,7 +87,7 @@ public class EmailTemplateNameGenerator {
     }
 
     public Builder addRecipient(EmailNotificationConfig config, EmailNotificationRecipientType recipientType) {
-      if (config.isUseSameTplExceptOperator() && !EmailNotificationRecipientType.OPERATOR.equals(recipientType)) {
+      if (config.isUseOthersTplExceptOperator() && !EmailNotificationRecipientType.OPERATOR.equals(recipientType)) {
         values.add("others");
         return this;
       }
