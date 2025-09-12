@@ -14,7 +14,7 @@ public class MainApplication {
       String partyType = "BANK";
       String userCategory = "STAFF";
       boolean withoutLinks = true;
-      final String templateName = EmailNotificationTemplateName.getTemplateName(config, recipientType, product, locationInstitution,
+      final String templateName = EmailTemplateNameGenerator.getTemplateName(config, recipientType, product, locationInstitution,
           partyType, userCategory, withoutLinks);
       log.info("{} use {} template", recipientType.getDescription(), templateName);
     }

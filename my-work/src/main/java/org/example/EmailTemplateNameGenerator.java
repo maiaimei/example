@@ -3,18 +3,18 @@ package org.example;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class EmailNotificationTemplateName {
+public class EmailTemplateNameGenerator {
 
   public static String getTemplateName(EmailNotificationConfig config, EmailNotificationRecipientType recipientType,
       String product, String locationInstitution, String partyType, String userCategory, boolean withoutLinks) {
     if (config.isNonWordingRelated()) {
       if (config.isUseDefaultTpl()) {
-        return EmailNotificationTemplateName.getDefaultTemplateName();
+        return EmailTemplateNameGenerator.getDefaultTemplateName();
       } else {
-        return EmailNotificationTemplateName.generateTemplateName(config, recipientType, partyType, userCategory);
+        return EmailTemplateNameGenerator.generateTemplateName(config, recipientType, partyType, userCategory);
       }
     } else {
-      return EmailNotificationTemplateName.generateTemplateName(config, recipientType, product, locationInstitution, partyType,
+      return EmailTemplateNameGenerator.generateTemplateName(config, recipientType, product, locationInstitution, partyType,
           userCategory, withoutLinks);
     }
   }
