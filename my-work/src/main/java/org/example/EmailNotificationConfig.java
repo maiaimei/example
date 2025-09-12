@@ -1,7 +1,6 @@
 package org.example;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +11,8 @@ public class EmailNotificationConfig {
 
   private boolean systemTriggered;
 
+  private boolean nonWordingRelated;
+
   private boolean accountLevelControlled;
   private String accountSwitch;
 
@@ -19,23 +20,25 @@ public class EmailNotificationConfig {
   private String documentSwitch;
 
   private boolean sendToOperator;
+  private boolean sendToSpecificUser;
   private boolean sendToOwnParty;
   private boolean sendToCounterParty;
   private boolean sendToAllParty;
-  private boolean sendToSpecificUser;
 
-  private boolean useSpecificTemplates;
-  private boolean operatorUseSpecificTemplates;
-  private boolean ownPartyUseSpecificTemplates;
-  private boolean counterPartyUseSpecificTemplates;
-  private boolean allPartyUseSpecificTemplates;
-  private boolean specificUserUseSpecificTemplates;
-
-  private Function<Boolean, String> operatorTemplateFunction;
+  private boolean useDefaultTpl;
+  private boolean useSameTplExceptOperator;
+  private boolean tplIncludeProduct;
+  private boolean tplIncludeLocationInstitution;
+  private boolean tplIncludePartyType;
+  private boolean tplIncludeUserCategory;
+  private boolean operatorTplIgnoreLinksFlag;
+  private boolean specificUserTplIgnoreLinksFlag;
+  private boolean ownPartyTplIgnoreLinksFlag;
+  private boolean counterPartyTplIgnoreLinksFlag;
+  private boolean allPartyTplIgnoreLinksFlag;
 
   private Predicate<EntitlementDetails> counterPartyPredicate;
 
-  private String urlFormat;
   private List<String> imageClassPaths;
 
   private boolean enableThrowingException;
