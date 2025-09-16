@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+    <style type="text/css">
+        /* 使用内联样式确保最大兼容性 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+
+        .logo {
+            text-align: left;
+            padding: 20px 0 0 0;
+        }
+
+        .logo img {
+            display: block;
+            margin: 0;
+        }
+
+        .header img {
+            text-align: center;
+            width: 100%;
+            height: auto;
+        }
+
+        .subject {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 15px 0;
+        }
+
+        .recipient {
+            padding: 10px 0;
+        }
+
+        .body {
+            padding: 20px 0;
+            word-wrap: break-word;
+            /* 确保长文本换行 */
+            white-space: pre-wrap;
+            /* 保留换行和空格 */
+        }
+
+        .footer {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <tr>
+            <td class="logo">
+                <img src="logo.png" alt="Company Logo" width="200" height="100" />
+            </td>
+        </tr>
+        <tr>
+            <td class="header">
+                <img src="header.png" alt="Header Image" width="600" height="200" />
+            </td>
+        </tr>
+        <tr>
+            <td class="subject">
+                邮件主题：重要通知
+            </td>
+        </tr>
+        <tr>
+            <td class="recipient">
+                尊敬的 <strong>张先生</strong>：
+            </td>
+        </tr>
+        <tr>
+            <td class="body">
+您好！
+
+这是邮件正文的第一段内容。在这里您可以写入主要的邮件内容。
+
+这是邮件正文的第二段内容。确保段落之间有适当的间距，以提高可读性。
+
+这是邮件正文的第三段内容。您可以根据需要添加更多段落。
+
+祝好，
+公司名称
+            </td>
+        </tr>
+        <tr>
+            <td class="footer">
+                <p>© 2024 公司名称版权所有</p>
+                <p>地址：XX市XX区XX街XX号</p>
+                <p>电话：XXX-XXXXXXXX</p>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
