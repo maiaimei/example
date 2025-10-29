@@ -1,0 +1,59 @@
+@startuml
+'https://plantuml.com/class-diagram
+'https://plantuml.com/zh/class-diagram
+
+interface TransactionDefinition{
+int PROPAGATION_REQUIRED = 0
+int PROPAGATION_SUPPORTS = 1
+int PROPAGATION_MANDATORY = 2
+int PROPAGATION_REQUIRES_NEW = 3
+int PROPAGATION_NOT_SUPPORTED = 4
+int PROPAGATION_NEVER = 5
+int PROPAGATION_NESTED = 6
+int ISOLATION_READ_UNCOMMITTED = 1
+int ISOLATION_READ_COMMITTED = 2
+int ISOLATION_REPEATABLE_READ = 4
+int ISOLATION_SERIALIZABLE = 8
+int TIMEOUT_DEFAULT = -1
+int getPropagationBehavior()
+int getIsolationLevel()
+int getTimeout()
+boolean isReadOnly()
+String getName()
+}
+
+interface TransactionAttribute{
+String getQualifier()
+Collection<String> getLabels()
+boolean rollbackOn(Throwable ex)
+}
+
+abstract class DelegatingTransactionDefinition{
+- TransactionDefinition targetDefinition
+}
+
+abstract class DelegatingTransactionAttribute {
+- TransactionAttribute targetAttribute
+}
+
+interface MethodInterceptor{
+Object invoke(MethodInvocation invocation)
+}
+
+abstract class TransactionAspectSupport{
+- transactionAttributeSource: TransactionAttributeSource
+# Object invokeWithinTransaction(Method method, Class<?> targetClass, InvocationCallback invocation)
+}
+
+class TransactionInterceptor{
+Object invoke(MethodInvocation invocation)
+}
+
+TransactionDefinition <|-- TransactionAttribute
+TransactionDefinition <|.. DelegatingTransactionDefinition
+TransactionAttribute <|.. DelegatingTransactionAttribute
+DelegatingTransactionDefinition <|-- DelegatingTransactionAttribute
+MethodInterceptor <|.. TransactionInterceptor
+TransactionAspectSupport <|-- TransactionInterceptor
+
+@enduml
