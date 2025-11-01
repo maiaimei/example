@@ -1,0 +1,61 @@
+@startuml
+title Spring Boot 3.x 事务相关类图
+'https://plantuml.com/class-diagram
+'https://plantuml.com/zh/class-diagram
+
+interface TransactionDefinition{
+PROPAGATION_REQUIRED:int = 0
+PROPAGATION_SUPPORTS:int = 1
+PROPAGATION_MANDATORY:int = 2
+PROPAGATION_REQUIRES_NEW:int = 3
+PROPAGATION_NOT_SUPPORTED:int = 4
+PROPAGATION_NEVER:int = 5
+PROPAGATION_NESTED:int = 6
+ISOLATION_READ_UNCOMMITTED:int = 1
+ISOLATION_READ_COMMITTED:int = 2
+ISOLATION_REPEATABLE_READ:int = 4
+ISOLATION_SERIALIZABLE:int = 8
+TIMEOUT_DEFAULT:int = -1
+getPropagationBehavior():int
+getIsolationLevel():int
+getTimeout():int
+isReadOnly():boolean
+getName():String
+}
+
+interface TransactionAttribute{
+getQualifier():String
+getLabels():Collection<String>
+rollbackOn(ex:Throwable):boolean
+}
+
+abstract class DelegatingTransactionDefinition{
+- targetDefinition:TransactionDefinition
+}
+
+abstract class DelegatingTransactionAttribute {
+- targetAttribute:TransactionAttribute
+}
+
+interface MethodInterceptor{
+invoke(invocation:MethodInvocation):Object
+}
+
+abstract class TransactionAspectSupport{
+- transactionManager:TransactionManager
+- transactionAttributeSource:TransactionAttributeSource
+# invokeWithinTransaction(method:Method, targetClass:Class<?>, invocation:InvocationCallback):Object
+}
+
+class TransactionInterceptor{
+invoke(invocation:MethodInvocation):Object
+}
+
+TransactionDefinition <|-- TransactionAttribute
+TransactionDefinition <|.. DelegatingTransactionDefinition
+TransactionAttribute <|.. DelegatingTransactionAttribute
+DelegatingTransactionDefinition <|-- DelegatingTransactionAttribute
+MethodInterceptor <|.. TransactionInterceptor
+TransactionAspectSupport <|-- TransactionInterceptor
+
+@enduml

@@ -1,0 +1,157 @@
+@startuml
+title Spring Boot 3.x 应用启动流程
+
+' 参与者定义
+participant "开发者" as Developer
+participant SpringApplication
+participant SpringApplicationRunListeners
+participant ConfigurableEnvironment
+participant ApplicationContext
+participant AbstractApplicationContext
+participant BeanFactory
+participant WebServer
+
+' 启动入口
+Developer -> SpringApplication: run(primarySource, args)
+activate SpringApplication
+
+note over SpringApplication: new SpringApplication(primarySources).run(args)
+
+' SpringApplication构造阶段
+group new SpringApplication(primarySources)
+    SpringApplication -> SpringApplication: 推断应用类型(Servlet/Reactive/None)\nthis.webApplicationType = WebApplicationType.deduceFromClasspath();
+    
+    SpringApplication -> SpringApplication: 加载ApplicationContextInitializer\nsetInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+    
+    SpringApplication -> SpringApplication: 加载ApplicationListener\nsetListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+end
+
+' 应用启动阶段
+group run(args)
+    ' 1. 启动监听器通知
+    SpringApplication -> SpringApplicationRunListeners: starting()
+    activate SpringApplicationRunListeners
+    SpringApplicationRunListeners --> SpringApplication:
+    deactivate SpringApplicationRunListeners
+
+    ' 2. 环境准备
+    SpringApplication -> SpringApplication: prepareEnvironment()
+    activate SpringApplication
+        SpringApplication -> ConfigurableEnvironment: getOrCreateEnvironment()
+        activate ConfigurableEnvironment
+        ConfigurableEnvironment --> SpringApplication
+        deactivate ConfigurableEnvironment
+        
+        SpringApplication -> SpringApplication: 配置属性源和绑定命令行参数
+        
+        SpringApplication -> SpringApplicationRunListeners: environmentPrepared()
+        activate SpringApplicationRunListeners
+        SpringApplicationRunListeners --> SpringApplication:
+        deactivate SpringApplicationRunListeners
+    deactivate SpringApplication
+
+    ' 3. 创建应用上下文
+    SpringApplication -> ApplicationContext: createApplicationContext()
+    activate ApplicationContext
+    ApplicationContext --> SpringApplication:
+    deactivate ApplicationContext
+
+    ' 4. 上下文准备
+    SpringApplication -> SpringApplication: prepareContext()
+    activate SpringApplication
+        SpringApplication -> SpringApplicationRunListeners: contextPrepared(context)
+        activate SpringApplicationRunListeners
+        SpringApplicationRunListeners --> SpringApplication:
+        deactivate SpringApplicationRunListeners
+        
+        SpringApplication -> SpringApplicationRunListeners: contextLoaded(context)
+        activate SpringApplicationRunListeners
+        SpringApplicationRunListeners --> SpringApplication:
+        deactivate SpringApplicationRunListeners
+    deactivate SpringApplication
+
+    ' 5. 刷新上下文（核心阶段）
+    SpringApplication -> ApplicationContext: refreshContext()
+    activate ApplicationContext
+    
+        ApplicationContext -> AbstractApplicationContext: refresh()
+        activate AbstractApplicationContext
+        
+            ' 5.1 准备刷新
+            AbstractApplicationContext -> AbstractApplicationContext: prepareRefresh()
+            
+            ' 5.2 获取BeanFactory
+            AbstractApplicationContext -> AbstractApplicationContext: obtainFreshBeanFactory()
+            
+            ' 5.3 准备BeanFactory
+            AbstractApplicationContext -> BeanFactory: prepareBeanFactory()
+            activate BeanFactory
+            BeanFactory --> AbstractApplicationContext:
+            deactivate BeanFactory
+            
+            ' 5.4 后处理BeanFactory
+            AbstractApplicationContext -> AbstractApplicationContext: postProcessBeanFactory()
+            
+            ' 5.5 调用BeanFactory后处理器
+            AbstractApplicationContext -> AbstractApplicationContext: invokeBeanFactoryPostProcessors()
+            
+            ' 5.6 注册Bean后处理器
+            AbstractApplicationContext -> AbstractApplicationContext: registerBeanPostProcessors()
+            
+            ' 5.7 初始化消息源
+            AbstractApplicationContext -> AbstractApplicationContext: initMessageSource()
+            
+            ' 5.8 初始化事件多播器
+            AbstractApplicationContext -> AbstractApplicationContext: initApplicationEventMulticaster()
+            
+            ' 5.9 刷新特定上下文（启动Web服务器）
+            AbstractApplicationContext -> AbstractApplicationContext: onRefresh()
+            activate AbstractApplicationContext
+                AbstractApplicationContext -> WebServer: 创建和启动内嵌Web服务器
+                activate WebServer
+                WebServer --> AbstractApplicationContext:
+                deactivate WebServer
+            deactivate AbstractApplicationContext
+            
+            ' 5.10 注册监听器
+            AbstractApplicationContext -> AbstractApplicationContext: registerListeners()
+            
+            ' 5.11 完成BeanFactory初始化
+            AbstractApplicationContext -> AbstractApplicationContext: finishBeanFactoryInitialization()
+            
+            ' 5.12 完成刷新
+            AbstractApplicationContext -> AbstractApplicationContext: finishRefresh()
+        
+        AbstractApplicationContext --> ApplicationContext:
+        deactivate AbstractApplicationContext
+    
+    ApplicationContext --> SpringApplication:
+    deactivate ApplicationContext
+
+    ' 6. 启动完成通知
+    SpringApplication -> SpringApplicationRunListeners: started(context)
+    activate SpringApplicationRunListeners
+    SpringApplicationRunListeners --> SpringApplication:
+    deactivate SpringApplicationRunListeners
+    
+    ' 7. 执行Runner
+    SpringApplication -> SpringApplication: callRunners(context, applicationArguments)
+    activate SpringApplication
+        SpringApplication -> SpringApplication: 执行ApplicationRunner和CommandLineRunner
+    deactivate SpringApplication
+    
+    ' 8. 就绪通知
+    SpringApplication -> SpringApplicationRunListeners: ready(context)
+    activate SpringApplicationRunListeners
+    SpringApplicationRunListeners --> SpringApplication:
+    deactivate SpringApplicationRunListeners
+    
+    ' 9. 启动完成
+    SpringApplication -> SpringApplication: 启动完成
+end
+
+' 返回结果
+SpringApplication --> Developer: 返回ConfigurableApplicationContext
+deactivate SpringApplication
+
+@enduml
