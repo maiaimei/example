@@ -1,5 +1,8 @@
-@startuml
-title Spring Boot 3.x 应用启动流程
+@startuml Spring Boot 3.4.4 应用启动流程
+
+' https://plantuml.com/zh/sequence-diagram
+
+title Spring Boot 3.4.4 应用启动流程
 
 !theme plain
 

@@ -1,10 +1,10 @@
-@startuml
-'https://plantuml.com/sequence-diagram
-title Spring Boot 3.x 事务拦截器注册流程
+@startuml Spring Boot 3.4.4 事务拦截器注册流程
+
+' https://plantuml.com/zh/sequence-diagram
+
+title Spring Boot 3.4.4 事务拦截器注册流程
 
 participant "SpringBoot应用" as app
-participant SpringApplication
-participant AbstractApplicationContext
 participant TransactionAutoConfiguration
 participant EnableTransactionManagementConfiguration
 participant ProxyTransactionManagementConfiguration
@@ -12,18 +12,6 @@ participant BeanFactory
 participant BeanFactoryTransactionAttributeSourceAdvisor
 participant TransactionInterceptor
 participant AnnotationTransactionAttributeSource
-
-note over app,SpringApplication
-自动配置的入口是@SpringBootApplication注解中的@EnableAutoConfiguration。
-该注解通过@Import导入了AutoConfigurationImportSelector类。
-end note
-app -> SpringApplication: SpringApplication.run(Class<?> primarySource, String... args);
-activate SpringApplication
-
-SpringApplication -> SpringApplication: refreshContext()
-
-SpringApplication -> AbstractApplicationContext: refresh()
-activate AbstractApplicationContext
 
 app -> TransactionAutoConfiguration: 启动时自动加载
 activate TransactionAutoConfiguration
