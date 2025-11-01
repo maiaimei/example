@@ -1,7 +1,11 @@
 @startuml
 title Spring Boot 3.x 应用启动流程
 
-' 参与者定义
+!theme plain
+
+' ========================================
+' 参与者定义 - Spring Boot启动涉及的核心组件
+' ========================================
 participant "开发者" as Developer
 participant SpringApplication
 participant SpringApplicationRunListeners
@@ -11,30 +15,53 @@ participant AbstractApplicationContext
 participant BeanFactory
 participant WebServer
 
-' 启动入口
+' ========================================
+' 启动入口 - SpringApplication.run()静态方法
+' 这是Spring Boot应用的标准启动方式
+' ========================================
 Developer -> SpringApplication: run(primarySource, args)
 activate SpringApplication
 
-note over SpringApplication: new SpringApplication(primarySources).run(args)
+note over SpringApplication: 静态方法调用：new SpringApplication(primarySources).run(args)
+note right of SpringApplication: primarySources通常是@SpringBootApplication注解的主类
 
-' SpringApplication构造阶段
+' ========================================
+' 阶段1：SpringApplication实例构造
+' 初始化SpringApplication实例的关键属性
+' ========================================
 group new SpringApplication(primarySources)
     SpringApplication -> SpringApplication: 推断应用类型(Servlet/Reactive/None)\nthis.webApplicationType = WebApplicationType.deduceFromClasspath();
+    note right: 根据classpath中的类判断应用类型：\n- SERVLET: 传统Web应用\n- REACTIVE: WebFlux响应式应用\n- NONE: 非Web应用
     
     SpringApplication -> SpringApplication: 加载ApplicationContextInitializer\nsetInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+    note right: 从META-INF/spring.factories加载\n用于在ApplicationContext刷新前进行初始化
     
     SpringApplication -> SpringApplication: 加载ApplicationListener\nsetListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+    note right: 加载应用事件监听器\n监听Spring Boot启动过程中的各种事件
 end
 
-' 应用启动阶段
+' ========================================
+' 阶段2：应用启动执行 - run(args)方法核心逻辑
+' Spring Boot启动的9个关键步骤
+' ========================================
 group run(args)
-    ' 1. 启动监听器通知
+    ' 步骤0：获取运行时监听器
+    SpringApplication -> SpringApplication: getRunListeners()\ngetSpringFactoriesInstances(SpringApplicationRunListener.class, argumentResolver)
+    note right: 获取SpringApplicationRunListener实例\n用于在启动过程中发布事件
+
+    ' ========================================
+    ' 步骤1：启动监听器通知 - starting事件
+    ' 标志着Spring Boot应用开始启动
+    ' ========================================
     SpringApplication -> SpringApplicationRunListeners: starting()
     activate SpringApplicationRunListeners
     SpringApplicationRunListeners --> SpringApplication:
     deactivate SpringApplicationRunListeners
 
-    ' 2. 环境准备
+    ' ========================================
+    ' 步骤2：环境准备 - 配置Environment
+    ' 创建和配置ConfigurableEnvironment实例
+    ' ========================================
     SpringApplication -> SpringApplication: prepareEnvironment()
     activate SpringApplication
         SpringApplication -> ConfigurableEnvironment: getOrCreateEnvironment()
@@ -42,7 +69,8 @@ group run(args)
         ConfigurableEnvironment --> SpringApplication
         deactivate ConfigurableEnvironment
         
-        SpringApplication -> SpringApplication: 配置属性源和绑定命令行参数
+        SpringApplication -> SpringApplication: 绑定命令行参数和配置属性源\nconfigureEnvironment(environment, applicationArguments.getSourceArgs())\nConfigurationPropertySources.attach(environment)
+        note right: 配置属性源优先级：\n1. 命令行参数\n2. 系统属性\n3. 环境变量\n4. application.properties/yml
         
         SpringApplication -> SpringApplicationRunListeners: environmentPrepared()
         activate SpringApplicationRunListeners
@@ -50,15 +78,33 @@ group run(args)
         deactivate SpringApplicationRunListeners
     deactivate SpringApplication
 
-    ' 3. 创建应用上下文
+    ' 打印Banner
+    SpringApplication -> SpringApplication: printBanner(environment)
+    note right: 打印Spring Boot启动横幅\n可通过spring.banner.location自定义
+
+    ' ========================================
+    ' 步骤3：创建应用上下文 - ApplicationContext
+    ' 根据应用类型创建对应的上下文实现
+    ' ========================================
     SpringApplication -> ApplicationContext: createApplicationContext()
     activate ApplicationContext
     ApplicationContext --> SpringApplication:
     deactivate ApplicationContext
+    note right: 根据webApplicationType创建：\n- AnnotationConfigServletWebServerApplicationContext\n- AnnotationConfigReactiveWebServerApplicationContext\n- AnnotationConfigApplicationContext
 
-    ' 4. 上下文准备
+    ' ========================================
+    ' 步骤4：上下文准备 - prepareContext
+    ' 配置ApplicationContext的基本属性
+    ' ========================================
     SpringApplication -> SpringApplication: prepareContext()
     activate SpringApplication
+        SpringApplication -> ApplicationContext: setEnvironment(environment)
+        ApplicationContext --> SpringApplication:
+        note right: 将Environment设置到ApplicationContext
+
+        SpringApplication -> SpringApplication: applyInitializers(context)
+        note right: 执行所有ApplicationContextInitializer\n对ApplicationContext进行自定义初始化
+
         SpringApplication -> SpringApplicationRunListeners: contextPrepared(context)
         activate SpringApplicationRunListeners
         SpringApplicationRunListeners --> SpringApplication:
@@ -70,41 +116,52 @@ group run(args)
         deactivate SpringApplicationRunListeners
     deactivate SpringApplication
 
-    ' 5. 刷新上下文（核心阶段）
+    ' ========================================
+    ' 步骤5：刷新上下文 - refresh()核心阶段
+    ' Spring容器的核心初始化过程
+    ' ========================================
     SpringApplication -> ApplicationContext: refreshContext()
     activate ApplicationContext
     
         ApplicationContext -> AbstractApplicationContext: refresh()
         activate AbstractApplicationContext
         
-            ' 5.1 准备刷新
+            ' 5.1 准备刷新 - 设置启动时间，激活标志
             AbstractApplicationContext -> AbstractApplicationContext: prepareRefresh()
+            note right: 设置容器启动时间\n初始化属性源\n验证必需属性
             
-            ' 5.2 获取BeanFactory
+            ' 5.2 获取BeanFactory - 创建或刷新BeanFactory
             AbstractApplicationContext -> AbstractApplicationContext: obtainFreshBeanFactory()
+            note right: 创建DefaultListableBeanFactory\n加载Bean定义
             
-            ' 5.3 准备BeanFactory
+            ' 5.3 准备BeanFactory - 配置BeanFactory标准属性
             AbstractApplicationContext -> BeanFactory: prepareBeanFactory()
             activate BeanFactory
             BeanFactory --> AbstractApplicationContext:
             deactivate BeanFactory
+            note right: 设置ClassLoader\n添加BeanPostProcessor\n注册默认环境Bean
             
-            ' 5.4 后处理BeanFactory
+            ' 5.4 后处理BeanFactory - 子类扩展点
             AbstractApplicationContext -> AbstractApplicationContext: postProcessBeanFactory()
+            note right: 允许子类对BeanFactory进行\n进一步的设置和修改
             
-            ' 5.5 调用BeanFactory后处理器
+            ' 5.5 调用BeanFactory后处理器 - 执行BFPP
             AbstractApplicationContext -> AbstractApplicationContext: invokeBeanFactoryPostProcessors()
+            note right: 执行BeanFactoryPostProcessor\n包括ConfigurationClassPostProcessor\n处理@Configuration类
             
-            ' 5.6 注册Bean后处理器
+            ' 5.6 注册Bean后处理器 - 注册BPP
             AbstractApplicationContext -> AbstractApplicationContext: registerBeanPostProcessors()
+            note right: 注册BeanPostProcessor\n用于Bean实例化后的处理\n如@Autowired注入
             
-            ' 5.7 初始化消息源
+            ' 5.7 初始化消息源 - 国际化支持
             AbstractApplicationContext -> AbstractApplicationContext: initMessageSource()
+            note right: 初始化MessageSource\n支持国际化消息
             
-            ' 5.8 初始化事件多播器
+            ' 5.8 初始化事件多播器 - 事件发布机制
             AbstractApplicationContext -> AbstractApplicationContext: initApplicationEventMulticaster()
+            note right: 初始化ApplicationEventMulticaster\n用于发布ApplicationEvent
             
-            ' 5.9 刷新特定上下文（启动Web服务器）
+            ' 5.9 刷新特定上下文 - 启动Web服务器（关键步骤）
             AbstractApplicationContext -> AbstractApplicationContext: onRefresh()
             activate AbstractApplicationContext
                 AbstractApplicationContext -> WebServer: 创建和启动内嵌Web服务器
@@ -112,15 +169,19 @@ group run(args)
                 WebServer --> AbstractApplicationContext:
                 deactivate WebServer
             deactivate AbstractApplicationContext
+            note right: Web应用的关键步骤\n创建Tomcat/Jetty/Undertow\n启动HTTP服务器
             
-            ' 5.10 注册监听器
+            ' 5.10 注册监听器 - 注册事件监听器
             AbstractApplicationContext -> AbstractApplicationContext: registerListeners()
+            note right: 注册ApplicationListener\n发布早期事件
             
-            ' 5.11 完成BeanFactory初始化
+            ' 5.11 完成BeanFactory初始化 - 实例化单例Bean
             AbstractApplicationContext -> AbstractApplicationContext: finishBeanFactoryInitialization()
+            note right: 实例化所有非懒加载的单例Bean\n这是最耗时的步骤
             
-            ' 5.12 完成刷新
+            ' 5.12 完成刷新 - 发布刷新完成事件
             AbstractApplicationContext -> AbstractApplicationContext: finishRefresh()
+            note right: 清理资源缓存\n发布ContextRefreshedEvent\n启动Lifecycle Bean
         
         AbstractApplicationContext --> ApplicationContext:
         deactivate AbstractApplicationContext
@@ -128,30 +189,48 @@ group run(args)
     ApplicationContext --> SpringApplication:
     deactivate ApplicationContext
 
-    ' 6. 启动完成通知
+    ' ========================================
+    ' 步骤6：启动完成通知 - started事件
+    ' ApplicationContext已完全启动
+    ' ========================================
     SpringApplication -> SpringApplicationRunListeners: started(context)
     activate SpringApplicationRunListeners
     SpringApplicationRunListeners --> SpringApplication:
     deactivate SpringApplicationRunListeners
     
-    ' 7. 执行Runner
+    ' ========================================
+    ' 步骤7：执行Runner - 应用启动后回调
+    ' 执行用户自定义的启动逻辑
+    ' ========================================
     SpringApplication -> SpringApplication: callRunners(context, applicationArguments)
     activate SpringApplication
         SpringApplication -> SpringApplication: 执行ApplicationRunner和CommandLineRunner
+        note right: 按@Order排序执行\nApplicationRunner接收ApplicationArguments\nCommandLineRunner接收String[]参数
     deactivate SpringApplication
     
-    ' 8. 就绪通知
+    ' ========================================
+    ' 步骤8：就绪通知 - ready事件
+    ' 应用完全启动并准备接收请求
+    ' ========================================
     SpringApplication -> SpringApplicationRunListeners: ready(context)
     activate SpringApplicationRunListeners
     SpringApplicationRunListeners --> SpringApplication:
     deactivate SpringApplicationRunListeners
     
-    ' 9. 启动完成
+    ' ========================================
+    ' 步骤9：启动完成
+    ' Spring Boot应用启动流程结束
+    ' ========================================
     SpringApplication -> SpringApplication: 启动完成
+    note right: 启动耗时统计\n应用状态设置为RUNNING
 end
 
-' 返回结果
+' ========================================
+' 返回结果 - 启动成功
+' 返回可配置的ApplicationContext实例
+' ========================================
 SpringApplication --> Developer: 返回ConfigurableApplicationContext
 deactivate SpringApplication
+note left of Developer: 应用启动成功\n可通过返回的ApplicationContext\n获取Bean和管理应用生命周期
 
 @enduml
