@@ -1,0 +1,186 @@
+@startuml Spring Boot 3.4.4 应用上下文类图
+
+'https://plantuml.com/class-diagram
+'https://plantuml.com/zh/class-diagram
+
+title Spring Boot 3.4.4 应用上下文类图
+
+' ========== 顶层接口 ==========
+
+interface BeanDefinitionRegistry{
+registerBeanDefinition(beanName:String, beanDefinition:BeanDefinition):void
+}
+
+interface SingletonBeanRegistry{
+registerSingleton(beanName:String, singletonObject:Object):void
+addSingletonCallback(beanName:String, singletonConsumer:Consumer<Object>):void
+getSingleton(beanName:String):Object
+containsSingleton(beanName:String):boolean
+getSingletonNames():String[]
+getSingletonCount():int
+}
+
+interface BeanFactory{
+getBean(name:String):Object
+getBean<T>(name:String, requiredType:Class<T>):T
+getBean<T>(name:String, vararg args:Object):T
+getBean<T>(requiredType:Class<T>):T
+getBean<T>(requiredType:Class<T>, vararg args:Object):T
+containsBean(name:String):boolean
+isSingleton(name:String):boolean
+isPrototype(name:String):boolean
+}
+
+interface ResourceLoader{}
+
+interface ApplicationContextFactory{
+create(webApplicationType:WebApplicationType):ConfigurableApplicationContext
+}
+
+interface BeanPostProcessor{
+postProcessBeforeInitialization(bean:Object, beanName:String):Object 
+postProcessAfterInitialization(bean:Object, beanName:String):Object
+}
+
+' ========== 第二层接口（继承自顶层接口） ==========
+
+interface HierarchicalBeanFactory{
+getParentBeanFactory():BeanFactory
+containsLocalBean(name:String):boolean
+}
+
+interface ListableBeanFactory{
+getBeanDefinitionCount():int
+getBeanDefinitionNames():String[]
+getBeansOfType<T>(type:Class<T>):Map<String, T>
+getBeansOfType<T>(type:Class<T>, includeNonSingletons:boolean, allowEagerInit:boolean):Map<String, T>
+getBeanNamesForAnnotation(annotationType:Class<Annotation>):String[]
+getBeansWithAnnotation(annotationType:Class<Annotation>):Map<String, Object>
+}
+
+' ========== 第三层接口 ==========
+
+interface ConfigurableBeanFactory{
+setConversionService(conversionService:ConversionService):void 
+getConversionService():ConversionService
+addBeanPostProcessor(beanPostProcessor:BeanPostProcessor):void
+}
+
+interface ApplicationContext{}
+
+' ========== 第四层接口 ==========
+
+interface ConfigurableListableBeanFactory{}
+
+interface ConfigurableApplicationContext{
+setEnvironment(environment:ConfigurableEnvironment):void
+refresh():void
+}
+
+' ========== 实现类层次结构（从父类到子类） ==========
+
+class DefaultResourceLoader{}
+
+class DefaultSingletonBeanRegistry{
+- singletonObjects:Map<String, Object>
+}
+
+abstract class FactoryBeanRegistrySupport{}
+
+abstract class AbstractBeanFactory{
+# doGetBean<T>(name:String, requiredType:Class<T>, args:Object[], typeCheckOnly:boolean):T
+}
+
+abstract class AbstractAutowireCapableBeanFactory{}
+
+class DefaultListableBeanFactory{
+- beanDefinitionMap:Map<String, BeanDefinition>
++ registerBeanDefinition(beanName:String, beanDefinition:BeanDefinition):void
+}
+
+abstract class AbstractApplicationContext{
++ {abstract} getBeanFactory():ConfigurableListableBeanFactory
++ refresh():void
+# prepareRefresh():void
+# obtainFreshBeanFactory():ConfigurableListableBeanFactory
+# prepareBeanFactory(beanFactory:ConfigurableListableBeanFactory):void
+# postProcessBeanFactory(beanFactory:ConfigurableListableBeanFactory):void
+# invokeBeanFactoryPostProcessors(beanFactory:ConfigurableListableBeanFactory):void
+# registerBeanPostProcessors(beanFactory:ConfigurableListableBeanFactory):void
+# initMessageSource():void
+# initApplicationEventMulticaster():void
+# onRefresh():void
+# registerListeners():void
+# finishBeanFactoryInitialization(beanFactory:ConfigurableListableBeanFactory):void
+# finishRefresh():void
+}
+
+class GenericApplicationContext{
+- beanFactory:DefaultListableBeanFactory
++ getBeanFactory():ConfigurableListableBeanFactory
+}
+
+class GenericWebApplicationContext{}
+
+class ServletWebServerApplicationContext{}
+
+class AnnotationConfigServletWebServerApplicationContext{
+- reader:AnnotatedBeanDefinitionReader
+- scanner:ClassPathBeanDefinitionScanner
+}
+
+' ========== 应用上下文工厂实现类 ==========
+
+class DefaultApplicationContextFactory{
+- createDefaultApplicationContext():ConfigurableApplicationContext
+- getFromSpringFactories<T>(webApplicationType:WebApplicationType, action:BiFunction<ApplicationContextFactory, WebApplicationType, T>, defaultResult:Supplier<T>):T  
+}
+
+class ServletWebServerApplicationContextFactory{ }
+
+class ReactiveWebServerApplicationContextFactory{}
+
+' ========== 继承和实现关系 ==========
+
+' Bean工厂接口继承关系
+BeanFactory <|.. HierarchicalBeanFactory
+BeanFactory <|.. ListableBeanFactory
+HierarchicalBeanFactory <|.. ConfigurableBeanFactory
+SingletonBeanRegistry <|.. ConfigurableBeanFactory
+ListableBeanFactory <|.. ConfigurableListableBeanFactory
+ConfigurableBeanFactory <|.. ConfigurableListableBeanFactory
+
+' Bean工厂实现类继承关系
+DefaultSingletonBeanRegistry <|-- FactoryBeanRegistrySupport
+FactoryBeanRegistrySupport <|-- AbstractBeanFactory
+AbstractBeanFactory <|-- AbstractAutowireCapableBeanFactory
+AbstractAutowireCapableBeanFactory <|-- DefaultListableBeanFactory
+
+' Bean工厂接口实现关系
+ConfigurableListableBeanFactory <|.. DefaultListableBeanFactory
+BeanDefinitionRegistry <|.. DefaultListableBeanFactory
+
+' 应用上下文接口继承关系
+ListableBeanFactory <|.. ApplicationContext
+ApplicationContext <|.. ConfigurableApplicationContext
+
+' 应用上下文实现类继承关系
+ResourceLoader <|.. DefaultResourceLoader
+DefaultResourceLoader <|-- AbstractApplicationContext
+ConfigurableApplicationContext <|.. AbstractApplicationContext
+AbstractApplicationContext <|-- GenericApplicationContext
+GenericApplicationContext <|-- GenericWebApplicationContext
+GenericWebApplicationContext <|-- ServletWebServerApplicationContext
+ServletWebServerApplicationContext <|-- AnnotationConfigServletWebServerApplicationContext
+
+' 组合关系
+GenericApplicationContext --> DefaultListableBeanFactory
+
+' 应用上下文工厂实现关系
+ApplicationContextFactory <|.. DefaultApplicationContextFactory
+ApplicationContextFactory <|.. ReactiveWebServerApplicationContextFactory
+ApplicationContextFactory <|.. ServletWebServerApplicationContextFactory
+ApplicationContextFactory ..> ConfigurableApplicationContext
+
+
+@enduml
