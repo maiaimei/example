@@ -18,7 +18,7 @@ participant AnnotatedBeanDefinitionReader
 participant ClassPathBeanDefinitionScanner
 participant ConfigurableApplicationContext
 participant AbstractApplicationContext
-participant ConfigurableBeanFactory
+participant ConfigurationClassPostProcessor
 participant BeanFactory
 participant SingletonBeanRegistry
 participant WebServer
@@ -316,20 +316,13 @@ group 应用启动执行 run(args)
             
             ' 准备BeanFactory - 配置工厂的标准上下文特性，例如上下文的类加载器和后处理器。
             AbstractApplicationContext -> AbstractApplicationContext: prepareBeanFactory()
-            note right: 设置ClassLoader\n添加BeanPostProcessor\n注册默认环境Bean
-            activate AbstractApplicationContext
-
-            AbstractApplicationContext -> ConfigurableBeanFactory: addBeanPostProcessor(new ApplicationContextAwareProcessor(this))
-            activate ConfigurableBeanFactory
-            ConfigurableBeanFactory --> AbstractApplicationContext:
-            deactivate ConfigurableBeanFactory
-
-            AbstractApplicationContext -> ConfigurableBeanFactory: addBeanPostProcessor(new ApplicationListenerDetector(this))
-            activate ConfigurableBeanFactory
-            ConfigurableBeanFactory --> AbstractApplicationContext:
-            deactivate ConfigurableBeanFactory            
-
-            deactivate AbstractApplicationContext
+            note right
+            设置ClassLoader
+            添加BeanPostProcessor
+            • ApplicationContextAwareProcessor - 注册应用上下文感知处理器，处理Aware接口，使Bean能够感知ApplicationContext
+            • ApplicationListenerDetector - 注册应用监听器检测器，自动注册实现ApplicationListener接口的Bean作为事件监听器
+            注册默认环境Bean
+            end note
             
             ' 后处理BeanFactory - 子类扩展点
             AbstractApplicationContext -> AbstractApplicationContext: postProcessBeanFactory()
@@ -337,7 +330,28 @@ group 应用启动执行 run(args)
             
             ' 调用BeanFactory后处理器 - 执行BFPP
             AbstractApplicationContext -> AbstractApplicationContext: invokeBeanFactoryPostProcessors()
-            note right: 执行BeanFactoryPostProcessor\n包括ConfigurationClassPostProcessor\n处理@Configuration类
+            note right
+            首先按照PriorityOrdered、Ordered、无顺序分类的顺序实例化所有已注册的 BeanDefinitionRegistryPostProcessor Bean
+            接着执行BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry方法
+            然后按照PriorityOrdered、Ordered、无顺序分类的顺序实例化所有已注册的 BeanFactoryPostProcessor Bean
+            最后执行BeanFactoryPostProcessor的postProcessBeanFactory方法
+            end note
+            activate AbstractApplicationContext
+            AbstractApplicationContext -> ConfigurationClassPostProcessor: postProcessBeanDefinitionRegistry(registry)
+                activate ConfigurationClassPostProcessor
+                note right
+                ConfigurationClassParser#parse
+                -> calls ConfigurationClassParser.DeferredImportSelectorHandler#process
+                ConfigurationClassParser#doProcessConfigurationClass
+                • Process @ComponentScan annotations
+                • Process @Import annotations
+                • Process @ImportResource annotations
+                • Process @Bean methods
+                ConfigurationClassBeanDefinitionReader#loadBeanDefinitions
+                end note
+                ConfigurationClassPostProcessor --> AbstractApplicationContext:
+                deactivate ConfigurationClassPostProcessor
+            deactivate AbstractApplicationContext
             
             ' 注册Bean后处理器 - 注册BPP
             AbstractApplicationContext -> AbstractApplicationContext: registerBeanPostProcessors()
