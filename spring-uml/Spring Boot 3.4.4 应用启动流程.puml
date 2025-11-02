@@ -13,9 +13,13 @@ participant "开发者" as Developer
 participant SpringApplication
 participant SpringApplicationRunListeners
 participant DefaultApplicationContextFactory
+participant AnnotationConfigServletWebServerApplicationContext
+participant AnnotatedBeanDefinitionReader
+participant AnnotationConfigUtils
+participant ClassPathBeanDefinitionScanner
 participant ConfigurableApplicationContext
-participant ApplicationContext
 participant AbstractApplicationContext
+participant ConfigurableBeanFactory
 participant BeanFactory
 participant SingletonBeanRegistry
 participant WebServer
@@ -120,10 +124,38 @@ group run(args)
     SpringApplication -> SpringApplication: createApplicationContext()
     activate SpringApplication
         SpringApplication --> DefaultApplicationContextFactory: create(WebApplicationType webApplicationType)
+        note right: 根据webApplicationType创建对应的ApplicationContext实现\n- SERVLET: AnnotationConfigServletWebServerApplicationContext\n- REACTIVE: AnnotationConfigReactiveWebServerApplicationContext\n- NONE: AnnotationConfigApplicationContext
         activate DefaultApplicationContextFactory
+
+        DefaultApplicationContextFactory -> AnnotationConfigServletWebServerApplicationContext: new AnnotationConfigServletWebServerApplicationContext()
+        note right: 创建AnnotationConfigServletWebServerApplicationContext实例\n适用于SERVLET类型的Web应用
+        activate AnnotationConfigServletWebServerApplicationContext
+
+        AnnotationConfigServletWebServerApplicationContext -> AnnotatedBeanDefinitionReader: new AnnotatedBeanDefinitionReader(this) 
+        activate AnnotatedBeanDefinitionReader
+
+        AnnotatedBeanDefinitionReader -> AnnotationConfigUtils: registerAnnotationConfigProcessors(this.registry)
+        activate AnnotationConfigUtils
+        note right
+        注册后处理器：
+        - ConfigurationClassPostProcessor: 处理@Configuration类
+        - AutowiredAnnotationBeanPostProcessor: 处理@Autowired注解
+        - CommonAnnotationBeanPostProcessor: 处理@Resource等注解
+        注册工具Bean：
+        - EventListenerMethodProcessor: 处理@EventListener注解
+        - DefaultEventListenerFactory: 事件监听器工厂
+        end note
+        AnnotationConfigUtils --> AnnotatedBeanDefinitionReader:
+        deactivate AnnotationConfigUtils
+
+        AnnotatedBeanDefinitionReader --> AnnotationConfigServletWebServerApplicationContext: AnnotatedBeanDefinitionReader
+        deactivate AnnotatedBeanDefinitionReader
+        
+        AnnotationConfigServletWebServerApplicationContext --> DefaultApplicationContextFactory:
+        deactivate AnnotationConfigServletWebServerApplicationContext
+        
         DefaultApplicationContextFactory --> SpringApplication: ConfigurableApplicationContext
         deactivate DefaultApplicationContextFactory
-        note right: 根据webApplicationType创建对应的ApplicationContext实现\n- SERVLET: AnnotationConfigServletWebServerApplicationContext\n- REACTIVE: AnnotationConfigReactiveWebServerApplicationContext\n- NONE: AnnotationConfigApplicationContext
     deactivate SpringApplication
 
     ' ========================================
@@ -170,29 +202,39 @@ group run(args)
     deactivate SpringApplication
 
     ' ========================================
-    ' 步骤5：刷新上下文 - refresh()核心阶段
+    ' 刷新上下文 - refresh()核心阶段
     ' Spring容器的核心初始化过程
     ' ========================================
-    SpringApplication -> ApplicationContext: refreshContext()
-    activate ApplicationContext
+    SpringApplication -> SpringApplication: refreshContext()
+    activate SpringApplication
     
-        ApplicationContext -> AbstractApplicationContext: refresh()
+        SpringApplication -> AbstractApplicationContext: refresh()
         activate AbstractApplicationContext
         
-            ' 5.1 准备刷新 - 设置启动时间，激活标志
+            ' 准备刷新 - 设置启动时间，激活标志
             AbstractApplicationContext -> AbstractApplicationContext: prepareRefresh()
             note right: 设置容器启动时间\n初始化属性源\n验证必需属性
             
-            ' 5.2 获取BeanFactory - 创建或刷新BeanFactory
+            ' 获取BeanFactory - 通知子类刷新内部的Bean工厂
             AbstractApplicationContext -> AbstractApplicationContext: obtainFreshBeanFactory()
-            note right: 创建DefaultListableBeanFactory\n加载Bean定义
+            note right: 通知子类刷新内部的Bean工厂
             
-            ' 5.3 准备BeanFactory - 配置BeanFactory标准属性
-            AbstractApplicationContext -> BeanFactory: prepareBeanFactory()
-            activate BeanFactory
-            BeanFactory --> AbstractApplicationContext:
-            deactivate BeanFactory
+            ' 准备BeanFactory - 配置工厂的标准上下文特性，例如上下文的类加载器和后处理器。
+            AbstractApplicationContext -> AbstractApplicationContext: prepareBeanFactory()
             note right: 设置ClassLoader\n添加BeanPostProcessor\n注册默认环境Bean
+            activate AbstractApplicationContext
+
+            AbstractApplicationContext -> ConfigurableBeanFactory: addBeanPostProcessor(new ApplicationContextAwareProcessor(this))
+            activate ConfigurableBeanFactory
+            ConfigurableBeanFactory --> AbstractApplicationContext:
+            deactivate ConfigurableBeanFactory
+
+            AbstractApplicationContext -> ConfigurableBeanFactory: addBeanPostProcessor(new ApplicationListenerDetector(this))
+            activate ConfigurableBeanFactory
+            ConfigurableBeanFactory --> AbstractApplicationContext:
+            deactivate ConfigurableBeanFactory            
+
+            deactivate AbstractApplicationContext
             
             ' 5.4 后处理BeanFactory - 子类扩展点
             AbstractApplicationContext -> AbstractApplicationContext: postProcessBeanFactory()
@@ -236,11 +278,10 @@ group run(args)
             AbstractApplicationContext -> AbstractApplicationContext: finishRefresh()
             note right: 清理资源缓存\n发布ContextRefreshedEvent\n启动Lifecycle Bean
         
-        AbstractApplicationContext --> ApplicationContext:
+        AbstractApplicationContext --> SpringApplication:
         deactivate AbstractApplicationContext
     
-    ApplicationContext --> SpringApplication:
-    deactivate ApplicationContext
+    deactivate SpringApplication
 
     ' ========================================
     ' 步骤6：启动完成通知 - started事件
