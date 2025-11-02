@@ -12,10 +12,12 @@ title Spring Boot 3.4.4 应用启动流程
 participant "开发者" as Developer
 participant SpringApplication
 participant SpringApplicationRunListeners
-participant ConfigurableEnvironment
+participant DefaultApplicationContextFactory
+participant ConfigurableApplicationContext
 participant ApplicationContext
 participant AbstractApplicationContext
 participant BeanFactory
+participant SingletonBeanRegistry
 participant WebServer
 
 ' ========================================
@@ -34,13 +36,24 @@ note right of SpringApplication: primarySources通常是@SpringBootApplication�
 ' ========================================
 group new SpringApplication(primarySources)
     SpringApplication -> SpringApplication: 推断应用类型(Servlet/Reactive/None)\nthis.webApplicationType = WebApplicationType.deduceFromClasspath();
-    note right: 根据classpath中的类判断应用类型：\n- SERVLET: 传统Web应用\n- REACTIVE: WebFlux响应式应用\n- NONE: 非Web应用
+    note right
+    根据classpath中的类判断应用类型：
+    - SERVLET: 传统Web应用
+    - REACTIVE: WebFlux响应式应用
+    - NONE: 非Web应用
+    end note
     
-    SpringApplication -> SpringApplication: 加载ApplicationContextInitializer\nsetInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
-    note right: 从META-INF/spring.factories加载\n用于在ApplicationContext刷新前进行初始化
+    SpringApplication -> SpringApplication: setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+    note right
+    从META-INF/spring.factories加载ApplicationContextInitializer实例
+    用于自定义初始化ApplicationContext
+    end note
     
-    SpringApplication -> SpringApplication: 加载ApplicationListener\nsetListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
-    note right: 加载应用事件监听器\n监听Spring Boot启动过程中的各种事件
+    SpringApplication -> SpringApplication: setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+    note right
+    从META-INF/spring.factories加载ApplicationListener实例
+    用于监听应用事件
+    end note
 end
 
 ' ========================================
@@ -48,34 +61,49 @@ end
 ' Spring Boot启动的9个关键步骤
 ' ========================================
 group run(args)
-    ' 步骤0：获取运行时监听器
-    SpringApplication -> SpringApplication: getRunListeners()\ngetSpringFactoriesInstances(SpringApplicationRunListener.class, argumentResolver)
-    note right: 获取SpringApplicationRunListener实例\n用于在启动过程中发布事件
+    ' 获取运行时监听器
+    SpringApplication -> SpringApplication: getRunListeners()
+    note right
+    从META-INF/spring.factories加载SpringApplicationRunListener实例。
+    SpringApplicationRunListener接口用于监听Spring Boot应用启动过程中的各个关键阶段，
+    允许开发者在不同时间点插入自定义逻辑。
+    用于在启动过程中发布事件。
+    end note
 
     ' ========================================
-    ' 步骤1：启动监听器通知 - starting事件
+    ' 启动监听器通知 - starting事件
     ' 标志着Spring Boot应用开始启动
     ' ========================================
     SpringApplication -> SpringApplicationRunListeners: starting()
+    note right: 通知所有注册的SpringApplicationRunListener实例应用启动开始\n可用于执行预启动逻辑，此时应用环境、上下文等均未初始化，适合在最早期进行准备工作
     activate SpringApplicationRunListeners
     SpringApplicationRunListeners --> SpringApplication:
     deactivate SpringApplicationRunListeners
 
     ' ========================================
-    ' 步骤2：环境准备 - 配置Environment
+    ' 环境准备 - 配置Environment
     ' 创建和配置ConfigurableEnvironment实例
     ' ========================================
     SpringApplication -> SpringApplication: prepareEnvironment()
+    note right: Spring Boot启动过程中负责创建和配置应用环境的核心方法
     activate SpringApplication
-        SpringApplication -> ConfigurableEnvironment: getOrCreateEnvironment()
-        activate ConfigurableEnvironment
-        ConfigurableEnvironment --> SpringApplication
-        deactivate ConfigurableEnvironment
+        SpringApplication -> SpringApplication: getOrCreateEnvironment()
+        activate SpringApplication
+        SpringApplication -> DefaultApplicationContextFactory: createEnvironment()
+        note right: 根据webApplicationType创建对应的Environment实现\n- StandardServletEnvironment\n- StandardReactiveEnvironment\n- StandardEnvironment
+        activate DefaultApplicationContextFactory
+        DefaultApplicationContextFactory --> SpringApplication: ConfigurableEnvironment
+        deactivate DefaultApplicationContextFactory
+        deactivate SpringApplication
         
-        SpringApplication -> SpringApplication: 绑定命令行参数和配置属性源\nconfigureEnvironment(environment, applicationArguments.getSourceArgs())\nConfigurationPropertySources.attach(environment)
+        SpringApplication -> SpringApplication: configureEnvironment(environment, applicationArguments.getSourceArgs())
         note right: 配置属性源优先级：\n1. 命令行参数\n2. 系统属性\n3. 环境变量\n4. application.properties/yml
+
+        SpringApplication -> SpringApplication: ConfigurationPropertySources.attach(environment)
+        note right: 将配置属性源附加到环境中，确保属性源处于正确位置
         
         SpringApplication -> SpringApplicationRunListeners: environmentPrepared()
+        note right: 通知监听器Environment已准备好\n可用于修改环境属性\n当环境配置准备完成、但应用上下文尚未创建时触发，可用于对环境进行自定义修改
         activate SpringApplicationRunListeners
         SpringApplicationRunListeners --> SpringApplication:
         deactivate SpringApplicationRunListeners
@@ -86,34 +114,56 @@ group run(args)
     note right: 打印Spring Boot启动横幅\n可通过spring.banner.location自定义
 
     ' ========================================
-    ' 步骤3：创建应用上下文 - ApplicationContext
+    ' 创建应用上下文 - ApplicationContext
     ' 根据应用类型创建对应的上下文实现
     ' ========================================
-    SpringApplication -> ApplicationContext: createApplicationContext()
-    activate ApplicationContext
-    ApplicationContext --> SpringApplication:
-    deactivate ApplicationContext
-    note right: 根据webApplicationType创建：\n- AnnotationConfigServletWebServerApplicationContext\n- AnnotationConfigReactiveWebServerApplicationContext\n- AnnotationConfigApplicationContext
+    SpringApplication -> SpringApplication: createApplicationContext()
+    activate SpringApplication
+        SpringApplication --> DefaultApplicationContextFactory: create(WebApplicationType webApplicationType)
+        activate DefaultApplicationContextFactory
+        DefaultApplicationContextFactory --> SpringApplication: ConfigurableApplicationContext
+        deactivate DefaultApplicationContextFactory
+        note right: 根据webApplicationType创建对应的ApplicationContext实现\n- SERVLET: AnnotationConfigServletWebServerApplicationContext\n- REACTIVE: AnnotationConfigReactiveWebServerApplicationContext\n- NONE: AnnotationConfigApplicationContext
+    deactivate SpringApplication
 
     ' ========================================
-    ' 步骤4：上下文准备 - prepareContext
+    ' 上下文准备 - prepareContext
     ' 配置ApplicationContext的基本属性
     ' ========================================
     SpringApplication -> SpringApplication: prepareContext()
     activate SpringApplication
-        SpringApplication -> ApplicationContext: setEnvironment(environment)
-        ApplicationContext --> SpringApplication:
+        SpringApplication -> ConfigurableApplicationContext: setEnvironment(environment)
         note right: 将Environment设置到ApplicationContext
+        activate ConfigurableApplicationContext
+        ConfigurableApplicationContext --> SpringApplication:
+        deactivate ConfigurableApplicationContext
+
+        SpringApplication -> SpringApplication: postProcessApplicationContext(context)
+        note right: 对ApplicationContext进行后处理\n如注册特定的Bean定义
 
         SpringApplication -> SpringApplication: applyInitializers(context)
         note right: 执行所有ApplicationContextInitializer\n对ApplicationContext进行自定义初始化
 
         SpringApplication -> SpringApplicationRunListeners: contextPrepared(context)
+        note right: 通知监听器ApplicationContext已准备好\n可用于注册Bean定义或修改上下文配置\n在应用上下文构建完成、但尚未加载Bean定义前调用，适合对上下文进行早期配置
         activate SpringApplicationRunListeners
         SpringApplicationRunListeners --> SpringApplication:
         deactivate SpringApplicationRunListeners
+
+        SpringApplication -> SingletonBeanRegistry: registerSingleton("springApplicationArguments", applicationArguments)
+        note right: 注册springApplicationArguments单例Bean\n用于在应用中访问启动参数
+        activate SingletonBeanRegistry
+        SingletonBeanRegistry --> SpringApplication:
+        deactivate SingletonBeanRegistry
+
+        SpringApplication -> ConfigurableApplicationContext: addBeanFactoryPostProcessor(new PropertySourceOrderingBeanFactoryPostProcessor(context))
+        note right: 注册BeanFactoryPostProcessor\n确保属性源按优先级排序
+        activate ConfigurableApplicationContext
+        ConfigurableApplicationContext --> SpringApplication:
+        deactivate ConfigurableApplicationContext
         
         SpringApplication -> SpringApplicationRunListeners: contextLoaded(context)
+        note right: 通知监听器ApplicationContext已加载\n可用于在Bean实例化前进行最后的修改\n在应用上下文加载完所有Bean定义后、但尚未实例化任何Bean前调用，适合对Bean定义进行最终调整
         activate SpringApplicationRunListeners
         SpringApplicationRunListeners --> SpringApplication:
         deactivate SpringApplicationRunListeners
