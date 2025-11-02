@@ -19,6 +19,7 @@ participant ClassPathBeanDefinitionScanner
 participant ConfigurableApplicationContext
 participant AbstractApplicationContext
 participant ConfigurationClassPostProcessor
+participant ConfigurationClassParser
 participant BeanFactory
 participant SingletonBeanRegistry
 participant WebServer
@@ -339,16 +340,36 @@ group 应用启动执行 run(args)
             activate AbstractApplicationContext
             AbstractApplicationContext -> ConfigurationClassPostProcessor: postProcessBeanDefinitionRegistry(registry)
                 activate ConfigurationClassPostProcessor
+
+                ConfigurationClassPostProcessor -> ConfigurationClassParser: new()
+                activate ConfigurationClassParser
+                ConfigurationClassParser --> ConfigurationClassPostProcessor: parser
+                deactivate ConfigurationClassParser
+
+                ConfigurationClassPostProcessor -> ConfigurationClassParser: parser.parse(candidates)
+                activate ConfigurationClassParser
+                ConfigurationClassParser -> ConfigurationClassParser: processConfigurationClass(configClass, filter)
+                activate ConfigurationClassParser
                 note right
-                ConfigurationClassParser#parse
-                -> calls ConfigurationClassParser.DeferredImportSelectorHandler#process
-                ConfigurationClassParser#doProcessConfigurationClass
-                • Process @ComponentScan annotations
-                • Process @Import annotations
-                • Process @ImportResource annotations
-                • Process @Bean methods
-                ConfigurationClassBeanDefinitionReader#loadBeanDefinitions
+                1. Recursively process any member (nested) classes first
+                2. Process any @PropertySource annotations
+                3. Process any @ComponentScan annotations
+                4. Process any @Import annotations
+                5. Process any @ImportResource annotations
+                6. Process individual @Bean methods
+                7. Process default methods on interfaces
+                8. Process superclass, if any
                 end note
+                deactivate ConfigurationClassParser
+                ConfigurationClassParser -> ConfigurationClassParser: this.deferredImportSelectorHandler.process()
+                note right
+                执行 ConfigurationClassParser.DeferredImportSelectorGrouping#getImports
+                执行 AutoConfigurationImportSelector.AutoConfigurationGroup#process
+                执行 AutoConfigurationImportSelector.AutoConfigurationGroup#selectImports
+                end note
+                ConfigurationClassParser --> ConfigurationClassPostProcessor:
+                deactivate ConfigurationClassParser
+
                 ConfigurationClassPostProcessor --> AbstractApplicationContext:
                 deactivate ConfigurationClassPostProcessor
             deactivate AbstractApplicationContext
